@@ -56,8 +56,15 @@ erDiagram
     
     PERSONS ||--o{ PERSON_DEPARTMENTS : belongs_to
     PERSON_DEPARTMENTS }o--|| DEPARTMENTS : in
+    PERSONS ||--o{ BUSINESS_MEMBERS : participates_in
+    BUSINESS_MEMBERS }o--|| BUSINESSES : belongs_to
+    PERSONS ||--o{ SEARCH_FAVORITES : saves
     
     DEPARTMENTS ||--o{ DEPARTMENTS : parent_of
+    
+    BUSINESSES ||--o{ BUSINESS_MEMBERS : has_members
+    
+    CIRCULATION }o--o| EXTERNAL_CONTACTS : external_recipient
     
     FILE_CHECK_RESULTS }o--|| CHECK_EXCLUSIONS : excluded_by
 ```
@@ -214,18 +221,60 @@ erDiagram
 | created_at       | TIMESTAMP    | DEFAULT NOW  | 作成日時                  |
 | updated_at       | TIMESTAMP    | DEFAULT NOW  | 更新日時                  |
 
-#### 2.2.12 回覧管理 (circulation)
+#### 2.2.12 業務従事者管理 (business_members)
 
-| Column           | Type        | Constraint           | Description |
-| ---------------- | ----------- | -------------------- | ----------- |
-| id               | INTEGER     | PRIMARY KEY          | 回覧ID      |
-| document_id      | INTEGER     | FOREIGN KEY          | 文書ID      |
-| recipient_id     | INTEGER     | FOREIGN KEY          | 回覧先ID    |
-| circulation_type | VARCHAR(20) | DEFAULT 'info_share' | 回覧種別    |
-| status           | VARCHAR(20) | DEFAULT 'pending'    | 状態        |
-| sent_at          | TIMESTAMP   | NULL                 | 送信日時    |
-| read_at          | TIMESTAMP   | NULL                 | 確認日時    |
-| created_at       | TIMESTAMP   | DEFAULT NOW          | 作成日時    |
+| Column              | Type        | Constraint     | Description                       |
+| ------------------- | ----------- | -------------- | --------------------------------- |
+| id                  | INTEGER     | PRIMARY KEY    | 業務従事者ID                      |
+| business_id         | INTEGER     | FOREIGN KEY    | 業務ID                            |
+| person_id           | INTEGER     | FOREIGN KEY    | 人員ID                            |
+| role                | VARCHAR(50) | NULL           | 業務での役割                      |
+| participation_level | VARCHAR(20) | DEFAULT 'main' | 参加レベル(main/support/observer) |
+| valid_from          | DATE        | NOT NULL       | 従事開始日                        |
+| valid_to            | DATE        | NULL           | 従事終了日                        |
+| created_at          | TIMESTAMP   | DEFAULT NOW    | 作成日時                          |
+| updated_at          | TIMESTAMP   | DEFAULT NOW    | 更新日時                          |
+
+**Index**: UNIQUE(business_id, person_id, valid_from) -- 業務・人員・期間の組み合わせで一意
+
+#### 2.2.13 外部連絡先 (external_contacts)
+
+| Column       | Type         | Constraint      | Description                        |
+| ------------ | ------------ | --------------- | ---------------------------------- |
+| id           | INTEGER      | PRIMARY KEY     | 外部連絡先ID                       |
+| name         | VARCHAR(100) | NOT NULL        | 氏名・組織名                       |
+| email        | VARCHAR(100) | NOT NULL        | メールアドレス                     |
+| organization | VARCHAR(200) | NULL            | 所属組織                           |
+| contact_type | VARCHAR(20)  | DEFAULT 'other' | 連絡先種別(customer/partner/other) |
+| is_active    | BOOLEAN      | DEFAULT TRUE    | 有効フラグ                         |
+| created_at   | TIMESTAMP    | DEFAULT NOW     | 作成日時                           |
+| updated_at   | TIMESTAMP    | DEFAULT NOW     | 更新日時                           |
+
+#### 2.2.14 検索お気に入り (search_favorites)
+
+| Column            | Type         | Constraint  | Description                        |
+| ----------------- | ------------ | ----------- | ---------------------------------- |
+| id                | INTEGER      | PRIMARY KEY | お気に入りID                       |
+| user_id           | INTEGER      | FOREIGN KEY | 利用者ID                           |
+| search_type       | VARCHAR(20)  | NOT NULL    | 検索種別(person/business/document) |
+| search_name       | VARCHAR(100) | NOT NULL    | 検索名                             |
+| search_conditions | TEXT         | NOT NULL    | 検索条件(JSON形式)                 |
+| created_at        | TIMESTAMP    | DEFAULT NOW | 作成日時                           |
+
+#### 2.2.15 回覧管理 (circulation) - 拡張
+
+| Column              | Type        | Constraint           | Description                   |
+| ------------------- | ----------- | -------------------- | ----------------------------- |
+| id                  | INTEGER     | PRIMARY KEY          | 回覧ID                        |
+| document_id         | INTEGER     | FOREIGN KEY          | 文書ID                        |
+| recipient_id        | INTEGER     | FOREIGN KEY          | 回覧先ID                      |
+| recipient_type      | VARCHAR(20) | DEFAULT 'internal'   | 回覧先種別(internal/external) |
+| external_contact_id | INTEGER     | FOREIGN KEY          | 外部連絡先ID                  |
+| circulation_type    | VARCHAR(20) | DEFAULT 'info_share' | 回覧種別                      |
+| status              | VARCHAR(20) | DEFAULT 'pending'    | 状態                          |
+| sent_at             | TIMESTAMP   | NULL                 | 送信日時                      |
+| read_at             | TIMESTAMP   | NULL                 | 確認日時                      |
+| created_at          | TIMESTAMP   | DEFAULT NOW          | 作成日時                      |
 
 ## 3. インターフェース設計
 
@@ -283,6 +332,100 @@ erDiagram
 | 人員検索     | GET          | /api/persons                  | 人員情報検索 |
 | 所属履歴取得 | GET          | /api/persons/{id}/departments | 所属履歴     |
 | AD同期       | POST         | /api/sync/ad                  | AD情報同期   |
+
+#### 3.1.5 業務従事者管理API
+
+| API                  | HTTPメソッド | エンドポイント                     | 説明             |
+| -------------------- | ------------ | ---------------------------------- | ---------------- |
+| 業務メンバー一覧取得 | GET          | /api/businesses/{id}/members       | 業務従事者一覧   |
+| 業務メンバー追加     | POST         | /api/businesses/{id}/members       | 従事者追加       |
+| 業務メンバー更新     | PUT          | /api/business-members/{id}         | 従事者情報更新   |
+| 業務メンバー削除     | DELETE       | /api/business-members/{id}         | 従事者削除       |
+| 役割別メンバー取得   | GET          | /api/businesses/{id}/members/roles | 役割別従事者取得 |
+
+#### 3.1.6 高度検索API
+
+| API          | HTTPメソッド | エンドポイント                 | 説明               |
+| ------------ | ------------ | ------------------------------ | ------------------ |
+| 社員高度検索 | GET          | /api/persons/search            | 複合条件社員検索   |
+| 業務高度検索 | GET          | /api/businesses/search         | 複合条件業務検索   |
+| 検索候補取得 | GET          | /api/search/suggestions/{type} | オートコンプリート |
+| 検索履歴保存 | POST         | /api/search/favorites          | お気に入り保存     |
+| 検索履歴取得 | GET          | /api/search/favorites          | お気に入り一覧     |
+
+**社員検索APIパラメータ例:**
+
+```json
+{
+  "q": "田中",
+  "department_id": 5,
+  "role": "課長",
+  "business_id": 123,
+  "is_active": true,
+  "participation_level": ["main", "support"],
+  "valid_date": "2024-01-01",
+  "limit": 50,
+  "offset": 0
+}
+```
+
+**業務検索APIパラメータ例:**
+
+```json
+{
+  "q": "システム開発",
+  "business_number": "12345",
+  "department_id": 5,
+  "customer_id": 10,
+  "period_from": "2024-01-01",
+  "period_to": "2024-12-31",
+  "member_id": 25,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+#### 3.1.7 回覧管理API
+
+| API            | HTTPメソッド | エンドポイント                             | 説明           |
+| -------------- | ------------ | ------------------------------------------ | -------------- |
+| 回覧候補取得   | GET          | /api/documents/{id}/circulation-candidates | 階層化候補取得 |
+| 一括回覧設定   | POST         | /api/documents/{id}/circulation/bulk       | 一括回覧設定   |
+| 外部回覧設定   | POST         | /api/documents/{id}/circulation/external   | 外部向け回覧   |
+| 外部連絡先管理 | GET/POST     | /api/external-contacts                     | 外部連絡先CRUD |
+| 回覧状況取得   | GET          | /api/documents/{id}/circulation/status     | 回覧状況確認   |
+
+**回覧候補APIレスポンス例:**
+
+```json
+{
+  "business_members": [
+    {
+      "person_id": 123,
+      "name": "田中太郎",
+      "role": "プロジェクトマネージャー",
+      "participation_level": "main",
+      "department": "技術部"
+    }
+  ],
+  "department_members": [
+    {
+      "person_id": 124,
+      "name": "佐藤花子",
+      "department": "技術部",
+      "section": "解析課"
+    }
+  ],
+  "external_contacts": [
+    {
+      "contact_id": 1,
+      "name": "山田商事",
+      "email": "contact@yamada.co.jp",
+      "contact_type": "customer"
+    }
+  ]
+}
+```
 
 ### 3.2 ファイルアクセス設計
 
