@@ -8,7 +8,9 @@
       "mcp__serena__replace_regex",
       "mcp__serena__search_for_pattern",
       "mcp__serena__think_about_collected_information",
-      "mcp__serena__think_about_whether_you_are_done"
+      "mcp__serena__think_about_whether_you_are_done",
+      "mcp__serena__create_text_file",
+      "mcp__serena__insert_after_symbol"
     ],
     "deny": [],
     "ask": []
