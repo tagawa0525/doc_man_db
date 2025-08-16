@@ -151,22 +151,30 @@ erDiagram
 
 #### 2.2.7 文書マスタ (documents)
 
-| Column                | Type         | Constraint             | Description  |
-| --------------------- | ------------ | ---------------------- | ------------ |
-| id                    | INTEGER      | PRIMARY KEY            | 文書ID       |
-| document_number       | VARCHAR(50)  | UNIQUE NOT NULL        | 文書番号     |
-| title                 | VARCHAR(500) | NOT NULL               | 文書タイトル |
-| document_type_id      | INTEGER      | FOREIGN KEY            | 文書種別ID   |
-| department_id         | INTEGER      | FOREIGN KEY            | 作成部署ID   |
-| creator_id            | INTEGER      | FOREIGN KEY            | 作成者ID     |
-| business_id           | INTEGER      | FOREIGN KEY            | 業務ID       |
-| customer_id           | INTEGER      | FOREIGN KEY            | 顧客ID       |
-| confidentiality_level | VARCHAR(20)  | DEFAULT 'internal_low' | 機密レベル   |
-| created_date          | DATE         | NOT NULL               | 作成日       |
-| created_at            | TIMESTAMP    | DEFAULT NOW            | 登録日時     |
-| updated_at            | TIMESTAMP    | DEFAULT NOW            | 更新日時     |
+| Column                       | Type         | Constraint             | Description          |
+| ---------------------------- | ------------ | ---------------------- | -------------------- |
+| id                           | INTEGER      | PRIMARY KEY            | 文書ID               |
+| document_number              | VARCHAR(50)  | UNIQUE NOT NULL        | 文書番号（生成結果） |
+| title                        | VARCHAR(500) | NOT NULL               | 文書タイトル         |
+| document_type_id             | INTEGER      | FOREIGN KEY            | 文書種別ID           |
+| department_id                | INTEGER      | FOREIGN KEY            | 作成部署ID           |
+| creator_id                   | INTEGER      | FOREIGN KEY            | 作成者ID             |
+| business_id                  | INTEGER      | FOREIGN KEY            | 業務ID               |
+| customer_id                  | INTEGER      | FOREIGN KEY            | 顧客ID               |
+| confidentiality_level        | VARCHAR(20)  | DEFAULT 'internal_low' | 機密レベル           |
+| document_number_rule_id      | INTEGER      | FOREIGN KEY            | 文書番号生成ルールID |
+| document_number_is_exception | BOOLEAN      | DEFAULT FALSE          | 例外番号フラグ       |
+| created_date                 | DATE         | NOT NULL               | 作成日               |
+| created_at                   | TIMESTAMP    | DEFAULT NOW            | 登録日時             |
+| updated_at                   | TIMESTAMP    | DEFAULT NOW            | 更新日時             |
 
 **機密レベル**: internal_low, internal_high, external_low, external_high
+
+**文書番号生成について**:
+
+- `document_number`: ルールベース生成結果または例外指定番号を格納
+- `document_number_rule_id`: 適用された生成ルールを参照（例外の場合はNULL）
+- `document_number_is_exception`: TRUE の場合は手動指定番号、FALSE の場合はルール生成
 
 #### 2.2.8 文書版管理 (document_versions)
 
@@ -182,34 +190,88 @@ erDiagram
 
 **Index**: UNIQUE(document_id, version_type, version_number)
 
-#### 2.2.9 文書パス管理 (document_paths)
+#### 2.2.9 文書番号生成ルール (document_number_generation_rules)
 
-| Column      | Type         | Constraint        | Description               |
-| ----------- | ------------ | ----------------- | ------------------------- |
-| id          | INTEGER      | PRIMARY KEY       | パスID                    |
-| document_id | INTEGER      | FOREIGN KEY       | 文書ID                    |
-| folder_path | VARCHAR(500) | NOT NULL          | フォルダパス              |
-| path_type   | VARCHAR(20)  | DEFAULT 'current' | パス種別(current/archive) |
-| is_primary  | BOOLEAN      | DEFAULT TRUE      | 主パスフラグ              |
-| valid_from  | DATE         | NOT NULL          | 有効開始日                |
-| valid_to    | DATE         | NULL              | 有効終了日                |
-| created_at  | TIMESTAMP    | DEFAULT NOW       | 作成日時                  |
-| updated_at  | TIMESTAMP    | DEFAULT NOW       | 更新日時                  |
+| Column             | Type         | Constraint    | Description              |
+| ------------------ | ------------ | ------------- | ------------------------ |
+| id                 | INTEGER      | PRIMARY KEY   | ルールID                 |
+| rule_name          | VARCHAR(100) | NOT NULL      | ルール名                 |
+| document_types     | TEXT         | NULL          | 対象文書種別(JSON)       |
+| departments        | TEXT         | NULL          | 対象部署(JSON)           |
+| creation_date_from | DATE         | NULL          | 文書作成日範囲(開始)     |
+| creation_date_to   | DATE         | NULL          | 文書作成日範囲(終了)     |
+| rule_valid_from    | DATE         | NOT NULL      | ルール有効期間(開始)     |
+| rule_valid_to      | DATE         | NULL          | ルール有効期間(終了)     |
+| number_template    | VARCHAR(100) | NOT NULL      | 番号テンプレート         |
+| sequence_format    | VARCHAR(20)  | DEFAULT '001' | 連番フォーマット         |
+| include_month      | BOOLEAN      | DEFAULT TRUE  | 月表記有無               |
+| year_format        | VARCHAR(10)  | DEFAULT 'YY'  | 年フォーマット(YY/YYYY)  |
+| priority           | INTEGER      | DEFAULT 100   | 優先度(小さいほど高優先) |
+| is_active          | BOOLEAN      | DEFAULT TRUE  | 有効フラグ               |
+| description        | TEXT         | NULL          | 説明                     |
+| created_at         | TIMESTAMP    | DEFAULT NOW   | 作成日時                 |
 
-#### 2.2.10 ファイル確認結果 (file_check_results)
+**番号テンプレート例**: `{document_type}{department}{year}{month?}{sequence}`
+**実例**: `CTA2508001`, `DA25001` (月なし), `稟議-25001` (月なし)
 
-| Column           | Type      | Constraint  | Description        |
-| ---------------- | --------- | ----------- | ------------------ |
-| id               | INTEGER   | PRIMARY KEY | 確認結果ID         |
-| document_path_id | INTEGER   | FOREIGN KEY | 文書パスID         |
-| check_date       | DATE      | NOT NULL    | 確認日             |
-| folder_exists    | BOOLEAN   | NOT NULL    | フォルダ存在フラグ |
-| document_exists  | BOOLEAN   | NOT NULL    | 文書存在フラグ     |
-| approval_exists  | BOOLEAN   | NULL        | 承認書存在フラグ   |
-| error_message    | TEXT      | NULL        | エラーメッセージ   |
-| created_at       | TIMESTAMP | DEFAULT NOW | 作成日時           |
+#### 2.2.10 文書番号例外管理 (document_number_exceptions)
 
-#### 2.2.11 確認除外設定 (check_exclusions)
+| Column        | Type         | Constraint  | Description  |
+| ------------- | ------------ | ----------- | ------------ |
+| id            | INTEGER      | PRIMARY KEY | 例外ID       |
+| custom_number | VARCHAR(50)  | UNIQUE      | カスタム番号 |
+| reason        | VARCHAR(200) | NULL        | 例外理由     |
+| created_by    | INTEGER      | FOREIGN KEY | 作成者ID     |
+| created_at    | TIMESTAMP    | DEFAULT NOW | 作成日時     |
+
+#### 2.2.11 パス生成ルール (path_generation_rules)
+
+| Column             | Type         | Constraint   | Description              |
+| ------------------ | ------------ | ------------ | ------------------------ |
+| id                 | INTEGER      | PRIMARY KEY  | ルールID                 |
+| rule_name          | VARCHAR(100) | NOT NULL     | ルール名                 |
+| document_types     | TEXT         | NULL         | 対象文書種別(JSON)       |
+| departments        | TEXT         | NULL         | 対象部署(JSON)           |
+| creation_date_from | DATE         | NULL         | 文書作成日範囲(開始)     |
+| creation_date_to   | DATE         | NULL         | 文書作成日範囲(終了)     |
+| business_patterns  | TEXT         | NULL         | 業務番号パターン(JSON)   |
+| rule_valid_from    | DATE         | NOT NULL     | ルール有効期間(開始)     |
+| rule_valid_to      | DATE         | NULL         | ルール有効期間(終了)     |
+| base_server        | VARCHAR(100) | NOT NULL     | ベースサーバー           |
+| path_template      | VARCHAR(500) | NOT NULL     | パステンプレート         |
+| priority           | INTEGER      | DEFAULT 100  | 優先度(小さいほど高優先) |
+| is_active          | BOOLEAN      | DEFAULT TRUE | 有効フラグ               |
+| description        | TEXT         | NULL         | 説明                     |
+| created_at         | TIMESTAMP    | DEFAULT NOW  | 作成日時                 |
+
+**パステンプレート例**: `\\server\{department}\{year}\{document_type}\{document_number}`
+
+#### 2.2.10 文書パス例外管理 (document_path_exceptions)
+
+| Column      | Type         | Constraint  | Description  |
+| ----------- | ------------ | ----------- | ------------ |
+| id          | INTEGER      | PRIMARY KEY | 例外ID       |
+| document_id | INTEGER      | FOREIGN KEY | 文書ID       |
+| custom_path | VARCHAR(500) | NOT NULL    | カスタムパス |
+| reason      | VARCHAR(200) | NULL        | 例外理由     |
+| valid_from  | DATE         | NOT NULL    | 有効開始日   |
+| valid_to    | DATE         | NULL        | 有効終了日   |
+| created_at  | TIMESTAMP    | DEFAULT NOW | 作成日時     |
+
+#### 2.2.11 ファイル確認結果 (file_check_results)
+
+| Column          | Type      | Constraint  | Description        |
+| --------------- | --------- | ----------- | ------------------ |
+| id              | INTEGER   | PRIMARY KEY | 確認結果ID         |
+| document_id     | INTEGER   | FOREIGN KEY | 文書ID             |
+| check_date      | DATE      | NOT NULL    | 確認日             |
+| folder_exists   | BOOLEAN   | NOT NULL    | フォルダ存在フラグ |
+| document_exists | BOOLEAN   | NOT NULL    | 文書存在フラグ     |
+| approval_exists | BOOLEAN   | NULL        | 承認書存在フラグ   |
+| error_message   | TEXT      | NULL        | エラーメッセージ   |
+| created_at      | TIMESTAMP | DEFAULT NOW | 作成日時           |
+
+#### 2.2.12 確認除外設定 (check_exclusions)
 
 | Column           | Type         | Constraint   | Description               |
 | ---------------- | ------------ | ------------ | ------------------------- |
@@ -221,7 +283,7 @@ erDiagram
 | created_at       | TIMESTAMP    | DEFAULT NOW  | 作成日時                  |
 | updated_at       | TIMESTAMP    | DEFAULT NOW  | 更新日時                  |
 
-#### 2.2.12 業務従事者管理 (business_members)
+#### 2.2.13 業務従事者管理 (business_members)
 
 | Column              | Type        | Constraint     | Description                       |
 | ------------------- | ----------- | -------------- | --------------------------------- |
@@ -237,7 +299,7 @@ erDiagram
 
 **Index**: UNIQUE(business_id, person_id, valid_from) -- 業務・人員・期間の組み合わせで一意
 
-#### 2.2.13 外部連絡先 (external_contacts)
+#### 2.2.14 外部連絡先 (external_contacts)
 
 | Column       | Type         | Constraint      | Description                        |
 | ------------ | ------------ | --------------- | ---------------------------------- |
@@ -250,7 +312,7 @@ erDiagram
 | created_at   | TIMESTAMP    | DEFAULT NOW     | 作成日時                           |
 | updated_at   | TIMESTAMP    | DEFAULT NOW     | 更新日時                           |
 
-#### 2.2.14 検索お気に入り (search_favorites)
+#### 2.2.15 検索お気に入り (search_favorites)
 
 | Column            | Type         | Constraint  | Description                        |
 | ----------------- | ------------ | ----------- | ---------------------------------- |
@@ -261,7 +323,7 @@ erDiagram
 | search_conditions | TEXT         | NOT NULL    | 検索条件(JSON形式)                 |
 | created_at        | TIMESTAMP    | DEFAULT NOW | 作成日時                           |
 
-#### 2.2.15 回覧管理 (circulation) - 拡張
+#### 2.2.16 回覧管理 (circulation) - 拡張
 
 | Column              | Type        | Constraint           | Description                   |
 | ------------------- | ----------- | -------------------- | ----------------------------- |
@@ -306,14 +368,105 @@ erDiagram
 }
 ```
 
-#### 3.1.2 パス管理API
+#### 3.1.2 文書番号生成API
 
-| API          | HTTPメソッド | エンドポイント             | 説明           |
-| ------------ | ------------ | -------------------------- | -------------- |
-| パス一覧取得 | GET          | /api/documents/{id}/paths  | 文書のパス履歴 |
-| パス追加     | POST         | /api/documents/{id}/paths  | 新パス追加     |
-| パス更新     | PUT          | /api/paths/{id}            | パス情報更新   |
-| パス無効化   | PATCH        | /api/paths/{id}/invalidate | パス無効化     |
+| API            | HTTPメソッド | エンドポイント                       | 説明               |
+| -------------- | ------------ | ------------------------------------ | ------------------ |
+| 文書番号生成   | POST         | /api/document-numbers/generate       | 新規文書番号生成   |
+| 番号ルール一覧 | GET          | /api/document-number-rules           | 番号生成ルール一覧 |
+| 番号ルール作成 | POST         | /api/document-number-rules           | 新ルール作成       |
+| 番号ルール更新 | PUT          | /api/document-number-rules/{id}      | ルール更新         |
+| 番号ルール削除 | DELETE       | /api/document-number-rules/{id}      | ルール削除         |
+| ルールテスト   | POST         | /api/document-number-rules/{id}/test | ルール適用テスト   |
+| 例外番号設定   | POST         | /api/document-numbers/exception      | 個別例外番号設定   |
+| 次回連番取得   | GET          | /api/document-numbers/next-sequence  | 次回連番プレビュー |
+
+**文書番号生成APIパラメータ例:**
+
+```json
+{
+  "document_type": "C",
+  "department_code": "T",
+  "section_code": "A", 
+  "creation_date": "2025-08-15",
+  "business_id": 123,
+  "force_rule_id": null
+}
+```
+
+**文書番号生成APIレスポンス例:**
+
+```json
+{
+  "document_number": "CTA-2508001",
+  "generation_method": "rule_based",
+  "applied_rule": {
+    "id": 5,
+    "name": "技術部_現行ルール",
+    "number_template": "{document_type}{department}{section}-{year}{month}{sequence}",
+    "priority": 100
+  },
+  "sequence_info": {
+    "current_sequence": 1,
+    "formatted_sequence": "001",
+    "year_month": "2508"
+  },
+  "is_exception": false
+}
+```
+
+**例外番号設定APIパラメータ例:**
+
+```json
+{
+  "custom_number": "特別-CTA-2025001",
+  "reason": "外部要求による特別番号",
+  "document_type": "C",
+  "department_code": "T"
+}
+```
+
+#### 3.1.3 ルールベースパス管理API
+
+| API            | HTTPメソッド | エンドポイント                     | 説明               |
+| -------------- | ------------ | ---------------------------------- | ------------------ |
+| パス解決       | GET          | /api/documents/{id}/path           | 文書パスの動的解決 |
+| パスルール一覧 | GET          | /api/path-rules                    | パス生成ルール一覧 |
+| パスルール作成 | POST         | /api/path-rules                    | 新ルール作成       |
+| パスルール更新 | PUT          | /api/path-rules/{id}               | ルール更新         |
+| パスルール削除 | DELETE       | /api/path-rules/{id}               | ルール削除         |
+| ルールテスト   | POST         | /api/path-rules/{id}/test          | ルール適用テスト   |
+| 例外パス設定   | POST         | /api/documents/{id}/path/exception | 個別例外パス設定   |
+| 例外パス取得   | GET          | /api/documents/{id}/path/exception | 例外パス取得       |
+
+**パス解決APIレスポンス例:**
+
+```json
+{
+  "resolved_path": "\\\\new-server\\technology\\2025\\社内文書\\CTA-2508001",
+  "resolution_method": "rule_based",
+  "applied_rule": {
+    "id": 2,
+    "name": "技術部_新システム期間",
+    "priority": 90
+  },
+  "is_exception": false
+}
+```
+
+**ルールテストAPIパラメータ例:**
+
+```json
+{
+  "test_document": {
+    "document_number": "CTA-2508001",
+    "document_type": "C",
+    "department_code": "T",
+    "created_date": "2025-08-01",
+    "business_number": "12345"
+  }
+}
+```
 
 #### 3.1.3 ファイル確認API
 
