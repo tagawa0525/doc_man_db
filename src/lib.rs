@@ -1,4 +1,5 @@
 pub mod app;
+pub mod batch;
 pub mod error;
 pub mod graphql;
 pub mod handlers;
