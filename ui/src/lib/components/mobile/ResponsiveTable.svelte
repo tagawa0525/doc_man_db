@@ -32,6 +32,11 @@
       onRowClick(item);
     }
   }
+  
+  // Custom cell renderer
+  function renderCell(item: any, header: any, index: number) {
+    return item[header.key] || '-';
+  }
 </script>
 
 <!-- デスクトップ・タブレット表示 -->
@@ -43,9 +48,9 @@
           <th 
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider {header.class || ''}"
             class:cursor-pointer={header.sortable}
-            on:click={() => header.sortable && handleSort(header.key)}
+            on:click={header.sortable ? () => handleSort(header.key) : undefined}
             role={header.sortable ? 'button' : undefined}
-            tabindex={header.sortable ? 0 : undefined}
+            tabindex={header.sortable ? 0 : -1}
           >
             <div class="flex items-center space-x-1">
               <span>{header.label}</span>
@@ -69,14 +74,14 @@
       {#each data as item, index}
         <tr 
           class="hover:bg-gray-50 {onRowClick ? 'cursor-pointer' : ''}"
-          on:click={() => handleRowClick(item)}
+          on:click={onRowClick ? () => handleRowClick(item) : undefined}
           role={onRowClick ? 'button' : undefined}
-          tabindex={onRowClick ? 0 : undefined}
+          tabindex={onRowClick ? 0 : -1}
         >
           {#each headers as header}
             <td class="px-6 py-4 whitespace-nowrap {header.class || ''}">
               <slot name="cell" {item} {header} {index}>
-                {item[header.key] || '-'}
+                {renderCell(item, header, index)}
               </slot>
             </td>
           {/each}
@@ -92,9 +97,9 @@
     {#each data as item, index}
       <div 
         class="bg-white shadow rounded-lg p-4 {onRowClick ? 'cursor-pointer hover:shadow-md' : ''}"
-        on:click={() => handleRowClick(item)}
+        on:click={onRowClick ? () => handleRowClick(item) : undefined}
         role={onRowClick ? 'button' : undefined}
-        tabindex={onRowClick ? 0 : undefined}
+        tabindex={onRowClick ? 0 : -1}
       >
         <slot name="mobile-card" {item} {index}>
           {#each headers.filter(h => !h.mobileHidden) as header}
@@ -102,7 +107,7 @@
               <span class="text-sm font-medium text-gray-500">{header.label}:</span>
               <span class="text-sm text-gray-900">
                 <slot name="cell" {item} {header} {index}>
-                  {item[header.key] || '-'}
+                  {renderCell(item, header, index)}
                 </slot>
               </span>
             </div>
@@ -128,12 +133,14 @@
         {#each data as item, index}
           <tr 
             class="hover:bg-gray-50 {onRowClick ? 'cursor-pointer' : ''}"
-            on:click={() => handleRowClick(item)}
+            on:click={onRowClick ? () => handleRowClick(item) : undefined}
+            role={onRowClick ? 'button' : undefined}
+            tabindex={onRowClick ? 0 : -1}
           >
             {#each headers.filter(h => !h.mobileHidden) as header}
               <td class="px-3 py-2 text-sm">
                 <slot name="cell" {item} {header} {index}>
-                  {item[header.key] || '-'}
+                  {renderCell(item, header, index)}
                 </slot>
               </td>
             {/each}

@@ -519,85 +519,69 @@
           console.log('Sort:', column, direction);
           // TODO: 実際のソート処理を実装
         }}
-        let:item
       >
-        <!-- 文書番号・タイトル列 -->
-        <svelte:fragment slot="document_info" let:item>
-          <div>
-            <div class="text-sm font-medium text-gray-900">
-              {item.number}
-            </div>
-            <div class="text-sm text-gray-500">{item.title}</div>
-            {#if item.businessNumber}
-              <div class="text-xs text-blue-600">
-                業務番号: {item.businessNumber}
+        <svelte:fragment slot="cell" let:item let:header let:index>
+          {#if header.key === 'document_info'}
+            <div>
+              <div class="text-sm font-medium text-gray-900">
+                {item.number}
               </div>
-            {/if}
-          </div>
-        </svelte:fragment>
-
-        <!-- 文書種別列 -->
-        <svelte:fragment slot="documentType" let:item>
-          <span
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-          >
-            {item.documentType}
-          </span>
-        </svelte:fragment>
-
-        <!-- 作成者・部署列 -->
-        <svelte:fragment slot="creator_info" let:item>
-          <div class="text-sm text-gray-900">{item.createdBy}</div>
-          <div class="text-sm text-gray-500">{item.department}</div>
-        </svelte:fragment>
-
-        <!-- 作成日列 -->
-        <svelte:fragment slot="createdDate" let:item>
-          <span class="text-sm text-gray-900">{item.createdDate}</span>
-        </svelte:fragment>
-
-        <!-- 機密レベル列 -->
-        <svelte:fragment slot="confidentiality" let:item>
-          <span
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getConfidentialityColor(
-              item.confidentiality,
-            )}"
-          >
-            {getConfidentialityLabel(item.confidentiality)}
-          </span>
-        </svelte:fragment>
-
-        <!-- ファイル状況列 -->
-        <svelte:fragment slot="file_status" let:item>
-          <div class="flex items-center space-x-2">
-            <div class="flex items-center">
-              <div
-                class="h-2 w-2 rounded-full {item.hasFile
-                  ? 'bg-green-400'
-                  : 'bg-red-400'} mr-1"
-              ></div>
-              <span class="text-xs text-gray-600">ファイル</span>
+              <div class="text-sm text-gray-500">{item.title}</div>
+              {#if item.businessNumber}
+                <div class="text-xs text-blue-600">
+                  業務番号: {item.businessNumber}
+                </div>
+              {/if}
             </div>
-            <div class="flex items-center">
-              <div
-                class="h-2 w-2 rounded-full {item.hasApproval
-                  ? 'bg-green-400'
-                  : 'bg-red-400'} mr-1"
-              ></div>
-              <span class="text-xs text-gray-600">承認書</span>
+          {:else if header.key === 'documentType'}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
+              {item.documentType}
+            </span>
+          {:else if header.key === 'creator_info'}
+            <div class="text-sm text-gray-900">{item.createdBy}</div>
+            <div class="text-sm text-gray-500">{item.department}</div>
+          {:else if header.key === 'createdDate'}
+            <span class="text-sm text-gray-900">{item.createdDate}</span>
+          {:else if header.key === 'confidentiality'}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getConfidentialityColor(
+                item.confidentiality,
+              )}"
+            >
+              {getConfidentialityLabel(item.confidentiality)}
+            </span>
+          {:else if header.key === 'file_status'}
+            <div class="flex items-center space-x-2">
+              <div class="flex items-center">
+                <div
+                  class="h-2 w-2 rounded-full {item.hasFile
+                    ? 'bg-green-400'
+                    : 'bg-red-400'} mr-1"
+                ></div>
+                <span class="text-xs text-gray-600">ファイル</span>
+              </div>
+              <div class="flex items-center">
+                <div
+                  class="h-2 w-2 rounded-full {item.hasApproval
+                    ? 'bg-green-400'
+                    : 'bg-red-400'} mr-1"
+                ></div>
+                <span class="text-xs text-gray-600">承認書</span>
+              </div>
             </div>
-          </div>
-        </svelte:fragment>
-
-        <!-- 操作列 -->
-        <svelte:fragment slot="actions" let:item>
-          <button
-            type="button"
-            class="text-blue-600 hover:text-blue-900 text-sm font-medium"
-            on:click={() => viewDocument(item.id)}
-          >
-            詳細
-          </button>
+          {:else if header.key === 'actions'}
+            <button
+              type="button"
+              class="text-blue-600 hover:text-blue-900 text-sm font-medium"
+              on:click={() => viewDocument(item.id)}
+            >
+              詳細
+            </button>
+          {:else}
+            {item[header.key] || '-'}
+          {/if}
         </svelte:fragment>
       </ResponsiveTable>
 
