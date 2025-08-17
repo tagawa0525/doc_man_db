@@ -3,10 +3,9 @@
 use crate::models::{CreateDocumentRequest, Document, DocumentSearchFilters};
 use async_trait::async_trait;
 use sqlx::{Row, SqlitePool};
-use thiserror::Error;
 
 // Repository エラー型
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum RepositoryError {
     #[error("Database error: {0}")]
     Database(#[from] sqlx::Error),

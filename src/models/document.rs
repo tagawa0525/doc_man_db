@@ -1,10 +1,9 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use thiserror::Error;
 
 // バリデーションエラー型
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, thiserror::Error, PartialEq)]
 pub enum ValidationError {
     #[error("Title cannot be empty")]
     EmptyTitle,
@@ -12,6 +11,26 @@ pub enum ValidationError {
     InvalidDocumentTypeId,
     #[error("Invalid created by ID")]
     InvalidCreatedBy,
+    #[error("Document type code cannot be empty")]
+    EmptyDocumentTypeCode,
+    #[error("Document type code must be exactly 1 character")]
+    InvalidDocumentTypeCodeLength,
+    #[error("Document type name cannot be empty")]
+    EmptyDocumentTypeName,
+    #[error("Department code must be exactly 1 character")]
+    InvalidDepartmentCodeLength,
+    #[error("Effective until date must be after effective from date")]
+    InvalidEffectivePeriod,
+    #[error("Rule name cannot be empty")]
+    EmptyRuleName,
+    #[error("Template cannot be empty")]
+    EmptyTemplate,
+    #[error("Sequence digits must be greater than 0")]
+    InvalidSequenceDigits,
+    #[error("Document type codes list cannot be empty")]
+    EmptyDocumentTypeCodes,
+    #[error("Department code cannot be empty")]
+    EmptyDepartmentCode,
 }
 
 // 文書モデル（データベースから取得用）
@@ -87,5 +106,52 @@ impl Default for DocumentSearchFilters {
             limit: 50,
             offset: 0,
         }
+    }
+}
+
+// 文書番号付き文書作成リクエスト
+#[derive(Debug, Clone, Deserialize)]
+pub struct CreateDocumentWithNumberRequest {
+    pub title: String,
+    pub document_type_code: String,
+    pub department_code: String,
+    pub created_by: i32,
+    pub created_date: NaiveDate,
+}
+
+impl CreateDocumentWithNumberRequest {
+    /// バリデーションを実行
+    pub fn validate(&self) -> Result<(), ValidationError> {
+        // タイトルが空でないことをチェック
+        if self.title.trim().is_empty() {
+            return Err(ValidationError::EmptyTitle);
+        }
+
+        // 文書種別コードが空でないことをチェック
+        if self.document_type_code.trim().is_empty() {
+            return Err(ValidationError::EmptyDocumentTypeCode);
+        }
+
+        // 文書種別コードが1文字であることをチェック
+        if self.document_type_code.trim().len() != 1 {
+            return Err(ValidationError::InvalidDocumentTypeCodeLength);
+        }
+
+        // 部署コードが空でないことをチェック
+        if self.department_code.trim().is_empty() {
+            return Err(ValidationError::EmptyDepartmentCode);
+        }
+
+        // 部署コードが1文字であることをチェック
+        if self.department_code.trim().len() != 1 {
+            return Err(ValidationError::InvalidDepartmentCodeLength);
+        }
+
+        // 作成者IDが有効であることをチェック
+        if self.created_by < 1 {
+            return Err(ValidationError::InvalidCreatedBy);
+        }
+
+        Ok(())
     }
 }
