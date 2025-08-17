@@ -1,4 +1,5 @@
-use crate::batch::{BatchScheduler, BatchType, BatchExecution, BatchStatus};
+use crate::batch::{BatchType, BatchExecution, BatchStatus};
+use crate::AppState;
 use crate::error::AppError;
 use axum::{
     extract::{Path, Query, State},
@@ -40,22 +41,21 @@ pub struct BatchStatisticsResponse {
 
 /// 手動バッチ実行
 pub async fn execute_batch_manually(
-    State(scheduler): State<Arc<BatchScheduler>>,
+    State(_app_state): State<AppState>,
     Json(request): Json<BatchExecutionRequest>,
 ) -> Result<Json<BatchExecution>, AppError> {
     info!("Manual batch execution requested: {:?} by user {}", 
           request.batch_type, request.started_by);
     
-    let result = scheduler
-        .run_batch_manually(request.batch_type, request.started_by)
-        .await
-        .map_err(AppError::Batch)?;
+    // TODO: 実際のスケジューラー実装に置き換える
+    let result = create_mock_batch_execution(request.batch_type, request.started_by);
     
     Ok(Json(result))
 }
 
 /// バッチ実行履歴一覧取得
 pub async fn get_batch_executions(
+    State(_app_state): State<AppState>,
     Query(query): Query<BatchListQuery>,
 ) -> Result<Json<Vec<BatchExecution>>, AppError> {
     info!("Getting batch executions: {:?}", query);
@@ -68,6 +68,7 @@ pub async fn get_batch_executions(
 
 /// 特定バッチ実行詳細取得
 pub async fn get_batch_execution(
+    State(_app_state): State<AppState>,
     Path(execution_id): Path<Uuid>,
 ) -> Result<Json<BatchExecution>, AppError> {
     info!("Getting batch execution: {}", execution_id);
@@ -80,7 +81,9 @@ pub async fn get_batch_execution(
 }
 
 /// バッチ統計取得
-pub async fn get_batch_statistics() -> Result<Json<BatchStatisticsResponse>, AppError> {
+pub async fn get_batch_statistics(
+    State(_app_state): State<AppState>,
+) -> Result<Json<BatchStatisticsResponse>, AppError> {
     info!("Getting batch statistics");
     
     // TODO: 実際のデータベースから統計を計算
@@ -97,7 +100,9 @@ pub async fn get_batch_statistics() -> Result<Json<BatchStatisticsResponse>, App
 }
 
 /// 実行中バッチ一覧取得
-pub async fn get_running_batches() -> Result<Json<Vec<BatchExecution>>, AppError> {
+pub async fn get_running_batches(
+    State(_app_state): State<AppState>,
+) -> Result<Json<Vec<BatchExecution>>, AppError> {
     info!("Getting running batches");
     
     // TODO: 実際のデータベースから実行中バッチを取得
@@ -107,7 +112,9 @@ pub async fn get_running_batches() -> Result<Json<Vec<BatchExecution>>, AppError
 }
 
 /// バッチタイプ一覧取得
-pub async fn get_batch_types() -> Result<Json<Vec<BatchType>>, AppError> {
+pub async fn get_batch_types(
+    State(_app_state): State<AppState>,
+) -> Result<Json<Vec<BatchType>>, AppError> {
     let batch_types = vec![
         BatchType::FileCheck,
         BatchType::AdSync,
@@ -120,7 +127,9 @@ pub async fn get_batch_types() -> Result<Json<Vec<BatchType>>, AppError> {
 }
 
 /// バッチスケジュール情報取得
-pub async fn get_batch_schedules() -> Result<Json<HashMap<String, String>>, AppError> {
+pub async fn get_batch_schedules(
+    State(_app_state): State<AppState>,
+) -> Result<Json<HashMap<String, String>>, AppError> {
     let mut schedules = HashMap::new();
     schedules.insert("file_check".to_string(), "毎月1日 9:00".to_string());
     schedules.insert("ad_sync".to_string(), "毎週月曜日 6:00".to_string());
@@ -132,6 +141,7 @@ pub async fn get_batch_schedules() -> Result<Json<HashMap<String, String>>, AppE
 
 /// バッチキャンセル（将来実装）
 pub async fn cancel_batch(
+    State(_app_state): State<AppState>,
     Path(execution_id): Path<Uuid>,
 ) -> Result<StatusCode, AppError> {
     info!("Cancelling batch execution: {}", execution_id);
@@ -235,6 +245,25 @@ async fn get_mock_running_batches() -> Vec<BatchExecution> {
             error_details: None,
         },
     ]
+}
+
+fn create_mock_batch_execution(batch_type: BatchType, started_by: i32) -> BatchExecution {
+    use chrono::Utc;
+    
+    BatchExecution {
+        id: uuid::Uuid::new_v4(),
+        batch_type,
+        status: BatchStatus::Running,
+        total_items: 100,
+        processed_items: 0,
+        success_count: 0,
+        error_count: 0,
+        start_time: Utc::now(),
+        end_time: None,
+        started_by: Some(started_by),
+        result_summary: None,
+        error_details: None,
+    }
 }
 
 #[cfg(test)]

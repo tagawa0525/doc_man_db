@@ -106,6 +106,9 @@ impl From<AppError> for axum::http::StatusCode {
             AppError::ValidationError(_) => axum::http::StatusCode::BAD_REQUEST,
             AppError::NotFound(_) => axum::http::StatusCode::NOT_FOUND,
             AppError::InternalError(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::CsvImport(_) => axum::http::StatusCode::BAD_REQUEST,
+            AppError::Deduplication(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::Batch(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

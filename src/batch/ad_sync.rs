@@ -325,7 +325,7 @@ impl AdSyncService {
     }
     
     /// ローカルユーザーを非アクティブ化
-    async fn deactivate_local_user(&self, user_id: i32) -> Result<(), BatchError> {
+    async fn deactivate_local_user(&self, _user_id: i32) -> Result<(), BatchError> {
         // TODO: 実際のデータベース更新
         Ok(())
     }

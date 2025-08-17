@@ -338,7 +338,7 @@ impl DeduplicationService for DeduplicationServiceImpl {
         Ok(candidates)
     }
     
-    async fn find_customer_duplicates(&self, threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+    async fn find_customer_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         // TODO: 顧客重複検索の実装
         info!("Customer duplicate detection not yet implemented");
         Ok(vec![])
@@ -350,7 +350,7 @@ impl DeduplicationService for DeduplicationServiceImpl {
         Ok(vec![])
     }
     
-    async fn find_document_duplicates(&self, threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+    async fn find_document_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         // TODO: 文書重複検索の実装
         info!("Document duplicate detection not yet implemented");
         Ok(vec![])

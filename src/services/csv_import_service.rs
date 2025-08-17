@@ -201,7 +201,7 @@ impl CsvImportServiceImpl {
                 number_format: Some("技術-{YYMM}{###}".to_string()),
                 is_active: true,
                 created_at: Utc::now(),
-                updated_at: Utc::now(),
+                updated_at: Utc::now().naive_utc(),
             },
             "plan" | "計画" => crate::models::DocumentType {
                 id: 2,
@@ -210,7 +210,7 @@ impl CsvImportServiceImpl {
                 number_format: Some("計画-{YYMM}{###}".to_string()),
                 is_active: true,
                 created_at: Utc::now(),
-                updated_at: Utc::now(),
+                updated_at: Utc::now().naive_utc(),
             },
             "report" | "レポート" => crate::models::DocumentType {
                 id: 3,
@@ -219,7 +219,7 @@ impl CsvImportServiceImpl {
                 number_format: Some("REP-{YYMM}{###}".to_string()),
                 is_active: true,
                 created_at: Utc::now(),
-                updated_at: Utc::now(),
+                updated_at: Utc::now().naive_utc(),
             },
             _ => {
                 return Err(ImportError {

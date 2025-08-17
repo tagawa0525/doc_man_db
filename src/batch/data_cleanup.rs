@@ -162,7 +162,7 @@ impl DataCleanupService {
     
     /// 個別クリーンアップタスクを実行
     async fn perform_cleanup(&self, cleanup_type: CleanupType) -> Result<CleanupResult, BatchError> {
-        let start_time = Utc::now();
+        let _start_time = Utc::now();
         
         match cleanup_type {
             CleanupType::TempFiles => self.cleanup_temp_files().await,
