@@ -515,7 +515,7 @@
       <ResponsiveTable
         headers={tableHeaders}
         data={documents}
-        onSort={(column, direction) => {
+        onSort={(column: string, direction: string) => {
           console.log('Sort:', column, direction);
           // TODO: 実際のソート処理を実装
         }}

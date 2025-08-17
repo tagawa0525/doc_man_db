@@ -9,7 +9,7 @@
   export let data: Array<Record<string, any>>;
   export let mobileCardMode = true;
   export let onRowClick: ((item: any) => void) | undefined = undefined;
-  export let onSort: ((key: string) => void) | undefined = undefined;
+  export let onSort: ((key: string, direction: string) => void) | undefined = undefined;
   
   let sortColumn = '';
   let sortDirection: 'asc' | 'desc' = 'asc';
@@ -24,7 +24,7 @@
       sortDirection = 'asc';
     }
     
-    onSort(key);
+    onSort(key, sortDirection);
   }
   
   function handleRowClick(item: any) {
