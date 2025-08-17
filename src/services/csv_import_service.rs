@@ -200,7 +200,7 @@ impl CsvImportServiceImpl {
                 name: "技術文書".to_string(),
                 number_format: Some("技術-{YYMM}{###}".to_string()),
                 is_active: true,
-                created_at: Utc::now(),
+                created_at: Utc::now().naive_utc(),
                 updated_at: Utc::now().naive_utc(),
             },
             "plan" | "計画" => crate::models::DocumentType {
@@ -209,7 +209,7 @@ impl CsvImportServiceImpl {
                 name: "計画書".to_string(),
                 number_format: Some("計画-{YYMM}{###}".to_string()),
                 is_active: true,
-                created_at: Utc::now(),
+                created_at: Utc::now().naive_utc(),
                 updated_at: Utc::now().naive_utc(),
             },
             "report" | "レポート" => crate::models::DocumentType {
@@ -218,7 +218,7 @@ impl CsvImportServiceImpl {
                 name: "レポート".to_string(),
                 number_format: Some("REP-{YYMM}{###}".to_string()),
                 is_active: true,
-                created_at: Utc::now(),
+                created_at: Utc::now().naive_utc(),
                 updated_at: Utc::now().naive_utc(),
             },
             _ => {
@@ -259,7 +259,7 @@ impl CsvImportServiceImpl {
     
     async fn find_duplicate_document(
         &self,
-        record: &DocumentCsvRecord,
+        _record: &DocumentCsvRecord,
     ) -> Result<Document, CsvImportError> {
         // TODO: 重複チェックロジック実装
         // タイトル、作成者、作成日が同じ文書があるかチェック

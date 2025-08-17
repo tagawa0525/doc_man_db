@@ -297,7 +297,7 @@ impl DataCleanupService {
     /// クリーンアップ統計を取得
     pub async fn get_cleanup_statistics(
         &self,
-        date_range: Option<(DateTime<Utc>, DateTime<Utc>)>,
+        _date_range: Option<(DateTime<Utc>, DateTime<Utc>)>,
     ) -> Result<CleanupStatistics, BatchError> {
         // TODO: データベースから統計を取得
         Ok(CleanupStatistics {
@@ -310,7 +310,7 @@ impl DataCleanupService {
     }
     
     /// 最新クリーンアップ結果を取得
-    pub async fn get_latest_cleanup_results(&self, limit: Option<i32>) -> Result<Vec<CleanupResult>, BatchError> {
+    pub async fn get_latest_cleanup_results(&self, _limit: Option<i32>) -> Result<Vec<CleanupResult>, BatchError> {
         // TODO: データベースから最新結果を取得
         Ok(vec![])
     }

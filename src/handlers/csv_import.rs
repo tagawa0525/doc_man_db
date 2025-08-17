@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use crate::models::{ImportOptions};
+use crate::models::{ImportOptions, ImportResult};
 use crate::services::CsvImportService;
 use crate::AppState;
 use axum::{

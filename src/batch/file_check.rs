@@ -300,7 +300,7 @@ impl FileCheckService {
     }
     
     /// 最新の確認結果を取得
-    pub async fn get_latest_check_results(&self, limit: Option<i32>) -> Result<Vec<FileCheckResult>, BatchError> {
+    pub async fn get_latest_check_results(&self, _limit: Option<i32>) -> Result<Vec<FileCheckResult>, BatchError> {
         // TODO: データベースから最新結果を取得
         Ok(vec![])
     }
@@ -312,7 +312,7 @@ impl FileCheckService {
     }
     
     /// ファイル確認統計を取得
-    pub async fn get_check_statistics(&self, date_range: Option<(DateTime<Utc>, DateTime<Utc>)>) -> Result<FileCheckStatistics, BatchError> {
+    pub async fn get_check_statistics(&self, _date_range: Option<(DateTime<Utc>, DateTime<Utc>)>) -> Result<FileCheckStatistics, BatchError> {
         // TODO: データベースから統計を計算
         Ok(FileCheckStatistics {
             total_documents: 0,

@@ -122,7 +122,9 @@ impl DocumentRepository for SqliteDocumentRepository {
                     &row.get::<String, _>("created_at"),
                     "%Y-%m-%d %H:%M:%S",
                 )
-                .map_err(|e| RepositoryError::Validation(format!("Invalid datetime format: {e}")))?,
+                .map_err(|e| {
+                    RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                })?,
                 Utc,
             ),
             updated_at: DateTime::<Utc>::from_naive_utc_and_offset(
@@ -130,7 +132,9 @@ impl DocumentRepository for SqliteDocumentRepository {
                     &row.get::<String, _>("updated_at"),
                     "%Y-%m-%d %H:%M:%S",
                 )
-                .map_err(|e| RepositoryError::Validation(format!("Invalid datetime format: {e}")))?,
+                .map_err(|e| {
+                    RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                })?,
                 Utc,
             ),
         };

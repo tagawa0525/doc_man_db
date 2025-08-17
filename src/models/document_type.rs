@@ -15,6 +15,8 @@ pub struct DocumentType {
     pub department_code: Option<String>,
     pub effective_from: NaiveDate,
     pub effective_until: Option<NaiveDate>,
+    pub number_format: Option<String>,
+    pub is_active: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
