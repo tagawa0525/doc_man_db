@@ -55,10 +55,16 @@ impl DocumentService {
 
         // 文書作成リクエストを作成（仮のdocument_type_id=1を使用）
         let doc_request = CreateDocumentRequest {
+            number: None, // 生成される
             title: request.title,
             document_type_id: 1, // 実際にはdocument_type_codeから解決する必要がある
+            business_number: None,
             created_by: request.created_by,
             created_date: request.created_date,
+            internal_external: None,
+            importance_class: None,
+            personal_info: None,
+            notes: None,
         };
 
         // 文書を作成

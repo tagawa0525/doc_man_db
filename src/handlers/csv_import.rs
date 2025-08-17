@@ -1,13 +1,13 @@
+use crate::AppState;
 use crate::error::AppError;
 use crate::models::{ImportOptions, ImportResult};
 use crate::services::CsvImportService;
-use crate::AppState;
 use axum::{
-    extract::{Multipart, State, Path, Query},
-    response::Json,
     Extension,
+    extract::{Multipart, Path, Query, State},
+    response::Json,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -25,17 +25,25 @@ pub async fn upload_and_import_csv(
     let mut import_options = ImportOptions::default();
 
     // マルチパート データを処理
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError::ValidationError(format!("Failed to read multipart field: {}", e))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {}", e)))?
+    {
         let field_name = field.name().unwrap_or("").to_string();
-        
+
         match field_name.as_str() {
             "file" => {
                 file_name = field.file_name().unwrap_or("unknown.csv").to_string();
-                file_data = Some(field.bytes().await.map_err(|e| {
-                    AppError::ValidationError(format!("Failed to read file data: {}", e))
-                })?.to_vec());
+                file_data = Some(
+                    field
+                        .bytes()
+                        .await
+                        .map_err(|e| {
+                            AppError::ValidationError(format!("Failed to read file data: {}", e))
+                        })?
+                        .to_vec(),
+                );
             }
             "skip_duplicates" => {
                 let value = field.text().await.map_err(|e| {
@@ -51,7 +59,10 @@ pub async fn upload_and_import_csv(
             }
             "auto_create_references" => {
                 let value = field.text().await.map_err(|e| {
-                    AppError::ValidationError(format!("Failed to read auto_create_references: {}", e))
+                    AppError::ValidationError(format!(
+                        "Failed to read auto_create_references: {}",
+                        e
+                    ))
                 })?;
                 import_options.auto_create_references = value.parse().unwrap_or(false);
             }
@@ -62,9 +73,8 @@ pub async fn upload_and_import_csv(
     }
 
     // ファイルデータの検証
-    let file_data = file_data.ok_or_else(|| {
-        AppError::ValidationError("No file uploaded".to_string())
-    })?;
+    let file_data =
+        file_data.ok_or_else(|| AppError::ValidationError("No file uploaded".to_string()))?;
 
     if file_data.is_empty() {
         return Err(AppError::ValidationError("Empty file uploaded".to_string()));
@@ -73,11 +83,15 @@ pub async fn upload_and_import_csv(
     // CSVファイル形式の簡易チェック
     if !file_name.to_lowercase().ends_with(".csv") {
         return Err(AppError::ValidationError(
-            "File must be a CSV file (.csv extension required)".to_string()
+            "File must be a CSV file (.csv extension required)".to_string(),
         ));
     }
 
-    info!("Processing CSV file: {} ({} bytes)", file_name, file_data.len());
+    info!(
+        "Processing CSV file: {} ({} bytes)",
+        file_name,
+        file_data.len()
+    );
 
     // ユーザーIDを設定
     import_options.user_id = user_id;
@@ -109,7 +123,7 @@ pub async fn get_import_executions(
 ) -> Result<Json<Value>, AppError> {
     // TODO: 実際のCSVインポートサービス実装に置き換える
     let executions = get_mock_import_executions();
-    
+
     Ok(Json(json!({
         "executions": executions
     })))
@@ -123,7 +137,7 @@ pub async fn get_import_execution(
     // TODO: 実際のCSVインポートサービス実装に置き換える
     let execution = get_mock_import_execution(import_id)
         .ok_or_else(|| AppError::NotFound(format!("Import execution not found: {}", import_id)))?;
-    
+
     Ok(Json(json!(execution)))
 }
 
@@ -141,7 +155,9 @@ pub async fn download_csv_template() -> Result<(axum::http::HeaderMap, String), 
     );
     headers.insert(
         axum::http::header::CONTENT_DISPOSITION,
-        "attachment; filename=\"document_import_template.csv\"".parse().unwrap(),
+        "attachment; filename=\"document_import_template.csv\""
+            .parse()
+            .unwrap(),
     );
 
     Ok((headers, template_csv.to_string()))
@@ -167,7 +183,7 @@ pub async fn get_import_progress(
 /// バリデーションのみ実行（実際のインポートは行わない）
 pub async fn validate_csv(
     State(_app_state): State<AppState>,
-    Extension(user_id): Extension<i32>,
+    Extension(_user_id): Extension<i32>,
     mut multipart: Multipart,
 ) -> Result<Json<Value>, AppError> {
     info!("Starting CSV validation");
@@ -176,23 +192,30 @@ pub async fn validate_csv(
     let mut file_data: Option<Vec<u8>> = None;
 
     // ファイルデータを取得
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError::ValidationError(format!("Failed to read multipart field: {}", e))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {}", e)))?
+    {
         if let Some(field_name) = field.name() {
             if field_name == "file" {
                 file_name = field.file_name().unwrap_or("unknown.csv").to_string();
-                file_data = Some(field.bytes().await.map_err(|e| {
-                    AppError::ValidationError(format!("Failed to read file data: {}", e))
-                })?.to_vec());
+                file_data = Some(
+                    field
+                        .bytes()
+                        .await
+                        .map_err(|e| {
+                            AppError::ValidationError(format!("Failed to read file data: {}", e))
+                        })?
+                        .to_vec(),
+                );
                 break;
             }
         }
     }
 
-    let file_data = file_data.ok_or_else(|| {
-        AppError::ValidationError("No file uploaded".to_string())
-    })?;
+    let file_data =
+        file_data.ok_or_else(|| AppError::ValidationError("No file uploaded".to_string()))?;
 
     // CSVの構造検証のみ実行
     let reader = std::io::Cursor::new(file_data);
@@ -201,11 +224,12 @@ pub async fn validate_csv(
         .from_reader(reader);
 
     // ヘッダー検証
-    let headers = csv_reader.headers().map_err(|e| {
-        AppError::CsvImport(crate::error::CsvImportError::Parsing(e))
-    })?;
-    
-    crate::models::validate_csv_headers(headers)?;
+    let headers = csv_reader
+        .headers()
+        .map_err(|e| AppError::CsvImport(crate::error::CsvImportError::Parsing(e)))?
+        .clone();
+
+    crate::models::validate_csv_headers(&headers)?;
 
     // レコード数とサンプルレコードを取得
     let mut record_count = 0;
@@ -214,7 +238,7 @@ pub async fn validate_csv(
 
     for (index, record_result) in csv_reader.records().enumerate() {
         record_count += 1;
-        
+
         if record_count <= 5 {
             match record_result {
                 Ok(record) => {
@@ -233,13 +257,16 @@ pub async fn validate_csv(
                 }
             }
         }
-        
+
         if record_count > 1000 {
             break; // 大きなファイルの場合は制限
         }
     }
 
-    info!("CSV validation completed for {}: {} records", file_name, record_count);
+    info!(
+        "CSV validation completed for {}: {} records",
+        file_name, record_count
+    );
 
     Ok(Json(json!({
         "file_name": file_name,
@@ -257,12 +284,12 @@ mod tests {
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
     use tower::ServiceExt;
-    
+
     #[tokio::test]
     async fn test_download_csv_template() {
         let result = download_csv_template().await;
         assert!(result.is_ok());
-        
+
         let (headers, content) = result.unwrap();
         assert!(headers.contains_key(axum::http::header::CONTENT_TYPE));
         assert!(headers.contains_key(axum::http::header::CONTENT_DISPOSITION));
@@ -271,40 +298,38 @@ mod tests {
 }
 
 // モック関数の実装
-fn create_mock_import_result(_file_name: &str) -> serde_json::Value {
+fn create_mock_import_result(_file_name: &str) -> ImportResult {
     use chrono::Utc;
-    
-    json!({
-        "import_id": uuid::Uuid::new_v4(),
-        "total_records": 100,
-        "successful_imports": 95,
-        "failed_imports": 5,
-        "errors": [],
-        "start_time": Utc::now(),
-        "end_time": Utc::now()
-    })
+
+    ImportResult {
+        import_id: uuid::Uuid::new_v4(),
+        total_records: 100,
+        successful_imports: 95,
+        failed_imports: 5,
+        errors: vec![],
+        start_time: Utc::now(),
+        end_time: Utc::now(),
+    }
 }
 
 fn get_mock_import_executions() -> Vec<serde_json::Value> {
     use chrono::Utc;
-    
-    vec![
-        json!({
-            "import_id": uuid::Uuid::new_v4(),
-            "file_name": "documents_2024.csv",
-            "total_records": 100,
-            "successful_imports": 95,
-            "failed_imports": 5,
-            "start_time": Utc::now(),
-            "end_time": Utc::now(),
-            "status": "completed"
-        })
-    ]
+
+    vec![json!({
+        "import_id": uuid::Uuid::new_v4(),
+        "file_name": "documents_2024.csv",
+        "total_records": 100,
+        "successful_imports": 95,
+        "failed_imports": 5,
+        "start_time": Utc::now(),
+        "end_time": Utc::now(),
+        "status": "completed"
+    })]
 }
 
 fn get_mock_import_execution(import_id: Uuid) -> Option<serde_json::Value> {
     use chrono::Utc;
-    
+
     Some(json!({
         "import_id": import_id,
         "file_name": "documents_2024.csv",
