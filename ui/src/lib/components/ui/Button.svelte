@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { enhanceTouch } from '$lib/utils/touch';
   
   type ButtonVariant = 'primary' | 'secondary' | 'danger';
   type ButtonSize = 'sm' | 'md' | 'lg';
@@ -33,10 +34,11 @@
 
 <button
   {type}
-  class="inline-flex items-center justify-center rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
+  class="inline-flex items-center justify-center rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation
          {variants[variant]} {sizes[size]}"
   {disabled}
   on:click={handleClick}
+  use:enhanceTouch
 >
   {#if loading}
     <svg 

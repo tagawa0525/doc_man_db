@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import Input from '$lib/components/ui/Input.svelte';
+  import ResponsiveTable from '$lib/components/mobile/ResponsiveTable.svelte';
   
   // 状態管理
   let activeTab = 'departments';
@@ -207,6 +208,72 @@
     return isActive ? '有効' : '無効';
   }
   
+  // テーブルヘッダー定義
+  const departmentHeaders = [
+    {
+      key: 'department_info',
+      label: '部署名・コード',
+      sortable: true
+    },
+    {
+      key: 'managerName',
+      label: '責任者',
+      sortable: true,
+      mobileHidden: true
+    },
+    {
+      key: 'employeeCount',
+      label: '人数',
+      sortable: true
+    },
+    {
+      key: 'isActive',
+      label: 'ステータス',
+      mobileHidden: true
+    },
+    {
+      key: 'createdDate',
+      label: '作成日',
+      mobileHidden: true
+    },
+    {
+      key: 'actions',
+      label: '操作'
+    }
+  ];
+
+  const employeeHeaders = [
+    {
+      key: 'employee_info',
+      label: '社員情報',
+      sortable: true
+    },
+    {
+      key: 'department_position',
+      label: '所属・役職',
+      sortable: true,
+      mobileHidden: true
+    },
+    {
+      key: 'roles',
+      label: '権限',
+      mobileHidden: true
+    },
+    {
+      key: 'lastLogin',
+      label: '最終ログイン',
+      mobileHidden: true
+    },
+    {
+      key: 'isActive',
+      label: 'ステータス'
+    },
+    {
+      key: 'actions',
+      label: '操作'
+    }
+  ];
+
   // 初期読み込み
   onMount(() => {
     // TODO: 実際のAPI呼び出し
@@ -307,79 +374,75 @@
             </Button>
           </div>
           
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+          <ResponsiveTable
+            headers={departmentHeaders}
+            data={filteredDepartments}
+            onSort={(column, direction) => {
+              console.log('Sort departments:', column, direction);
+            }}
+            let:item
+          >
+            <!-- 部署名・コード列 -->
+            <svelte:fragment slot="department_info" let:item>
+              <div style="margin-left: {item.level * 20}px;">
+                {#if item.level > 0}
+                  <span class="text-gray-400 mr-2">└</span>
+                {/if}
+                <div class="text-sm font-medium text-gray-900">{item.name}</div>
+                <div class="text-sm text-gray-500">{item.code}</div>
+                {#if item.description}
+                  <div class="text-xs text-gray-400 mt-1">{item.description}</div>
+                {/if}
+              </div>
+            </svelte:fragment>
+
+            <!-- 責任者列 -->
+            <svelte:fragment slot="managerName" let:item>
+              <span class="text-sm text-gray-900">{item.managerName}</span>
+            </svelte:fragment>
+
+            <!-- 人数列 -->
+            <svelte:fragment slot="employeeCount" let:item>
+              <span class="text-sm text-gray-900">{item.employeeCount}名</span>
+            </svelte:fragment>
+
+            <!-- ステータス列 -->
+            <svelte:fragment slot="isActive" let:item>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusBadge(item.isActive)}">
+                {getStatusText(item.isActive)}
+              </span>
+            </svelte:fragment>
+
+            <!-- 作成日列 -->
+            <svelte:fragment slot="createdDate" let:item>
+              <span class="text-sm text-gray-900">{item.createdDate}</span>
+            </svelte:fragment>
+
+            <!-- 操作列 -->
+            <svelte:fragment slot="actions" let:item>
+              <div class="flex space-x-2">
+                <button
+                  class="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                  on:click={() => viewDepartmentDetails(item.id)}
+                >
+                  詳細
+                </button>
+                <button class="text-gray-600 hover:text-gray-900 text-sm font-medium">
+                  編集
+                </button>
+              </div>
+            </svelte:fragment>
+          </ResponsiveTable>
+
+          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg" style="display: none;">
             <table class="min-w-full divide-y divide-gray-300">
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     部署名・コード
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    責任者
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    人数
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ステータス
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    作成日
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
-                  </th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {#each filteredDepartments as department}
-                  <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                      <div>
-                        <div class="text-sm font-medium text-gray-900" style="margin-left: {department.level * 20}px;">
-                          {#if department.level > 0}
-                            <span class="text-gray-400 mr-2">└</span>
-                          {/if}
-                          {department.name}
-                        </div>
-                        <div class="text-sm text-gray-500" style="margin-left: {department.level * 20}px;">
-                          {department.code}
-                        </div>
-                        {#if department.description}
-                          <div class="text-xs text-gray-400 mt-1" style="margin-left: {department.level * 20}px;">
-                            {department.description}
-                          </div>
-                        {/if}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {department.managerName}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {department.employeeCount}名
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusBadge(department.isActive)}">
-                        {getStatusText(department.isActive)}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {department.createdDate}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        class="text-blue-600 hover:text-blue-900 mr-3"
-                        on:click={() => viewDepartmentDetails(department.id)}
-                      >
-                        詳細
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        編集
-                      </button>
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
             </table>
           </div>
         </div>
@@ -394,77 +457,67 @@
             </Button>
           </div>
           
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    社員情報
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    所属・役職
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    権限
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    最終ログイン
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ステータス
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {#each filteredEmployees as employee}
-                  <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                      <div>
-                        <div class="text-sm font-medium text-gray-900">{employee.name}</div>
-                        <div class="text-sm text-gray-500">{employee.employeeNumber}</div>
-                        <div class="text-xs text-gray-400">{employee.email}</div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="text-sm text-gray-900">{employee.departmentName}</div>
-                      <div class="text-sm text-gray-500">{employee.position}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex flex-wrap gap-1">
-                        {#each employee.roles as role}
-                          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getRoleBadgeColor(role)}">
-                            {role}
-                          </span>
-                        {/each}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.lastLogin}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusBadge(employee.isActive)}">
-                        {getStatusText(employee.isActive)}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        class="text-blue-600 hover:text-blue-900 mr-3"
-                        on:click={() => viewEmployeeDetails(employee.id)}
-                      >
-                        詳細
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        編集
-                      </button>
-                    </td>
-                  </tr>
+          <ResponsiveTable
+            headers={employeeHeaders}
+            data={filteredEmployees}
+            onSort={(column, direction) => {
+              console.log('Sort employees:', column, direction);
+            }}
+            let:item
+          >
+            <!-- 社員情報列 -->
+            <svelte:fragment slot="employee_info" let:item>
+              <div>
+                <div class="text-sm font-medium text-gray-900">{item.name}</div>
+                <div class="text-sm text-gray-500">{item.employeeNumber}</div>
+                <div class="text-xs text-gray-400">{item.email}</div>
+              </div>
+            </svelte:fragment>
+
+            <!-- 所属・役職列 -->
+            <svelte:fragment slot="department_position" let:item>
+              <div class="text-sm text-gray-900">{item.departmentName}</div>
+              <div class="text-sm text-gray-500">{item.position}</div>
+            </svelte:fragment>
+
+            <!-- 権限列 -->
+            <svelte:fragment slot="roles" let:item>
+              <div class="flex flex-wrap gap-1">
+                {#each item.roles as role}
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getRoleBadgeColor(role)}">
+                    {role}
+                  </span>
                 {/each}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </svelte:fragment>
+
+            <!-- 最終ログイン列 -->
+            <svelte:fragment slot="lastLogin" let:item>
+              <span class="text-sm text-gray-900">{item.lastLogin}</span>
+            </svelte:fragment>
+
+            <!-- ステータス列 -->
+            <svelte:fragment slot="isActive" let:item>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusBadge(item.isActive)}">
+                {getStatusText(item.isActive)}
+              </span>
+            </svelte:fragment>
+
+            <!-- 操作列 -->
+            <svelte:fragment slot="actions" let:item>
+              <div class="flex space-x-2">
+                <button
+                  class="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                  on:click={() => viewEmployeeDetails(item.id)}
+                >
+                  詳細
+                </button>
+                <button class="text-gray-600 hover:text-gray-900 text-sm font-medium">
+                  編集
+                </button>
+              </div>
+            </svelte:fragment>
+          </ResponsiveTable>
         </div>
         
       {:else if activeTab === 'hierarchy'}

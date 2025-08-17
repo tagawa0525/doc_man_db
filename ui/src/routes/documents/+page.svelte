@@ -3,6 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Select from "$lib/components/ui/Select.svelte";
+  import ResponsiveTable from "$lib/components/mobile/ResponsiveTable.svelte";
 
   // 検索フィルター
   let searchFilters = {
@@ -173,6 +174,46 @@
   function viewDocument(documentId: number) {
     window.location.href = `/documents/${documentId}`;
   }
+
+  // テーブルヘッダー定義
+  const tableHeaders = [
+    {
+      key: 'document_info',
+      label: '文書番号・タイトル',
+      sortable: true
+    },
+    {
+      key: 'documentType',
+      label: '文書種別',
+      sortable: true,
+      mobileHidden: true
+    },
+    {
+      key: 'creator_info',
+      label: '作成者・部署',
+      sortable: true,
+      mobileHidden: true
+    },
+    {
+      key: 'createdDate',
+      label: '作成日',
+      sortable: true
+    },
+    {
+      key: 'confidentiality',
+      label: '機密レベル',
+      mobileHidden: true
+    },
+    {
+      key: 'file_status',
+      label: 'ファイル状況',
+      mobileHidden: true
+    },
+    {
+      key: 'actions',
+      label: '操作'
+    }
+  ];
 
   // 初期読み込み
   onMount(() => {
@@ -471,120 +512,94 @@
         </p>
       </div>
     {:else}
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                文書番号・タイトル
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                文書種別
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                作成者・部署
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                作成日
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                機密レベル
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                ファイル状況
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            {#each documents as document}
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4">
-                  <div>
-                    <div class="text-sm font-medium text-gray-900">
-                      {document.number}
-                    </div>
-                    <div class="text-sm text-gray-500">{document.title}</div>
-                    {#if document.businessNumber}
-                      <div class="text-xs text-blue-600">
-                        業務番号: {document.businessNumber}
-                      </div>
-                    {/if}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {document.documentType}
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="text-sm text-gray-900">{document.createdBy}</div>
-                  <div class="text-sm text-gray-500">{document.department}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {document.createdDate}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getConfidentialityColor(
-                      document.confidentiality,
-                    )}"
-                  >
-                    {getConfidentialityLabel(document.confidentiality)}
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center space-x-2">
-                    <div class="flex items-center">
-                      <div
-                        class="h-2 w-2 rounded-full {document.hasFile
-                          ? 'bg-green-400'
-                          : 'bg-red-400'} mr-1"
-                      ></div>
-                      <span class="text-xs text-gray-600">ファイル</span>
-                    </div>
-                    <div class="flex items-center">
-                      <div
-                        class="h-2 w-2 rounded-full {document.hasApproval
-                          ? 'bg-green-400'
-                          : 'bg-red-400'} mr-1"
-                      ></div>
-                      <span class="text-xs text-gray-600">承認書</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    type="button"
-                    class="text-blue-600 hover:text-blue-900"
-                    on:click={() => viewDocument(document.id)}
-                  >
-                    詳細
-                  </button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        headers={tableHeaders}
+        data={documents}
+        onSort={(column, direction) => {
+          console.log('Sort:', column, direction);
+          // TODO: 実際のソート処理を実装
+        }}
+        let:item
+      >
+        <!-- 文書番号・タイトル列 -->
+        <svelte:fragment slot="document_info" let:item>
+          <div>
+            <div class="text-sm font-medium text-gray-900">
+              {item.number}
+            </div>
+            <div class="text-sm text-gray-500">{item.title}</div>
+            {#if item.businessNumber}
+              <div class="text-xs text-blue-600">
+                業務番号: {item.businessNumber}
+              </div>
+            {/if}
+          </div>
+        </svelte:fragment>
+
+        <!-- 文書種別列 -->
+        <svelte:fragment slot="documentType" let:item>
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+          >
+            {item.documentType}
+          </span>
+        </svelte:fragment>
+
+        <!-- 作成者・部署列 -->
+        <svelte:fragment slot="creator_info" let:item>
+          <div class="text-sm text-gray-900">{item.createdBy}</div>
+          <div class="text-sm text-gray-500">{item.department}</div>
+        </svelte:fragment>
+
+        <!-- 作成日列 -->
+        <svelte:fragment slot="createdDate" let:item>
+          <span class="text-sm text-gray-900">{item.createdDate}</span>
+        </svelte:fragment>
+
+        <!-- 機密レベル列 -->
+        <svelte:fragment slot="confidentiality" let:item>
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getConfidentialityColor(
+              item.confidentiality,
+            )}"
+          >
+            {getConfidentialityLabel(item.confidentiality)}
+          </span>
+        </svelte:fragment>
+
+        <!-- ファイル状況列 -->
+        <svelte:fragment slot="file_status" let:item>
+          <div class="flex items-center space-x-2">
+            <div class="flex items-center">
+              <div
+                class="h-2 w-2 rounded-full {item.hasFile
+                  ? 'bg-green-400'
+                  : 'bg-red-400'} mr-1"
+              ></div>
+              <span class="text-xs text-gray-600">ファイル</span>
+            </div>
+            <div class="flex items-center">
+              <div
+                class="h-2 w-2 rounded-full {item.hasApproval
+                  ? 'bg-green-400'
+                  : 'bg-red-400'} mr-1"
+              ></div>
+              <span class="text-xs text-gray-600">承認書</span>
+            </div>
+          </div>
+        </svelte:fragment>
+
+        <!-- 操作列 -->
+        <svelte:fragment slot="actions" let:item>
+          <button
+            type="button"
+            class="text-blue-600 hover:text-blue-900 text-sm font-medium"
+            on:click={() => viewDocument(item.id)}
+          >
+            詳細
+          </button>
+        </svelte:fragment>
+      </ResponsiveTable>
 
       <!-- ページング -->
       {#if totalPages > 1}
