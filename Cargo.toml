@@ -31,7 +31,6 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 
 # Error handling
 thiserror = "2.0.15"
-anyhow = "1.0.99"
 
 # Async trait support
 async-trait = "0.1.89"
