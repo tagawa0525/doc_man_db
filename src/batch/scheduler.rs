@@ -36,7 +36,7 @@ pub struct BatchExecution {
 }
 
 /// バッチタイプ
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum BatchType {
     FileCheck,         // ファイル存在確認
@@ -47,7 +47,7 @@ pub enum BatchType {
 }
 
 /// バッチステータス
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum BatchStatus {
     Scheduled, // スケジュール済み
@@ -393,7 +393,6 @@ async fn run_monthly_maintenance(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio_test;
 
     #[tokio::test]
     async fn test_batch_execution_creation() {

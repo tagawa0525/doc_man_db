@@ -418,7 +418,7 @@ mod tests {
 "テスト文書2","plan","佐藤花子","2024-01-16"
 "#;
 
-        let reader = Cursor::new(csv_data);
+        let _reader = Cursor::new(csv_data);
 
         // Mock services would be injected here in real implementation
         // For now, this test demonstrates the structure
@@ -426,10 +426,7 @@ mod tests {
 
     #[test]
     fn test_parse_date_formats() {
-        let service = CsvImportServiceImpl::new(
-            Box::new(MockDocumentService::new()),
-            Box::new(MockDocumentRepository::new()),
-        );
+        let service = CsvImportServiceImpl::new();
 
         // Test various date formats
         assert!(service.parse_date("2024-01-15", 1).is_ok());
@@ -440,26 +437,6 @@ mod tests {
 
         // Invalid format should fail
         assert!(service.parse_date("invalid-date", 1).is_err());
-    }
-}
-
-// Mock implementations for testing
-#[cfg(test)]
-struct MockDocumentService;
-#[cfg(test)]
-struct MockDocumentRepository;
-
-#[cfg(test)]
-impl MockDocumentService {
-    fn new() -> Self {
-        Self
-    }
-}
-
-#[cfg(test)]
-impl MockDocumentRepository {
-    fn new() -> Self {
-        Self
     }
 }
 
