@@ -4,3 +4,48 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# Web Framework
+axum = "0.8.4"
+tokio = { version = "1.47.1", features = ["full"] }
+tower = "0.5.2"
+tower-http = { version = "0.6.6", features = ["fs", "cors"] }
+
+# Database - SQLx
+sqlx = { version = "0.8.6", features = [
+    "sqlite",
+    "chrono",
+    "runtime-tokio-rustls",
+    "migrate",
+] }
+
+# Serialization
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.142"
+
+# Time
+chrono = { version = "0.4.41", features = ["serde"] }
+
+# Logging
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+
+# Error handling
+thiserror = "2.0.15"
+anyhow = "1.0.99"
+
+# Async trait support
+async-trait = "0.1.89"
+
+# GraphQL (for future phases)
+async-graphql = "7.0.17"
+async-graphql-axum = "7.0.17"
+
+[dev-dependencies]
+# Testing
+tokio-test = "0.4.4"
+assert_matches = "1.5.0"
+mockall = "0.13.1"
+proptest = "1.7.0"
+
+# For testing database operations
+tempfile = "3.20.0"

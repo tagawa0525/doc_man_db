@@ -20,10 +20,16 @@
       "Bash(dir:*)",
       "Bash(echo:*)",
       "Bash(git add:*)",
-      "Bash(where:*)"
+      "Bash(mkdir:*)",
+      "Bash(where:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo build:*)"
     ],
     "deny": [],
     "ask": [
+      "Bash(git commit:*)",
       "Bash(rm:*)"
     ]
   }
