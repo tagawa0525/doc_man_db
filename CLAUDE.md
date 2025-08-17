@@ -4,20 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a document management system (`doc_man_db`) written in Rust, designed to manage organizational documents with complex folder path management, considering organizational changes and personnel transfers. The system will be implemented as a hybrid Tauri desktop app + web application with GraphQL API.
+This is a document management system (`doc_man_db`) written in Rust, designed to manage organizational documents with complex folder path management, considering organizational changes and personnel transfers. The system is implemented as a hybrid Tauri desktop app + web application with GraphQL API.
 
 ## Architecture
 
 - **Backend**: Rust with Axum web framework, SQLx for database access
-- **Frontend**: SvelteKit + TypeScript + Tailwind CSS
-- **Desktop**: Tauri application (planned)
+- **Frontend**: SvelteKit + TypeScript + Tailwind CSS (located in `ui/` directory)
+- **Desktop**: Tauri application (planned integration with SvelteKit frontend)
 - **Database**: SQLite (development) → SQL Server (production migration planned)
 - **API**: GraphQL for efficient data fetching
 - **Authentication**: Windows AD integration (with JSON fallback for development)
 
 ## Key Development Commands
 
-### Basic Development
+### Backend Development (Rust)
 
 ```bash
 # Build project
@@ -36,29 +36,48 @@ cargo update
 cargo clean
 ```
 
+### Frontend Development (SvelteKit)
+
+```bash
+# Navigate to UI directory
+cd ui
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Run development server with auto-open browser
+npm run dev -- --open
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# TypeScript type checking
+npm run check
+
+# TypeScript type checking with watch mode
+npm run check:watch
+```
+
 ### Testing & Quality
 
 ```bash
-# Run all tests
-cargo test
+# Backend testing
+cargo test                    # Run all tests
+cargo test --lib             # Unit tests only
+cargo test --test '*'        # Integration tests only
+cargo test models::          # Run specific test module
+cargo fmt                    # Format code
+cargo clippy                 # Lint code
+cargo audit                  # Security audit
 
-# Unit tests only
-cargo test --lib
-
-# Integration tests only
-cargo test --test '*'
-
-# Run specific test module
-cargo test models::
-
-# Format code
-cargo fmt
-
-# Lint code
-cargo clippy
-
-# Security audit
-cargo audit
+# Frontend type checking
+cd ui && npm run check       # TypeScript type checking
 ```
 
 ### Database Operations
@@ -81,6 +100,8 @@ sqlx migrate info --database-url sqlite://./data/dev.db
 ```
 
 ## Project Structure
+
+### Backend (Rust)
 
 ```text
 src/
@@ -119,7 +140,33 @@ tests/                  # Test organization
 ├── unit/              # Unit tests
 │   ├── models/        # Model unit tests
 │   └── repositories/  # Repository unit tests
-docs/                  # Design documentation
+```
+
+### Frontend (SvelteKit)
+
+```text
+ui/
+├── src/
+│   ├── lib/
+│   │   ├── components/
+│   │   │   ├── ui/              # Basic UI components (Button, Input, Select)
+│   │   │   ├── layout/          # Layout components (Header, Navigation)
+│   │   │   ├── dashboard/       # Dashboard components (Stats, SystemStatus, ActivityFeed)
+│   │   │   ├── mobile/          # Mobile-responsive components
+│   │   │   ├── notifications/   # Notification system components
+│   │   │   └── testing/         # UI/UX testing components
+│   │   ├── stores/             # Svelte stores for state management
+│   │   └── utils/              # Utility functions (touch, accessibility, responsive)
+│   ├── routes/                 # SvelteKit file-based routing
+│   │   ├── documents/          # Document management pages
+│   │   ├── organization/       # Organization management pages
+│   │   └── notifications/      # Notification management pages
+│   └── app.html               # HTML template
+├── package.json               # Dependencies and scripts
+├── tailwind.config.js         # Tailwind CSS configuration
+└── svelte.config.js          # SvelteKit configuration
+
+docs/                          # Design documentation
 ```
 
 ## Key Design Patterns
@@ -144,11 +191,20 @@ The system is designed to support SQLite → SQL Server migration:
 - Manage personnel transfer history
 - Handle complex permission inheritance
 
+### Frontend Architecture
+
+- **Component-based design**: Modular Svelte components with clear separation of concerns
+- **State management**: Svelte stores for reactive state management across components
+- **Responsive design**: Mobile-first approach with Tailwind CSS and touch gesture support
+- **Type safety**: TypeScript integration throughout the frontend codebase
+- **Notification system**: Multi-channel notifications (Email, Teams, In-app) with template management
+
 ## Development Phases
 
 1. **Phase 1**: Basic functionality with JSON authentication + SQLite
 2. **Phase 2**: Windows AD integration + Web interface  
 3. **Phase 3**: Full feature set + SQL Server migration capability
+4. **Phase 4** (✅ Completed): Complete SvelteKit UI implementation with notifications, responsive design, and testing components
 
 ## Important Implementation Notes
 
@@ -172,12 +228,22 @@ The system is designed to support SQLite → SQL Server migration:
 - Monthly batch processes for file existence verification
 - Approval document checking (filename pattern: [document_number]-審査承認.pdf)
 
+### Frontend Implementation Guidelines
+
+- **Component reusability**: Create generic components in `ui/src/lib/components/ui/`
+- **Responsive design**: Use mobile-first approach with Tailwind CSS breakpoints
+- **Type safety**: Define TypeScript interfaces for all data structures
+- **State management**: Use Svelte stores for shared state across components
+- **Touch support**: Implement touch gestures for mobile devices using custom TouchHandler
+- **Accessibility**: Follow WCAG guidelines with proper ARIA attributes and keyboard navigation
+
 ### Performance Requirements
 
 - Search response within 2 seconds
 - Support up to 10 concurrent users
 - Handle 50,000+ document records
 - Batch processing: 10,000 files/hour for existence checking
+- Frontend performance: Responsive UI with virtual scrolling for large datasets
 
 ## Testing Strategy
 
@@ -197,6 +263,8 @@ The system is designed to support SQLite → SQL Server migration:
 
 ## Common Development Tasks
 
+### Backend Development Workflow
+
 When implementing new features:
 
 1. Start with model definitions in `src/models/`
@@ -212,6 +280,26 @@ When adding new document rules:
 2. Implement rule validation logic
 3. Add historical rule support
 4. Test with legacy document formats
+
+### Frontend Development Workflow
+
+When adding new UI features:
+
+1. Create reusable components in appropriate `ui/src/lib/components/` subdirectory
+2. Implement TypeScript interfaces for data structures
+3. Add responsive design considerations using Tailwind CSS
+4. Create corresponding Svelte stores for state management
+5. Implement proper accessibility features
+6. Add mobile-responsive components when needed
+
+### Working with the Notification System
+
+The frontend includes a comprehensive notification system:
+
+- **NotificationCenter**: Real-time notification display with unread count
+- **NotificationToast**: Auto-dismissing toast notifications
+- **NotificationService**: Multi-channel delivery (Email, Teams, In-app)
+- **Template management**: Dynamic notification templates with variable substitution
 
 ## Documentation
 
