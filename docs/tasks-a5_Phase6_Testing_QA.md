@@ -16,7 +16,7 @@
 - **状態**: 未着手
 - **依存関係**: TASK-037
 
-#### 実装内容
+#### 実装内容(TASK-038)
 
 1. Repository テストカバレッジ 90%以上
 2. Service レイヤーテスト完成
@@ -341,11 +341,11 @@ proptest! {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-038)
 
 - **90%以上のテストカバレッジ**
 - **全Repository・Serviceテスト**
-- **エラーケーステスト** 
+- **エラーケーステスト**
 - **モックテスト**
 - **🚀 Property-based Testing**
 - **🔒 セキュリティプロパティテスト**
@@ -360,7 +360,7 @@ proptest! {
 - **状態**: 未着手
 - **依存関係**: TASK-038
 
-#### 実装内容
+#### 実装内容(TASK-039)
 
 1. API統合テスト
 2. データベーストランザクションテスト
@@ -596,6 +596,7 @@ async fn test_permission_based_access_control(pool: SqlitePool) {
 ```
 
 #### データベーストランザクションテスト
+
 ```rust
 // tests/integration/transaction_test.rs
 #[sqlx::test]
@@ -640,7 +641,7 @@ async fn test_document_creation_transaction_rollback(pool: SqlitePool) {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-039)
 
 - API統合テスト
 - トランザクションテスト
@@ -657,7 +658,7 @@ async fn test_document_creation_transaction_rollback(pool: SqlitePool) {
 - **状態**: 未着手
 - **依存関係**: TASK-039
 
-#### 実装内容
+#### 実装内容(TASK-040)
 
 1. 負荷テスト実行
 2. レスポンス時間測定
@@ -749,7 +750,7 @@ cargo bench -- --output-format html
 | ファイル確認 | 5秒以内    | ネットワークアクセス込み    |
 | 同時接続     | 10ユーザー | 同時検索での性能劣化20%以内 |
 
-#### 成果物
+#### 成果物(TASK-040)
 
 - 性能ベンチマーク結果
 - 負荷テストレポート
@@ -766,7 +767,7 @@ cargo bench -- --output-format html
 - **状態**: 未着手
 - **依存関係**: TASK-040
 
-#### 実装内容
+#### 実装内容(TASK-041)
 
 1. API仕様書自動生成
 2. 運用手順書作成
@@ -816,76 +817,79 @@ pub fn generate_openapi_spec() -> utoipa::openapi::OpenApi {
 #### 運用手順書
 
 ```markdown
-# 運用手順書
+  # 運用手順書
+  
+  ## 日次運用
+  
+  ### システム稼働確認
+  #### 1. ヘルスチェック確認
+  
+     ```bash
+     curl http://localhost:8080/health
+     ```
+  
+  #### 2. ログ確認
+  
+     ```bash
+     tail -f logs/application.log
+     ```
+  
+  #### 3. データベース接続確認
+  
+     ```bash
+     sqlx migrate info --database-url sqlite://./data/prod.db
+     ```
+  
+  ## 月次運用
+  
+  ### ファイル存在確認バッチ
+  
+  - 実行タイミング: 毎月1日 9:00 自動実行
+  - 手動実行:
+  
+    ```bash
+    curl -X POST /api/admin/batch/run/file-check
+    ```
+  
+  ### データベースメンテナンス
+  
+  1. バックアップ作成
+  
+     ```bash
+     cp data/prod.db backup/prod_$(date +%Y%m%d).db
+     ```
+  
+  2. 統計情報更新
+  
+     ```sql
+     ANALYZE;
+     ```
+  
+  ## トラブルシューティング
+  
+  ### データベース接続エラー
+  
+  **症状**: `Connection refused` エラー
+  **原因**: データベースファイルのロックまたは権限問題
+  **対処**:
+  
+  1. プロセス確認: `ps aux | grep doc_man_db`
+  2. ファイル権限確認: `ls -la data/prod.db`
+  3. 必要に応じてプロセス再起動
+  
+  ### ファイル確認エラー
+  
+  **症状**: ネットワークパスアクセスエラー
+  **原因**: ネットワークドライブ接続問題
+  **対処**:
+  
+  1. ネットワーク接続確認
+  2. 認証情報確認
+  3. パス設定確認
 
-## 日次運用
+```
 
-### システム稼働確認
-1. ヘルスチェック確認
-   ```bash
-   curl http://localhost:8080/health
-   ```
-
-2. ログ確認
-
-   ```bash
-   tail -f logs/application.log
-   ```
-
-3. データベース接続確認
-
-   ```bash
-   sqlx migrate info --database-url sqlite://./data/prod.db
-   ```
-
-## 月次運用
-
-### ファイル存在確認バッチ
-
-- 実行タイミング: 毎月1日 9:00 自動実行
-- 手動実行:
-
-  ```bash
-  curl -X POST /api/admin/batch/run/file-check
-  ```
-
-### データベースメンテナンス
-
-1. バックアップ作成
-
-   ```bash
-   cp data/prod.db backup/prod_$(date +%Y%m%d).db
-   ```
-
-2. 統計情報更新
-
-   ```sql
-   ANALYZE;
-   ```
-
-## トラブルシューティング
-
-### データベース接続エラー
-
-**症状**: `Connection refused` エラー
-**原因**: データベースファイルのロックまたは権限問題
-**対処**:
-
-1. プロセス確認: `ps aux | grep doc_man_db`
-2. ファイル権限確認: `ls -la data/prod.db`
-3. 必要に応じてプロセス再起動
-
-### ファイル確認エラー
-
-**症状**: ネットワークパスアクセスエラー
-**原因**: ネットワークドライブ接続問題
-**対処**:
-
-1. ネットワーク接続確認
-2. 認証情報確認
-3. パス設定確認
-
-#### 成果物
+#### 成果物(TASK-041)
 
 - API仕様書（自動生成）
 - 運用手順書
@@ -902,7 +906,7 @@ pub fn generate_openapi_spec() -> utoipa::openapi::OpenApi {
 - **状態**: 未着手
 - **依存関係**: TASK-041
 
-#### 実装内容
+#### 実装内容(TASK-042)
 
 1. 本番環境設定
 2. CI/CDパイプライン
@@ -1080,7 +1084,7 @@ catch {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-042)
 
 - 本番環境設定
 - CI/CDパイプライン
@@ -1097,14 +1101,14 @@ catch {
 - **状態**: 未着手
 - **依存関係**: TASK-042
 
-#### 実装内容
+#### 実装内容(TASK-043)
 
 1. ログ監視設定
 2. メトリクス収集
 3. アラート設定
 4. ダッシュボード構築
 
-#### 成果物
+#### 成果物(TASK-043)
 
 - ログ監視システム
 - メトリクス収集
@@ -1121,7 +1125,7 @@ catch {
 - **状態**: 未着手
 - **依存関係**: TASK-043
 
-#### 成果物
+#### 成果物(TASK-044)
 
 - 操作マニュアル
 - 研修資料
@@ -1137,7 +1141,7 @@ catch {
 - **状態**: 未着手
 - **依存関係**: TASK-044
 
-#### 成果物
+#### 成果物(TASK-045)
 
 - 本番環境デプロイ完了
 - 本番動作検証

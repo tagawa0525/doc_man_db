@@ -16,14 +16,14 @@
 - **状態**: 未着手
 - **依存関係**: TASK-003
 
-#### 実装内容
+#### 実装内容(TASK-046)
 
 1. 業務従事者テーブル設計
 2. 外部連絡先テーブル設計
 3. 業務・従事者関連テーブル
 4. マイグレーション作成
 
-#### データベーススキーマ
+#### データベーススキーマ(TASK-046)
 
 ```sql
 -- migrations/010_create_business_tables.sql
@@ -100,7 +100,7 @@ CREATE INDEX idx_businesses_customer ON businesses(customer_name);
 CREATE INDEX idx_external_contacts_company ON external_contacts(company_name);
 ```
 
-#### 成果物
+#### 成果物(TASK-046)
 
 - 業務管理テーブル
 - 業務従事者管理テーブル
@@ -117,14 +117,14 @@ CREATE INDEX idx_external_contacts_company ON external_contacts(company_name);
 - **状態**: 未着手
 - **依存関係**: TASK-046
 
-#### 実装内容
+#### 実装内容(TASK-047)
 
 1. 業務CRUD API
 2. 業務従事者管理API
 3. 役割・参加レベル管理
 4. 期間管理機能
 
-#### GraphQL スキーマ
+#### GraphQL スキーマ(TASK-047)
 
 ```graphql
 # 業務関連の型定義
@@ -247,7 +247,7 @@ extend type Mutation {
 }
 ```
 
-#### Repository実装
+#### Repository実装(TASK-047)
 
 ```rust
 // src/repositories/business_repository.rs
@@ -570,7 +570,7 @@ impl BusinessService {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-047)
 
 - 業務管理API
 - 業務従事者管理API
@@ -587,14 +587,14 @@ impl BusinessService {
 - **状態**: 未着手
 - **依存関係**: TASK-010
 
-#### 実装内容
+#### 実装内容(TASK-048)
 
 1. 複合条件社員検索
 2. オートコンプリート機能
 3. 業務従事履歴検索
 4. 部署・役職検索
 
-#### GraphQL スキーマ拡張
+#### GraphQL スキーマ拡張(TASK-048)
 
 ```graphql
 # 高度検索用の型定義
@@ -672,7 +672,7 @@ extend type Query {
 }
 ```
 
-#### Repository実装
+#### Repository実装(TASK-048)
 
 ```rust
 // src/repositories/advanced_search_repository.rs
@@ -942,7 +942,7 @@ impl AdvancedSearchRepository {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-048)
 
 - 高度社員検索API
 - オートコンプリート機能
@@ -959,14 +959,14 @@ impl AdvancedSearchRepository {
 - **状態**: 未着手
 - **依存関係**: TASK-047
 
-#### 実装内容
+#### 実装内容(TASK-049)
 
 1. 業務複合条件検索
 2. 従事者による逆引き検索
 3. 顧客・期間検索
 4. 業務ステータス検索
 
-#### GraphQL スキーマ
+#### GraphQL スキーマ(TASK-049)
 
 ```graphql
 input AdvancedBusinessSearchInput {
@@ -1018,7 +1018,7 @@ extend type Query {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-049)
 
 - 高度業務検索API
 - 従事者逆引き検索
@@ -1035,7 +1035,7 @@ extend type Query {
 - **状態**: 未着手
 - **依存関係**: TASK-048
 
-#### 実装内容
+#### 実装内容(TASK-050)
 
 1. 検索履歴保存
 2. お気に入り検索条件
@@ -1086,7 +1086,7 @@ CREATE INDEX idx_favorite_searches_employee ON favorite_searches(employee_id, is
 CREATE INDEX idx_search_suggestions_type ON search_suggestions(search_type, field_name);
 ```
 
-#### 成果物
+#### 成果物(TASK-050)
 
 - 検索履歴管理
 - お気に入り検索機能
