@@ -25,6 +25,7 @@
       "Bash(dir:*)",
       "Bash(echo:*)",
       "Bash(git add:*)",
+      "Bash(git config:*)",
       "Bash(mkdir:*)",
       "Bash(where:*)"
     ],
