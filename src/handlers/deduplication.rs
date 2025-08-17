@@ -5,10 +5,10 @@ use axum::{
     extract::{Path, Query, State},
     response::Json,
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use std::sync::Arc;
-use tracing::{info, warn};
+use tracing::info;
 use uuid::Uuid;
 
 /// 重複検索リクエスト

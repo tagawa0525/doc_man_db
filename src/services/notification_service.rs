@@ -1,5 +1,5 @@
-use crate::batch::{AdSyncResult, BatchExecution, FileCheckResult};
-use crate::error::BatchError;
+use crate::batch::BatchExecution;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};

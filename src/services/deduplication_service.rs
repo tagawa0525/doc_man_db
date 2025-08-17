@@ -1,11 +1,11 @@
-use crate::error::{DeduplicationError, ResolveError};
-use crate::models::{Document, Employee};
+use crate::error::DeduplicationError;
+use crate::models::Employee;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
 use strsim::jaro_winkler;
-use tracing::{info, warn};
+use tracing::info;
 use uuid::Uuid;
 
 /// 重複候補

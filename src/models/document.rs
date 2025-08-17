@@ -1,6 +1,5 @@
-use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
 
 // バリデーションエラー型
 #[derive(Debug, thiserror::Error, PartialEq)]

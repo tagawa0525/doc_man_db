@@ -8,7 +8,6 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Arc;
 use tracing::info;
 use uuid::Uuid;
 
@@ -163,7 +162,7 @@ pub async fn cancel_batch(
 
 // モックデータ生成関数（実装時はデータベースアクセスに置き換える）
 
-async fn get_mock_batch_executions(query: BatchListQuery) -> Vec<BatchExecution> {
+async fn get_mock_batch_executions(_query: BatchListQuery) -> Vec<BatchExecution> {
     use chrono::Utc;
 
     vec![

@@ -3,7 +3,7 @@ use crate::error::BatchError;
 use crate::models::Employee;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use tracing::{error, info, warn};
+use tracing::info;
 use uuid::Uuid;
 
 /// Active Directory同期サービス

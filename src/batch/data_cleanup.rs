@@ -1,6 +1,6 @@
 use crate::batch::{BatchExecution, BatchStatus, BatchType};
 use crate::error::BatchError;
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info, warn};
 use uuid::Uuid;

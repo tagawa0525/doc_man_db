@@ -1,15 +1,14 @@
 use crate::error::{CsvImportError, ResolveError};
 use crate::models::{
     Document, DocumentCsvRecord, ImportError, ImportExecution, ImportOptions, ImportResult,
-    ImportStatus, validate_csv_headers,
+    validate_csv_headers,
 };
-use crate::repositories::DocumentRepository;
-use crate::services::DocumentService;
+
 use async_trait::async_trait;
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{NaiveDate, Utc};
 use csv::ReaderBuilder;
-use std::io::Read;
-use tracing::{error, info, warn};
+
+use tracing::{info, warn};
 use uuid::Uuid;
 
 #[async_trait]
@@ -268,7 +267,7 @@ impl CsvImportServiceImpl {
     async fn resolve_creator(
         &self,
         creator_name: &str,
-        row_number: usize,
+        _row_number: usize,
     ) -> Result<crate::models::Employee, ImportError> {
         // TODO: 社員リポジトリから検索
         // 仮実装として、固定的な社員を返す
