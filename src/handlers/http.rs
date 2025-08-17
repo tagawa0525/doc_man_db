@@ -1,8 +1,8 @@
-use axum::{extract, Json};
+use axum::{Json, extract};
 use serde_json;
 use std::collections::HashMap;
 
-use crate::{models, AppState};
+use crate::{AppState, models};
 
 /// ヘルスチェックエンドポイント
 pub async fn health_check_handler(
@@ -14,8 +14,11 @@ pub async fn health_check_handler(
             let error_body = serde_json::json!({
                 "error": err.to_string()
             });
-            Err((axum::http::StatusCode::INTERNAL_SERVER_ERROR, Json(error_body)))
-        },
+            Err((
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                Json(error_body),
+            ))
+        }
     }
 }
 
@@ -23,7 +26,13 @@ pub async fn health_check_handler(
 pub async fn create_document_handler(
     extract::State(state): extract::State<AppState>,
     Json(request): Json<models::CreateDocumentWithNumberRequest>,
-) -> Result<(axum::http::StatusCode, Json<models::CreatedDocumentWithNumber>), (axum::http::StatusCode, Json<serde_json::Value>)> {
+) -> Result<
+    (
+        axum::http::StatusCode,
+        Json<models::CreatedDocumentWithNumber>,
+    ),
+    (axum::http::StatusCode, Json<serde_json::Value>),
+> {
     match state.document_handlers.create_document(request).await {
         Ok(created) => Ok((axum::http::StatusCode::CREATED, Json(created))),
         Err(err) => {
@@ -33,7 +42,7 @@ pub async fn create_document_handler(
                 "error": error_message
             });
             Err((status, Json(error_body)))
-        },
+        }
     }
 }
 
@@ -51,7 +60,7 @@ pub async fn get_document_handler(
                 "error": error_message
             });
             Err((status, Json(error_body)))
-        },
+        }
     }
 }
 
@@ -92,6 +101,6 @@ pub async fn search_documents_handler(
                 "error": error_message
             });
             Err((status, Json(error_body)))
-        },
+        }
     }
 }

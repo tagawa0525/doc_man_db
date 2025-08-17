@@ -36,14 +36,14 @@ pub struct CreateDocumentInput {
     pub created_date: String, // NaiveDate as string in GraphQL
 }
 
-impl Into<crate::models::CreateDocumentWithNumberRequest> for CreateDocumentInput {
-    fn into(self) -> crate::models::CreateDocumentWithNumberRequest {
+impl From<CreateDocumentInput> for crate::models::CreateDocumentWithNumberRequest {
+    fn from(val: CreateDocumentInput) -> Self {
         crate::models::CreateDocumentWithNumberRequest {
-            title: self.title,
-            document_type_code: self.document_type_code,
-            department_code: self.department_code,
-            created_by: self.created_by,
-            created_date: chrono::NaiveDate::parse_from_str(&self.created_date, "%Y-%m-%d")
+            title: val.title,
+            document_type_code: val.document_type_code,
+            department_code: val.department_code,
+            created_by: val.created_by,
+            created_date: chrono::NaiveDate::parse_from_str(&val.created_date, "%Y-%m-%d")
                 .expect("Invalid date format"),
         }
     }
@@ -61,18 +61,20 @@ pub struct DocumentSearchFilters {
     pub offset: Option<i64>,
 }
 
-impl Into<crate::models::DocumentSearchFilters> for DocumentSearchFilters {
-    fn into(self) -> crate::models::DocumentSearchFilters {
+impl From<DocumentSearchFilters> for crate::models::DocumentSearchFilters {
+    fn from(val: DocumentSearchFilters) -> Self {
         crate::models::DocumentSearchFilters {
-            title: self.title,
-            document_type_id: self.document_type_id,
-            created_by: self.created_by,
-            created_date_from: self.created_date_from
+            title: val.title,
+            document_type_id: val.document_type_id,
+            created_by: val.created_by,
+            created_date_from: val
+                .created_date_from
                 .and_then(|s| chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d").ok()),
-            created_date_to: self.created_date_to
+            created_date_to: val
+                .created_date_to
                 .and_then(|s| chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d").ok()),
-            limit: self.limit.unwrap_or(10),
-            offset: self.offset.unwrap_or(0),
+            limit: val.limit.unwrap_or(10),
+            offset: val.offset.unwrap_or(0),
         }
     }
 }

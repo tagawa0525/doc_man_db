@@ -8,4 +8,4 @@ pub mod routes;
 pub mod services;
 
 // Re-export main components for easy access
-pub use app::{create_app, AppState};
+pub use app::{AppState, create_app};

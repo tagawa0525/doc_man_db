@@ -195,7 +195,7 @@ impl DocumentRepository for SqliteDocumentRepository {
         // カウントクエリ実行
         let mut count_stmt = sqlx::query(&count_query);
         if let Some(ref title) = filters.title {
-            count_stmt = count_stmt.bind(format!("%{}%", title));
+            count_stmt = count_stmt.bind(format!("%{title}%"));
         }
         if let Some(document_type_id) = filters.document_type_id {
             count_stmt = count_stmt.bind(document_type_id);
@@ -213,7 +213,7 @@ impl DocumentRepository for SqliteDocumentRepository {
         // メインクエリ実行
         let mut stmt = sqlx::query(&query);
         if let Some(ref title) = filters.title {
-            stmt = stmt.bind(format!("%{}%", title));
+            stmt = stmt.bind(format!("%{title}%"));
         }
         if let Some(document_type_id) = filters.document_type_id {
             stmt = stmt.bind(document_type_id);

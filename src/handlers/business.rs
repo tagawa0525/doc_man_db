@@ -38,8 +38,7 @@ impl DocumentHandlers {
         match self.document_service.get_document_by_id(id).await? {
             Some(document) => Ok(document),
             None => Err(AppError::NotFound(format!(
-                "Document with id {} not found",
-                id
+                "Document with id {id} not found"
             ))),
         }
     }
@@ -58,6 +57,12 @@ impl DocumentHandlers {
 /// ヘルスチェック用ハンドラー
 #[derive(Clone)]
 pub struct HealthHandler;
+
+impl Default for HealthHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl HealthHandler {
     pub fn new() -> Self {
