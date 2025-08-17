@@ -1,10 +1,10 @@
-// Document Management System Library
-
+pub mod app;
+pub mod error;
+pub mod handlers;
 pub mod models;
 pub mod repositories;
+pub mod routes;
 pub mod services;
 
-// Re-export common types
-pub use models::*;
-pub use repositories::*;
-pub use services::*;
+// Re-export main components for easy access
+pub use app::{create_app, AppState};

@@ -1,12 +1,9 @@
-use axum::http::{Request, StatusCode};
-use axum::body::Body;
-use doc_man_db::handlers::{DocumentHandlers, HealthHandler};
-use doc_man_db::models::{CreateDocumentWithNumberRequest, Document};
-use doc_man_db::services::DocumentService;
-use doc_man_db::repositories::{DocumentRepository, DocumentNumberRuleRepository, RepositoryError};
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use tower::ServiceExt;
+use doc_man_db::handlers::{DocumentHandlers, HealthHandler};
+use doc_man_db::models::{CreateDocumentWithNumberRequest, Document};
+use doc_man_db::repositories::{DocumentNumberRuleRepository, DocumentRepository, RepositoryError};
+use doc_man_db::services::DocumentService;
 
 // テスト用のモックリポジトリ実装
 struct MockDocumentRepository;
@@ -14,7 +11,10 @@ struct MockDocumentNumberRuleRepository;
 
 #[async_trait]
 impl DocumentRepository for MockDocumentRepository {
-    async fn create(&self, request: doc_man_db::models::CreateDocumentRequest) -> Result<Document, RepositoryError> {
+    async fn create(
+        &self,
+        request: doc_man_db::models::CreateDocumentRequest,
+    ) -> Result<Document, RepositoryError> {
         Ok(Document {
             id: 1,
             title: request.title,
@@ -42,18 +42,19 @@ impl DocumentRepository for MockDocumentRepository {
         }
     }
 
-    async fn search(&self, filters: doc_man_db::models::DocumentSearchFilters) -> Result<(Vec<Document>, i64), RepositoryError> {
-        let documents = vec![
-            Document {
-                id: 1,
-                title: format!("検索結果文書1 - {}", filters.title.unwrap_or_default()),
-                document_type_id: 1,
-                created_by: 1,
-                created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
-                created_at: chrono::Utc::now().naive_utc(),
-                updated_at: chrono::Utc::now().naive_utc(),
-            },
-        ];
+    async fn search(
+        &self,
+        filters: doc_man_db::models::DocumentSearchFilters,
+    ) -> Result<(Vec<Document>, i64), RepositoryError> {
+        let documents = vec![Document {
+            id: 1,
+            title: format!("検索結果文書1 - {}", filters.title.unwrap_or_default()),
+            document_type_id: 1,
+            created_by: 1,
+            created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
+            created_at: chrono::Utc::now().naive_utc(),
+            updated_at: chrono::Utc::now().naive_utc(),
+        }];
         Ok((documents, 1))
     }
 }
@@ -91,7 +92,10 @@ impl DocumentNumberRuleRepository for MockDocumentNumberRuleRepository {
         Ok(1)
     }
 
-    async fn is_document_number_exists(&self, _document_number: &str) -> Result<bool, RepositoryError> {
+    async fn is_document_number_exists(
+        &self,
+        _document_number: &str,
+    ) -> Result<bool, RepositoryError> {
         Ok(false)
     }
 
@@ -102,7 +106,10 @@ impl DocumentNumberRuleRepository for MockDocumentNumberRuleRepository {
         unimplemented!()
     }
 
-    async fn get_rule_by_id(&self, _id: i32) -> Result<Option<doc_man_db::models::DocumentNumberGenerationRule>, RepositoryError> {
+    async fn get_rule_by_id(
+        &self,
+        _id: i32,
+    ) -> Result<Option<doc_man_db::models::DocumentNumberGenerationRule>, RepositoryError> {
         unimplemented!()
     }
 
@@ -121,17 +128,12 @@ impl DocumentNumberRuleRepository for MockDocumentNumberRuleRepository {
 async fn test_health_handler() {
     // Given: ヘルスハンドラー
     let handler = HealthHandler::new();
-    
+
     // When: ヘルスチェックリクエスト
-    let request = Request::builder()
-        .uri("/health")
-        .body(Body::empty())
-        .unwrap();
-    
-    let response = handler.health_check(request).await;
-    
+    let response = handler.health_check().await;
+
     // Then: 成功レスポンスが返される
-    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.is_ok());
 }
 
 #[tokio::test]
@@ -141,7 +143,7 @@ async fn test_create_document_handler() {
     let rule_repo = MockDocumentNumberRuleRepository;
     let service = DocumentService::new(doc_repo, rule_repo);
     let handlers = DocumentHandlers::new(service);
-    
+
     let request_body = CreateDocumentWithNumberRequest {
         title: "ハンドラーテスト文書".to_string(),
         document_type_code: "A".to_string(),
@@ -149,10 +151,10 @@ async fn test_create_document_handler() {
         created_by: 1,
         created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
     };
-    
+
     // When: 文書作成ハンドラー呼び出し
     let result = handlers.create_document(request_body).await;
-    
+
     // Then: 成功レスポンスが返される
     assert!(result.is_ok());
     let created = result.unwrap();
@@ -167,10 +169,10 @@ async fn test_get_document_handler() {
     let rule_repo = MockDocumentNumberRuleRepository;
     let service = DocumentService::new(doc_repo, rule_repo);
     let handlers = DocumentHandlers::new(service);
-    
+
     // When: 文書取得ハンドラー呼び出し（存在するID）
     let result = handlers.get_document(1).await;
-    
+
     // Then: 文書が返される
     assert!(result.is_ok());
     let document = result.unwrap();
@@ -185,10 +187,10 @@ async fn test_get_document_handler_not_found() {
     let rule_repo = MockDocumentNumberRuleRepository;
     let service = DocumentService::new(doc_repo, rule_repo);
     let handlers = DocumentHandlers::new(service);
-    
+
     // When: 文書取得ハンドラー呼び出し（存在しないID）
     let result = handlers.get_document(999).await;
-    
+
     // Then: NotFoundエラーが返される
     assert!(result.is_err());
 }
@@ -200,7 +202,7 @@ async fn test_search_documents_handler() {
     let rule_repo = MockDocumentNumberRuleRepository;
     let service = DocumentService::new(doc_repo, rule_repo);
     let handlers = DocumentHandlers::new(service);
-    
+
     let filters = doc_man_db::models::DocumentSearchFilters {
         title: Some("テスト".to_string()),
         document_type_id: None,
@@ -210,10 +212,10 @@ async fn test_search_documents_handler() {
         limit: 10,
         offset: 0,
     };
-    
+
     // When: 文書検索ハンドラー呼び出し
     let result = handlers.search_documents(filters).await;
-    
+
     // Then: 検索結果が返される
     assert!(result.is_ok());
     let (documents, total) = result.unwrap();
@@ -229,7 +231,7 @@ async fn test_create_document_handler_validation_error() {
     let rule_repo = MockDocumentNumberRuleRepository;
     let service = DocumentService::new(doc_repo, rule_repo);
     let handlers = DocumentHandlers::new(service);
-    
+
     let invalid_request = CreateDocumentWithNumberRequest {
         title: "".to_string(), // 空のタイトル（バリデーションエラー）
         document_type_code: "A".to_string(),
@@ -237,10 +239,10 @@ async fn test_create_document_handler_validation_error() {
         created_by: 1,
         created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
     };
-    
+
     // When: 無効なリクエストで文書作成ハンドラー呼び出し
     let result = handlers.create_document(invalid_request).await;
-    
+
     // Then: バリデーションエラーが返される
     assert!(result.is_err());
 }

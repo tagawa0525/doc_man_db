@@ -116,7 +116,7 @@ impl DocumentNumberRequest {
 }
 
 // 生成された文書番号
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeneratedDocumentNumber {
     pub document_number: String,
     pub rule_id: i32,
@@ -140,7 +140,7 @@ pub enum DocumentNumberGenerationError {
 }
 
 // 文書番号付き文書作成結果
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreatedDocumentWithNumber {
     pub document: crate::models::Document,
     pub document_number: String,

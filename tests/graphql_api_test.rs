@@ -8,17 +8,17 @@ use tokio::net::TcpListener;
 async fn spawn_app() -> (SocketAddr, tokio::task::JoinHandle<()>) {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
-    
+
     // TODO: 実際のアプリケーションインスタンスを作成
     let app = doc_man_db::create_app().await;
-    
+
     let server_handle = tokio::spawn(async move {
         axum::serve(listener, app).await.unwrap();
     });
-    
+
     // サーバーが起動するまで少し待機
     tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-    
+
     (addr, server_handle)
 }
 
@@ -27,7 +27,7 @@ async fn test_graphql_introspection() {
     // Given: テストサーバーを起動
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
-    
+
     let introspection_query = json!({
         "query": r#"
             query IntrospectionQuery {
@@ -40,7 +40,7 @@ async fn test_graphql_introspection() {
             }
         "#
     });
-    
+
     // When: GraphQLイントロスペクションクエリを実行
     let response = client
         .post(&format!("http://{}/graphql", addr))
@@ -49,20 +49,17 @@ async fn test_graphql_introspection() {
         .send()
         .await
         .expect("Failed to execute request");
-    
+
     // Then: 200 OKが返され、スキーマ情報が取得できる
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let body: serde_json::Value = response.json().await.unwrap();
     assert!(body["data"]["__schema"]["types"].is_array());
-    
+
     // DocumentとCreateDocumentInputタイプが存在することを確認
     let types = body["data"]["__schema"]["types"].as_array().unwrap();
-    let type_names: Vec<&str> = types
-        .iter()
-        .filter_map(|t| t["name"].as_str())
-        .collect();
-    
+    let type_names: Vec<&str> = types.iter().filter_map(|t| t["name"].as_str()).collect();
+
     assert!(type_names.contains(&"Document"));
     assert!(type_names.contains(&"CreateDocumentInput"));
 }
@@ -72,7 +69,7 @@ async fn test_graphql_create_document_mutation() {
     // Given: テストサーバーを起動
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
-    
+
     let mutation = json!({
         "query": r#"
             mutation CreateDocument($input: CreateDocumentInput!) {
@@ -103,7 +100,7 @@ async fn test_graphql_create_document_mutation() {
             }
         }
     });
-    
+
     // When: GraphQL文書作成ミューテーションを実行
     let response = client
         .post(&format!("http://{}/graphql", addr))
@@ -112,16 +109,24 @@ async fn test_graphql_create_document_mutation() {
         .send()
         .await
         .expect("Failed to execute request");
-    
+
     // Then: 200 OKが返され、文書が作成される
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let body: serde_json::Value = response.json().await.unwrap();
     assert!(body["errors"].is_null());
-    
+
     let created_document = &body["data"]["createDocument"];
-    assert_eq!(created_document["document"]["title"], "GraphQL経由のテスト文書");
-    assert!(created_document["documentNumber"].as_str().unwrap().starts_with("T-25"));
+    assert_eq!(
+        created_document["document"]["title"],
+        "GraphQL経由のテスト文書"
+    );
+    assert!(
+        created_document["documentNumber"]
+            .as_str()
+            .unwrap()
+            .starts_with("T-25")
+    );
     assert_eq!(created_document["generatedNumber"]["ruleId"], 1);
 }
 
@@ -130,7 +135,7 @@ async fn test_graphql_query_document_by_id() {
     // Given: テストサーバーを起動し、文書を作成
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
-    
+
     // まず文書を作成
     let create_mutation = json!({
         "query": r#"
@@ -152,17 +157,19 @@ async fn test_graphql_query_document_by_id() {
             }
         }
     });
-    
+
     let create_response = client
         .post(&format!("http://{}/graphql", addr))
         .json(&create_mutation)
         .send()
         .await
         .unwrap();
-    
+
     let create_body: serde_json::Value = create_response.json().await.unwrap();
-    let document_id = create_body["data"]["createDocument"]["document"]["id"].as_i64().unwrap();
-    
+    let document_id = create_body["data"]["createDocument"]["document"]["id"]
+        .as_i64()
+        .unwrap();
+
     let query = json!({
         "query": r#"
             query GetDocument($id: Int!) {
@@ -181,7 +188,7 @@ async fn test_graphql_query_document_by_id() {
             "id": document_id
         }
     });
-    
+
     // When: GraphQL文書取得クエリを実行
     let response = client
         .post(&format!("http://{}/graphql", addr))
@@ -190,13 +197,13 @@ async fn test_graphql_query_document_by_id() {
         .send()
         .await
         .expect("Failed to execute request");
-    
+
     // Then: 200 OKが返され、文書が取得される
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let body: serde_json::Value = response.json().await.unwrap();
     assert!(body["errors"].is_null());
-    
+
     let document = &body["data"]["document"];
     assert_eq!(document["id"], document_id);
     assert_eq!(document["title"], "GraphQL取得テスト文書");
@@ -207,7 +214,7 @@ async fn test_graphql_search_documents() {
     // Given: テストサーバーを起動し、複数の文書を作成
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
-    
+
     // 複数文書を作成
     for i in 1..=3 {
         let create_mutation = json!({
@@ -230,7 +237,7 @@ async fn test_graphql_search_documents() {
                 }
             }
         });
-        
+
         client
             .post(&format!("http://{}/graphql", addr))
             .json(&create_mutation)
@@ -238,7 +245,7 @@ async fn test_graphql_search_documents() {
             .await
             .unwrap();
     }
-    
+
     let search_query = json!({
         "query": r#"
             query SearchDocuments($filters: DocumentSearchFilters!) {
@@ -260,7 +267,7 @@ async fn test_graphql_search_documents() {
             }
         }
     });
-    
+
     // When: GraphQL文書検索クエリを実行
     let response = client
         .post(&format!("http://{}/graphql", addr))
@@ -269,17 +276,17 @@ async fn test_graphql_search_documents() {
         .send()
         .await
         .expect("Failed to execute request");
-    
+
     // Then: 200 OKが返され、検索結果が取得される
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let body: serde_json::Value = response.json().await.unwrap();
     assert!(body["errors"].is_null());
-    
+
     let search_result = &body["data"]["searchDocuments"];
     let documents = search_result["documents"].as_array().unwrap();
     let total = search_result["total"].as_u64().unwrap();
-    
+
     assert!(documents.len() >= 3);
     assert!(total >= 3);
 }
@@ -289,7 +296,7 @@ async fn test_graphql_validation_error() {
     // Given: テストサーバーを起動
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
-    
+
     let invalid_mutation = json!({
         "query": r#"
             mutation CreateDocument($input: CreateDocumentInput!) {
@@ -311,7 +318,7 @@ async fn test_graphql_validation_error() {
             }
         }
     });
-    
+
     // When: 無効なデータでGraphQLミューテーションを実行
     let response = client
         .post(&format!("http://{}/graphql", addr))
@@ -320,14 +327,14 @@ async fn test_graphql_validation_error() {
         .send()
         .await
         .expect("Failed to execute request");
-    
+
     // Then: 200 OKが返されるが、GraphQLエラーが含まれる
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let body: serde_json::Value = response.json().await.unwrap();
     assert!(body["errors"].is_array());
     assert!(!body["errors"].as_array().unwrap().is_empty());
-    
+
     let error_message = body["errors"][0]["message"].as_str().unwrap();
     assert!(error_message.contains("Title"));
 }
@@ -337,7 +344,7 @@ async fn test_graphql_playground_endpoint() {
     // Given: テストサーバーを起動
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
-    
+
     // When: GraphQL Playgroundエンドポイントにアクセス
     let response = client
         .get(&format!("http://{}/graphql", addr))
@@ -345,10 +352,10 @@ async fn test_graphql_playground_endpoint() {
         .send()
         .await
         .expect("Failed to execute request");
-    
+
     // Then: 200 OKが返され、HTMLが返される
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     let content_type = response.headers().get("content-type").unwrap();
     assert!(content_type.to_str().unwrap().contains("text/html"));
 }

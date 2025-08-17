@@ -7,6 +7,7 @@ use crate::models::{
 use crate::repositories::DocumentNumberRuleRepository;
 
 /// 文書番号生成サービス
+#[derive(Clone)]
 pub struct DocumentNumberGenerator {
     rule_repository: Arc<dyn DocumentNumberRuleRepository>,
 }

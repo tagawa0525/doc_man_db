@@ -8,6 +8,7 @@ use crate::repositories::{DocumentNumberRuleRepository, DocumentRepository};
 use crate::services::DocumentNumberGenerator;
 
 /// 文書管理ビジネスロジックサービス
+#[derive(Clone)]
 pub struct DocumentService {
     document_repository: Arc<dyn DocumentRepository>,
     number_generator: DocumentNumberGenerator,
@@ -72,6 +73,28 @@ impl DocumentService {
             document,
             generated_number,
         })
+    }
+
+    /// IDで文書を取得する
+    pub async fn get_document_by_id(
+        &self,
+        id: i32,
+    ) -> Result<Option<crate::models::Document>, DocumentServiceError> {
+        self.document_repository
+            .get_by_id(id)
+            .await
+            .map_err(DocumentServiceError::RepositoryError)
+    }
+
+    /// 文書を検索する
+    pub async fn search_documents(
+        &self,
+        filters: crate::models::DocumentSearchFilters,
+    ) -> Result<(Vec<crate::models::Document>, i64), DocumentServiceError> {
+        self.document_repository
+            .search(filters)
+            .await
+            .map_err(DocumentServiceError::RepositoryError)
     }
 }
 
