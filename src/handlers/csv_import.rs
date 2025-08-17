@@ -27,7 +27,7 @@ pub async fn upload_and_import_csv(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {}", e)))?
+        .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {e}")))?
     {
         let field_name = field.name().unwrap_or("").to_string();
 
@@ -39,28 +39,27 @@ pub async fn upload_and_import_csv(
                         .bytes()
                         .await
                         .map_err(|e| {
-                            AppError::ValidationError(format!("Failed to read file data: {}", e))
+                            AppError::ValidationError(format!("Failed to read file data: {e}"))
                         })?
                         .to_vec(),
                 );
             }
             "skip_duplicates" => {
                 let value = field.text().await.map_err(|e| {
-                    AppError::ValidationError(format!("Failed to read skip_duplicates: {}", e))
+                    AppError::ValidationError(format!("Failed to read skip_duplicates: {e}"))
                 })?;
                 import_options.skip_duplicates = value.parse().unwrap_or(true);
             }
             "validate_references" => {
                 let value = field.text().await.map_err(|e| {
-                    AppError::ValidationError(format!("Failed to read validate_references: {}", e))
+                    AppError::ValidationError(format!("Failed to read validate_references: {e}"))
                 })?;
                 import_options.validate_references = value.parse().unwrap_or(true);
             }
             "auto_create_references" => {
                 let value = field.text().await.map_err(|e| {
                     AppError::ValidationError(format!(
-                        "Failed to read auto_create_references: {}",
-                        e
+                        "Failed to read auto_create_references: {e}"
                     ))
                 })?;
                 import_options.auto_create_references = value.parse().unwrap_or(false);
@@ -135,7 +134,7 @@ pub async fn get_import_execution(
 ) -> Result<Json<Value>, AppError> {
     // TODO: 実際のCSVインポートサービス実装に置き換える
     let execution = get_mock_import_execution(import_id)
-        .ok_or_else(|| AppError::NotFound(format!("Import execution not found: {}", import_id)))?;
+        .ok_or_else(|| AppError::NotFound(format!("Import execution not found: {import_id}")))?;
 
     Ok(Json(json!(execution)))
 }
@@ -194,7 +193,7 @@ pub async fn validate_csv(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {}", e)))?
+        .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {e}")))?
     {
         if let Some(field_name) = field.name() {
             if field_name == "file" {
@@ -204,7 +203,7 @@ pub async fn validate_csv(
                         .bytes()
                         .await
                         .map_err(|e| {
-                            AppError::ValidationError(format!("Failed to read file data: {}", e))
+                            AppError::ValidationError(format!("Failed to read file data: {e}"))
                         })?
                         .to_vec(),
                 );

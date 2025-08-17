@@ -39,6 +39,12 @@ pub struct FileCheckStatistics {
     pub check_errors: i32,
 }
 
+impl Default for FileCheckService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FileCheckService {
     pub fn new() -> Self {
         Self {}
@@ -151,9 +157,7 @@ impl FileCheckService {
 
         // 実行結果の更新
         execution.end_time = Some(Utc::now());
-        execution.status = if execution.error_count == 0 {
-            BatchStatus::Completed
-        } else if execution.success_count > 0 {
+        execution.status = if execution.error_count == 0 || execution.success_count > 0 {
             BatchStatus::Completed
         } else {
             BatchStatus::Failed
@@ -230,7 +234,7 @@ impl FileCheckService {
         let extensions = vec!["pdf", "docx", "xlsx", "pptx", "doc", "xls", "ppt"];
 
         for ext in &extensions {
-            let file_path = folder_path.join(format!("{}.{}", document_number, ext));
+            let file_path = folder_path.join(format!("{document_number}.{ext}"));
             if file_path.exists() {
                 return Ok(true);
             }
@@ -246,7 +250,7 @@ impl FileCheckService {
         document_number: &str,
     ) -> Result<bool, BatchError> {
         // 承認ファイルの命名規則: [document_number]-審査承認.pdf
-        let approval_file_path = folder_path.join(format!("{}-審査承認.pdf", document_number));
+        let approval_file_path = folder_path.join(format!("{document_number}-審査承認.pdf"));
         Ok(approval_file_path.exists())
     }
 
@@ -257,7 +261,7 @@ impl FileCheckService {
         document
             .importance_class
             .as_ref()
-            .map_or(false, |class| class == "class1")
+            .is_some_and(|class| class == "class1")
     }
 
     /// 確認対象文書を取得

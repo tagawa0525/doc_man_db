@@ -63,6 +63,12 @@ pub struct NotificationMessage {
     pub metadata: Option<String>,
 }
 
+impl Default for NotificationService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NotificationService {
     pub fn new() -> Self {
         Self {}
@@ -192,8 +198,8 @@ impl NotificationService {
             id: format!("batch_error_{}", chrono::Utc::now().timestamp()),
             notification_type: NotificationType::BatchError,
             severity: NotificationSeverity::Error,
-            title: format!("{}バッチエラー", batch_type),
-            message: format!("バッチ処理でエラーが発生しました:\n\n{}", error_message),
+            title: format!("{batch_type}バッチエラー"),
+            message: format!("バッチ処理でエラーが発生しました:\n\n{error_message}"),
             timestamp: Utc::now(),
             channels: vec![NotificationChannel::Email, NotificationChannel::Teams],
             metadata: None,
@@ -210,8 +216,8 @@ impl NotificationService {
             id: format!("security_alert_{}", chrono::Utc::now().timestamp()),
             notification_type: NotificationType::SecurityAlert,
             severity: NotificationSeverity::Critical,
-            title: format!("セキュリティアラート: {}", alert_type),
-            message: format!("セキュリティに関する重要な通知です:\n\n{}", details),
+            title: format!("セキュリティアラート: {alert_type}"),
+            message: format!("セキュリティに関する重要な通知です:\n\n{details}"),
             timestamp: Utc::now(),
             channels: vec![NotificationChannel::Email, NotificationChannel::Teams],
             metadata: None,

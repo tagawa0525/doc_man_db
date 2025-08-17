@@ -123,6 +123,12 @@ pub struct DeduplicationServiceImpl {
     // TODO: 実際のリポジトリを注入
 }
 
+impl Default for DeduplicationServiceImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DeduplicationServiceImpl {
     pub fn new() -> Self {
         Self {}
@@ -182,7 +188,7 @@ impl DeduplicationServiceImpl {
     fn katakana_to_hiragana(&self, text: &str) -> String {
         text.chars()
             .map(|c| {
-                if c >= 'ァ' && c <= 'ヶ' {
+                if ('ァ'..='ヶ').contains(&c) {
                     std::char::from_u32(c as u32 - 0x60).unwrap_or(c)
                 } else {
                     c
@@ -276,7 +282,7 @@ impl DeduplicationService for DeduplicationServiceImpl {
             threshold
         );
 
-        if threshold < 0.0 || threshold > 1.0 {
+        if !(0.0..=1.0).contains(&threshold) {
             return Err(DeduplicationError::InvalidThreshold { threshold });
         }
 

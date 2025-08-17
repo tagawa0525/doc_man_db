@@ -56,6 +56,12 @@ pub struct AdUser {
     pub modified_date: DateTime<Utc>,
 }
 
+impl Default for AdSyncService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AdSyncService {
     pub fn new() -> Self {
         Self {}
@@ -92,9 +98,7 @@ impl AdSyncService {
         execution.error_count = sync_result.sync_errors;
         execution.end_time = Some(Utc::now());
 
-        execution.status = if execution.error_count == 0 {
-            BatchStatus::Completed
-        } else if execution.success_count > 0 {
+        execution.status = if execution.error_count == 0 || execution.success_count > 0 {
             BatchStatus::Completed
         } else {
             BatchStatus::Failed
@@ -246,8 +250,7 @@ impl AdSyncService {
         // ADユーザー名で既存ユーザーを検索
         let existing_user = local_users.iter().find(|u| {
             u.ad_username
-                .as_ref()
-                .map_or(false, |ad| ad == &ad_user.username)
+                .as_ref() == Some(&ad_user.username)
         });
 
         match existing_user {

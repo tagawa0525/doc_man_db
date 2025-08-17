@@ -51,6 +51,12 @@ pub struct CleanupStatistics {
     pub error_count: i32,
 }
 
+impl Default for DataCleanupService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DataCleanupService {
     pub fn new() -> Self {
         Self {}
@@ -141,9 +147,7 @@ impl DataCleanupService {
             .signed_duration_since(execution.start_time)
             .num_minutes() as f64;
 
-        execution.status = if execution.error_count == 0 {
-            BatchStatus::Completed
-        } else if execution.success_count > 0 {
+        execution.status = if execution.error_count == 0 || execution.success_count > 0 {
             BatchStatus::Completed
         } else {
             BatchStatus::Failed

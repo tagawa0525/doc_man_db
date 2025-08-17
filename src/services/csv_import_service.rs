@@ -34,6 +34,12 @@ pub struct CsvImportServiceImpl {
     // document_repository: Box<dyn DocumentRepository>,
 }
 
+impl Default for CsvImportServiceImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CsvImportServiceImpl {
     pub fn new() -> Self {
         Self {
@@ -70,7 +76,7 @@ impl CsvImportServiceImpl {
                     row_number,
                     field: None,
                     message: format!("Duplicate document found: {}", existing.number),
-                    raw_data: format!("{:?}", record),
+                    raw_data: format!("{record:?}"),
                 });
             }
         }
@@ -93,7 +99,7 @@ impl CsvImportServiceImpl {
         // TODO: 実際の文書サービスを使用
         let document = Document {
             id: row_number as i32,
-            number: format!("DOC-{:06}", row_number),
+            number: format!("DOC-{row_number:06}"),
             title: create_request.title,
             document_type_id: create_request.document_type_id,
             business_number: create_request.business_number,
@@ -103,10 +109,7 @@ impl CsvImportServiceImpl {
             importance_class: create_request.importance_class,
             personal_info: create_request.personal_info,
             notes: create_request.notes,
-            network_path: Some(format!(
-                "\\\\server\\docs\\{}",
-                format!("DOC-{:06}", row_number)
-            )),
+            network_path: Some(format!("\\\\server\\docs\\DOC-{row_number:06}")),
             is_active: true,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -193,9 +196,7 @@ impl CsvImportServiceImpl {
         Err(ImportError {
             row_number,
             field: Some("created_date".to_string()),
-            message: format!(
-                "Invalid date format. Supported formats: YYYY-MM-DD, YYYY/MM/DD, DD/MM/YYYY, DD-MM-YYYY, YYYY年MM月DD日"
-            ),
+            message: "Invalid date format. Supported formats: YYYY-MM-DD, YYYY/MM/DD, DD/MM/YYYY, DD-MM-YYYY, YYYY年MM月DD日".to_string(),
             raw_data: date_str.to_string(),
         })
     }
@@ -255,7 +256,7 @@ impl CsvImportServiceImpl {
                 return Err(ImportError {
                     row_number,
                     field: Some("document_type_code".to_string()),
-                    message: format!("Unknown document type: {}", type_code),
+                    message: format!("Unknown document type: {type_code}"),
                     raw_data: type_code.to_string(),
                 });
             }
@@ -370,7 +371,7 @@ impl CsvImportService for CsvImportServiceImpl {
                     let error = ImportError {
                         row_number,
                         field: None,
-                        message: format!("CSV parsing error: {}", csv_error),
+                        message: format!("CSV parsing error: {csv_error}"),
                         raw_data: String::new(),
                     };
                     result.errors.push(error);
