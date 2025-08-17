@@ -4,7 +4,7 @@ use crate::models::Document;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use tracing::info;
+use tracing::{info, warn};
 use uuid::Uuid;
 
 /// ファイル存在確認サービス
