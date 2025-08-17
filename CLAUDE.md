@@ -23,7 +23,7 @@ This is a document management system (`doc_man_db`) written in Rust, designed to
 # Build project
 cargo build
 
-# Run development server
+# Run development server  
 cargo run
 
 # Run with release optimizations
@@ -31,6 +31,9 @@ cargo build --release
 
 # Update dependencies
 cargo update
+
+# Clean build artifacts
+cargo clean
 ```
 
 ### Testing & Quality
@@ -45,6 +48,9 @@ cargo test --lib
 # Integration tests only
 cargo test --test '*'
 
+# Run specific test module
+cargo test models::
+
 # Format code
 cargo fmt
 
@@ -55,10 +61,10 @@ cargo clippy
 cargo audit
 ```
 
-### Database Operations (when SQLx is added)
+### Database Operations
 
 ```bash
-# Install SQLx CLI
+# Install SQLx CLI (if not installed)
 cargo install sqlx-cli --no-default-features --features sqlite,postgres
 
 # Run migrations
@@ -66,28 +72,54 @@ sqlx migrate run --database-url sqlite://./data/dev.db
 
 # Create new migration
 sqlx migrate add create_documents_table
+
+# Revert last migration
+sqlx migrate revert --database-url sqlite://./data/dev.db
+
+# Check migration status
+sqlx migrate info --database-url sqlite://./data/dev.db
 ```
 
 ## Project Structure
 
-Current minimal structure will expand to:
-
 ```text
 src/
 ├── main.rs              # Application entry point
-├── lib.rs               # Library entry point (to be added)
-├── config/              # Configuration modules
-├── models/              # Data models (Document, Employee, Department, etc.)
-├── repositories/        # Database access layer
-├── services/           # Business logic (document management, number generation, file checking)
-├── handlers/           # GraphQL and REST handlers
-├── middleware/         # Authentication, CORS, logging
-├── utils/              # Error handling, validation, path resolution
+├── lib.rs               # Library exports
+├── app.rs               # Application configuration
+├── error.rs             # Error handling types
+├── routes.rs            # Route configuration
+├── graphql/            # GraphQL implementation
+│   ├── mod.rs          
+│   ├── schema.rs        # GraphQL schema definition
+│   ├── types.rs         # GraphQL type definitions
+│   └── resolvers.rs     # GraphQL resolvers
+├── handlers/           # HTTP and GraphQL handlers
+│   ├── mod.rs
+│   ├── business.rs      # Business logic handlers
+│   ├── graphql.rs       # GraphQL endpoint handlers
+│   └── http.rs          # REST API handlers
+├── models/             # Data models
+│   ├── mod.rs
+│   ├── document.rs      # Document entity
+│   ├── document_type.rs # Document type definitions
+│   └── document_number_generation.rs  # Number generation rules
+├── repositories/       # Database access layer
+│   ├── mod.rs
+│   ├── document_repository.rs
+│   └── document_number_rule_repository.rs
+├── services/           # Business logic
+│   ├── mod.rs
+│   ├── document_service.rs
+│   └── document_number_generator.rs
 └── migrations/         # Database schema migrations
 
-docs/                   # Comprehensive design documentation
-tests/                  # Unit, integration, and E2E tests
-ui/                     # SvelteKit frontend (to be added)
+tests/                  # Test organization
+├── integration/        # Integration tests  
+├── unit/              # Unit tests
+│   ├── models/        # Model unit tests
+│   └── repositories/  # Repository unit tests
+docs/                  # Design documentation
 ```
 
 ## Key Design Patterns
