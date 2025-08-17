@@ -31,7 +31,8 @@
       "Bash(where:*)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "mcp__serena__get_symbols_overview"
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__think_about_task_adherence"
     ],
     "deny": [],
     "ask": [
