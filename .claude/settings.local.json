@@ -16,16 +16,17 @@
       "mcp__serena__think_about_collected_information",
       "mcp__serena__think_about_whether_you_are_done",
       "mcp__serena__write_memory",
-      "Bash(cargo:*)",
+      "Bash(cargo :*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo check:*)",
       "Bash(dir:*)",
       "Bash(echo:*)",
       "Bash(git add:*)",
       "Bash(mkdir:*)",
-      "Bash(where:*)",
-      "Bash(cargo test:*)",
-      "Bash(cargo clippy:*)",
-      "Bash(cargo fmt:*)",
-      "Bash(cargo build:*)"
+      "Bash(where:*)"
     ],
     "deny": [],
     "ask": [
