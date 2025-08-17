@@ -10,6 +10,7 @@ use uuid::Uuid;
 
 /// バッチスケジューラー
 pub struct BatchScheduler {
+    #[allow(dead_code)]
     scheduler: JobScheduler,
     file_check_service: Arc<FileCheckService>,
     ad_sync_service: Arc<AdSyncService>,

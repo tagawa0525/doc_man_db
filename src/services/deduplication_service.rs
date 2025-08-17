@@ -151,6 +151,7 @@ impl DeduplicationServiceImpl {
     }
 
     /// 部分一致による類似度計算
+    #[allow(dead_code)]
     fn calculate_partial_similarity(&self, str1: &str, str2: &str) -> f64 {
         let base_similarity = self.calculate_similarity(str1, str2);
 
