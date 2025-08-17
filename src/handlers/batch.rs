@@ -1,5 +1,5 @@
-use crate::batch::{BatchType, BatchExecution, BatchStatus};
 use crate::AppState;
+use crate::batch::{BatchExecution, BatchStatus, BatchType};
 use crate::error::AppError;
 use axum::{
     extract::{Path, Query, State},
@@ -44,12 +44,14 @@ pub async fn execute_batch_manually(
     State(_app_state): State<AppState>,
     Json(request): Json<BatchExecutionRequest>,
 ) -> Result<Json<BatchExecution>, AppError> {
-    info!("Manual batch execution requested: {:?} by user {}", 
-          request.batch_type, request.started_by);
-    
+    info!(
+        "Manual batch execution requested: {:?} by user {}",
+        request.batch_type, request.started_by
+    );
+
     // TODO: 実際のスケジューラー実装に置き換える
     let result = create_mock_batch_execution(request.batch_type, request.started_by);
-    
+
     Ok(Json(result))
 }
 
@@ -59,10 +61,10 @@ pub async fn get_batch_executions(
     Query(query): Query<BatchListQuery>,
 ) -> Result<Json<Vec<BatchExecution>>, AppError> {
     info!("Getting batch executions: {:?}", query);
-    
+
     // TODO: 実際のデータベースから取得
     let executions = get_mock_batch_executions(query).await;
-    
+
     Ok(Json(executions))
 }
 
@@ -72,11 +74,14 @@ pub async fn get_batch_execution(
     Path(execution_id): Path<Uuid>,
 ) -> Result<Json<BatchExecution>, AppError> {
     info!("Getting batch execution: {}", execution_id);
-    
+
     // TODO: 実際のデータベースから取得
-    let execution = get_mock_batch_execution(execution_id).await
-        .ok_or_else(|| AppError::NotFound(format!("Batch execution not found: {}", execution_id)))?;
-    
+    let execution = get_mock_batch_execution(execution_id)
+        .await
+        .ok_or_else(|| {
+            AppError::NotFound(format!("Batch execution not found: {}", execution_id))
+        })?;
+
     Ok(Json(execution))
 }
 
@@ -85,7 +90,7 @@ pub async fn get_batch_statistics(
     State(_app_state): State<AppState>,
 ) -> Result<Json<BatchStatisticsResponse>, AppError> {
     info!("Getting batch statistics");
-    
+
     // TODO: 実際のデータベースから統計を計算
     let statistics = BatchStatisticsResponse {
         total_executions: 45,
@@ -95,7 +100,7 @@ pub async fn get_batch_statistics(
         avg_execution_time_minutes: 12.5,
         last_execution: get_mock_latest_execution().await,
     };
-    
+
     Ok(Json(statistics))
 }
 
@@ -104,10 +109,10 @@ pub async fn get_running_batches(
     State(_app_state): State<AppState>,
 ) -> Result<Json<Vec<BatchExecution>>, AppError> {
     info!("Getting running batches");
-    
+
     // TODO: 実際のデータベースから実行中バッチを取得
     let running_batches = get_mock_running_batches().await;
-    
+
     Ok(Json(running_batches))
 }
 
@@ -122,7 +127,7 @@ pub async fn get_batch_types(
         BatchType::DocumentBackup,
         BatchType::SystemMaintenance,
     ];
-    
+
     Ok(Json(batch_types))
 }
 
@@ -134,8 +139,11 @@ pub async fn get_batch_schedules(
     schedules.insert("file_check".to_string(), "毎月1日 9:00".to_string());
     schedules.insert("ad_sync".to_string(), "毎週月曜日 6:00".to_string());
     schedules.insert("data_cleanup".to_string(), "毎日 2:00".to_string());
-    schedules.insert("system_maintenance".to_string(), "毎月第1日曜日 1:00".to_string());
-    
+    schedules.insert(
+        "system_maintenance".to_string(),
+        "毎月第1日曜日 1:00".to_string(),
+    );
+
     Ok(Json(schedules))
 }
 
@@ -145,17 +153,19 @@ pub async fn cancel_batch(
     Path(execution_id): Path<Uuid>,
 ) -> Result<StatusCode, AppError> {
     info!("Cancelling batch execution: {}", execution_id);
-    
+
     // TODO: バッチキャンセル機能の実装
     // 現在はサポートされていない旨を返す
-    Err(AppError::InternalError("Batch cancellation not yet implemented".to_string()))
+    Err(AppError::InternalError(
+        "Batch cancellation not yet implemented".to_string(),
+    ))
 }
 
 // モックデータ生成関数（実装時はデータベースアクセスに置き換える）
 
 async fn get_mock_batch_executions(query: BatchListQuery) -> Vec<BatchExecution> {
     use chrono::Utc;
-    
+
     vec![
         BatchExecution {
             id: Uuid::new_v4(),
@@ -190,7 +200,7 @@ async fn get_mock_batch_executions(query: BatchListQuery) -> Vec<BatchExecution>
 
 async fn get_mock_batch_execution(execution_id: Uuid) -> Option<BatchExecution> {
     use chrono::Utc;
-    
+
     Some(BatchExecution {
         id: execution_id,
         batch_type: BatchType::FileCheck,
@@ -209,7 +219,7 @@ async fn get_mock_batch_execution(execution_id: Uuid) -> Option<BatchExecution> 
 
 async fn get_mock_latest_execution() -> Option<BatchExecution> {
     use chrono::Utc;
-    
+
     Some(BatchExecution {
         id: Uuid::new_v4(),
         batch_type: BatchType::FileCheck,
@@ -228,28 +238,26 @@ async fn get_mock_latest_execution() -> Option<BatchExecution> {
 
 async fn get_mock_running_batches() -> Vec<BatchExecution> {
     use chrono::Utc;
-    
-    vec![
-        BatchExecution {
-            id: Uuid::new_v4(),
-            batch_type: BatchType::AdSync,
-            status: BatchStatus::Running,
-            total_items: 50,
-            processed_items: 25,
-            success_count: 24,
-            error_count: 1,
-            start_time: Utc::now() - chrono::Duration::minutes(30),
-            end_time: None,
-            started_by: None,
-            result_summary: None,
-            error_details: None,
-        },
-    ]
+
+    vec![BatchExecution {
+        id: Uuid::new_v4(),
+        batch_type: BatchType::AdSync,
+        status: BatchStatus::Running,
+        total_items: 50,
+        processed_items: 25,
+        success_count: 24,
+        error_count: 1,
+        start_time: Utc::now() - chrono::Duration::minutes(30),
+        end_time: None,
+        started_by: None,
+        result_summary: None,
+        error_details: None,
+    }]
 }
 
 fn create_mock_batch_execution(batch_type: BatchType, started_by: i32) -> BatchExecution {
     use chrono::Utc;
-    
+
     BatchExecution {
         id: uuid::Uuid::new_v4(),
         batch_type,
@@ -269,8 +277,8 @@ fn create_mock_batch_execution(batch_type: BatchType, started_by: i32) -> BatchE
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum_test::TestServer;
     use axum::Router;
+    use axum_test::TestServer;
 
     #[tokio::test]
     async fn test_get_batch_types() {
@@ -278,14 +286,14 @@ mod tests {
         assert_eq!(response.0.len(), 5);
         assert!(response.0.contains(&BatchType::FileCheck));
     }
-    
+
     #[tokio::test]
     async fn test_get_batch_schedules() {
         let response = get_batch_schedules().await.unwrap();
         assert!(response.0.contains_key("file_check"));
         assert!(response.0.contains_key("ad_sync"));
     }
-    
+
     #[tokio::test]
     async fn test_mock_data_generation() {
         let query = BatchListQuery {
@@ -294,10 +302,10 @@ mod tests {
             limit: None,
             offset: None,
         };
-        
+
         let executions = get_mock_batch_executions(query).await;
         assert!(!executions.is_empty());
-        
+
         let execution_id = executions[0].id;
         let execution = get_mock_batch_execution(execution_id).await;
         assert!(execution.is_some());

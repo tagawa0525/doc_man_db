@@ -1,12 +1,12 @@
 use crate::error::{DeduplicationError, ResolveError};
 use crate::models::{Document, Employee};
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use strsim::jaro_winkler;
-use std::collections::HashMap;
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use strsim::jaro_winkler;
 use tracing::{info, warn};
+use uuid::Uuid;
 
 /// 重複候補
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,10 +39,10 @@ pub enum DuplicationType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DuplicationStatus {
-    Pending,    // 未確認
-    Confirmed,  // 重複確認済み
-    Ignored,    // 無視
-    Merged,     // 統合済み
+    Pending,   // 未確認
+    Confirmed, // 重複確認済み
+    Ignored,   // 無視
+    Merged,    // 統合済み
 }
 
 /// 統合結果
@@ -73,17 +73,28 @@ pub struct MergeRecord {
 #[async_trait]
 pub trait DeduplicationService: Send + Sync {
     /// 社員の重複候補を検索
-    async fn find_employee_duplicates(&self, threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
-    
+    async fn find_employee_duplicates(
+        &self,
+        threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
+
     /// 顧客の重複候補を検索
-    async fn find_customer_duplicates(&self, threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
-    
+    async fn find_customer_duplicates(
+        &self,
+        threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
+
     /// 業務番号の重複候補を検索
-    async fn find_business_number_duplicates(&self) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
-    
+    async fn find_business_number_duplicates(
+        &self,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
+
     /// 文書の重複候補を検索
-    async fn find_document_duplicates(&self, threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
-    
+    async fn find_document_duplicates(
+        &self,
+        threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError>;
+
     /// 重複候補のステータス更新
     async fn update_duplication_status(
         &self,
@@ -91,7 +102,7 @@ pub trait DeduplicationService: Send + Sync {
         status: DuplicationStatus,
         reviewed_by: i32,
     ) -> Result<(), DeduplicationError>;
-    
+
     /// 社員データの統合
     async fn merge_employees(
         &self,
@@ -99,9 +110,12 @@ pub trait DeduplicationService: Send + Sync {
         duplicate_ids: Vec<i32>,
         merged_by: i32,
     ) -> Result<MergeResult, DeduplicationError>;
-    
+
     /// 統合履歴の取得
-    async fn get_merge_history(&self, limit: Option<i32>) -> Result<Vec<MergeRecord>, DeduplicationError>;
+    async fn get_merge_history(
+        &self,
+        limit: Option<i32>,
+    ) -> Result<Vec<MergeRecord>, DeduplicationError>;
 }
 
 /// 名寄せサービス実装
@@ -113,7 +127,7 @@ impl DeduplicationServiceImpl {
     pub fn new() -> Self {
         Self {}
     }
-    
+
     /// 文字列の類似度を計算
     fn calculate_similarity(&self, str1: &str, str2: &str) -> f64 {
         if str1.is_empty() && str2.is_empty() {
@@ -122,46 +136,47 @@ impl DeduplicationServiceImpl {
         if str1.is_empty() || str2.is_empty() {
             return 0.0;
         }
-        
+
         // 正規化（空白削除、小文字変換）
         let normalized1 = str1.trim().to_lowercase();
         let normalized2 = str2.trim().to_lowercase();
-        
+
         // 完全一致チェック
         if normalized1 == normalized2 {
             return 1.0;
         }
-        
+
         // Jaro-Winkler距離を使用
         jaro_winkler(&normalized1, &normalized2)
     }
-    
+
     /// 部分一致による類似度計算
     fn calculate_partial_similarity(&self, str1: &str, str2: &str) -> f64 {
         let base_similarity = self.calculate_similarity(str1, str2);
-        
+
         // 部分一致ボーナス
         let normalized1 = str1.trim().to_lowercase();
         let normalized2 = str2.trim().to_lowercase();
-        
-        let contains_bonus = if normalized1.contains(&normalized2) || normalized2.contains(&normalized1) {
-            0.1
-        } else {
-            0.0
-        };
-        
+
+        let contains_bonus =
+            if normalized1.contains(&normalized2) || normalized2.contains(&normalized1) {
+                0.1
+            } else {
+                0.0
+            };
+
         (base_similarity + contains_bonus).min(1.0)
     }
-    
+
     /// カタカナ・ひらがなの類似度計算（日本語対応）
     fn calculate_japanese_similarity(&self, str1: &str, str2: &str) -> f64 {
         // カタカナをひらがなに変換して比較
         let hiragana1 = self.katakana_to_hiragana(str1);
         let hiragana2 = self.katakana_to_hiragana(str2);
-        
+
         self.calculate_similarity(&hiragana1, &hiragana2)
     }
-    
+
     /// カタカナをひらがなに変換（簡易実装）
     fn katakana_to_hiragana(&self, text: &str) -> String {
         text.chars()
@@ -174,18 +189,18 @@ impl DeduplicationServiceImpl {
             })
             .collect()
     }
-    
+
     /// 複合類似度計算（複数フィールドの重み付き平均）
     fn calculate_composite_similarity(&self, fields: &[(String, String, f64)]) -> f64 {
         if fields.is_empty() {
             return 0.0;
         }
-        
+
         let total_weight: f64 = fields.iter().map(|(_, _, weight)| weight).sum();
         if total_weight == 0.0 {
             return 0.0;
         }
-        
+
         let weighted_sum: f64 = fields
             .iter()
             .map(|(str1, str2, weight)| {
@@ -193,10 +208,10 @@ impl DeduplicationServiceImpl {
                 similarity * weight
             })
             .sum();
-        
+
         weighted_sum / total_weight
     }
-    
+
     /// 仮の社員データ取得
     async fn get_all_employees(&self) -> Result<Vec<Employee>, DeduplicationError> {
         // TODO: 実際のデータベースから取得
@@ -251,24 +266,30 @@ impl DeduplicationServiceImpl {
 
 #[async_trait]
 impl DeduplicationService for DeduplicationServiceImpl {
-    async fn find_employee_duplicates(&self, threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
-        info!("Starting employee duplicate detection with threshold: {}", threshold);
-        
+    async fn find_employee_duplicates(
+        &self,
+        threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+        info!(
+            "Starting employee duplicate detection with threshold: {}",
+            threshold
+        );
+
         if threshold < 0.0 || threshold > 1.0 {
             return Err(DeduplicationError::InvalidThreshold { threshold });
         }
-        
+
         let employees = self.get_all_employees().await?;
         let mut candidates = Vec::new();
-        
+
         for i in 0..employees.len() {
             for j in (i + 1)..employees.len() {
                 let emp1 = &employees[i];
                 let emp2 = &employees[j];
-                
+
                 // 名前の類似度計算
                 let name_similarity = self.calculate_japanese_similarity(&emp1.name, &emp2.name);
-                
+
                 if name_similarity >= threshold {
                     candidates.push(DuplicationCandidate {
                         id: Uuid::new_v4(),
@@ -285,7 +306,7 @@ impl DeduplicationService for DeduplicationServiceImpl {
                         reviewed_by: None,
                     });
                 }
-                
+
                 // メールアドレスの類似度計算
                 if let (Some(email1), Some(email2)) = (&emp1.email, &emp2.email) {
                     let email_similarity = self.calculate_similarity(email1, email2);
@@ -306,14 +327,14 @@ impl DeduplicationService for DeduplicationServiceImpl {
                         });
                     }
                 }
-                
+
                 // 複合類似度計算（名前とメールの重み付き平均）
                 if let (Some(email1), Some(email2)) = (&emp1.email, &emp2.email) {
                     let composite_similarity = self.calculate_composite_similarity(&[
                         (emp1.name.clone(), emp2.name.clone(), 0.7), // 名前の重み70%
                         (email1.clone(), email2.clone(), 0.3),       // メールの重み30%
                     ]);
-                    
+
                     if composite_similarity >= threshold {
                         candidates.push(DuplicationCandidate {
                             id: Uuid::new_v4(),
@@ -333,29 +354,37 @@ impl DeduplicationService for DeduplicationServiceImpl {
                 }
             }
         }
-        
+
         info!("Found {} employee duplicate candidates", candidates.len());
         Ok(candidates)
     }
-    
-    async fn find_customer_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+
+    async fn find_customer_duplicates(
+        &self,
+        _threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         // TODO: 顧客重複検索の実装
         info!("Customer duplicate detection not yet implemented");
         Ok(vec![])
     }
-    
-    async fn find_business_number_duplicates(&self) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+
+    async fn find_business_number_duplicates(
+        &self,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         // TODO: 業務番号重複検索の実装
         info!("Business number duplicate detection not yet implemented");
         Ok(vec![])
     }
-    
-    async fn find_document_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+
+    async fn find_document_duplicates(
+        &self,
+        _threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         // TODO: 文書重複検索の実装
         info!("Document duplicate detection not yet implemented");
         Ok(vec![])
     }
-    
+
     async fn update_duplication_status(
         &self,
         candidate_id: Uuid,
@@ -369,7 +398,7 @@ impl DeduplicationService for DeduplicationServiceImpl {
         );
         Ok(())
     }
-    
+
     async fn merge_employees(
         &self,
         primary_id: i32,
@@ -380,12 +409,12 @@ impl DeduplicationService for DeduplicationServiceImpl {
             "Merging employees: primary={}, duplicates={:?}, by user={}",
             primary_id, duplicate_ids, merged_by
         );
-        
+
         // TODO: 実際の統合処理
         // 1. 重複データの文書を主データに移管
         // 2. 重複データを論理削除
         // 3. 統合履歴記録
-        
+
         let merge_result = MergeResult {
             merge_id: Uuid::new_v4(),
             primary_id,
@@ -395,12 +424,15 @@ impl DeduplicationService for DeduplicationServiceImpl {
             merged_at: Utc::now(),
             merged_by,
         };
-        
+
         info!("Employee merge completed: {:?}", merge_result.merge_id);
         Ok(merge_result)
     }
-    
-    async fn get_merge_history(&self, limit: Option<i32>) -> Result<Vec<MergeRecord>, DeduplicationError> {
+
+    async fn get_merge_history(
+        &self,
+        limit: Option<i32>,
+    ) -> Result<Vec<MergeRecord>, DeduplicationError> {
         // TODO: 統合履歴の取得
         info!("Getting merge history with limit: {:?}", limit);
         Ok(vec![])
@@ -414,59 +446,65 @@ mod tests {
     #[tokio::test]
     async fn test_calculate_similarity() {
         let service = DeduplicationServiceImpl::new();
-        
+
         // 完全一致
         assert_eq!(service.calculate_similarity("山田太郎", "山田太郎"), 1.0);
-        
+
         // 空文字列
         assert_eq!(service.calculate_similarity("", ""), 1.0);
         assert_eq!(service.calculate_similarity("", "山田太郎"), 0.0);
-        
+
         // 部分的な類似
         let similarity = service.calculate_similarity("山田太郎", "山田 太郎");
         assert!(similarity > 0.8); // スペースの違いは高い類似度
-        
+
         // 全く違う文字列
         let similarity = service.calculate_similarity("山田太郎", "佐藤花子");
         assert!(similarity < 0.5);
     }
-    
+
     #[tokio::test]
     async fn test_japanese_similarity() {
         let service = DeduplicationServiceImpl::new();
-        
+
         // カタカナ・ひらがなの類似度
         let similarity = service.calculate_japanese_similarity("サトウハナコ", "さとうはなこ");
         assert!(similarity > 0.9);
-        
+
         let similarity = service.calculate_japanese_similarity("佐藤花子", "サトウハナコ");
         assert!(similarity < 0.5); // 漢字とカタカナは低い類似度
     }
-    
+
     #[tokio::test]
     async fn test_find_employee_duplicates() {
         let service = DeduplicationServiceImpl::new();
-        
+
         let candidates = service.find_employee_duplicates(0.8).await.unwrap();
         assert!(!candidates.is_empty());
-        
+
         // 類似度が閾値以上であることを確認
         for candidate in &candidates {
             assert!(candidate.similarity_score >= 0.8);
         }
     }
-    
+
     #[test]
     fn test_invalid_threshold() {
         let service = DeduplicationServiceImpl::new();
-        
+
         // 無効な閾値のテスト
         tokio_test::block_on(async {
             let result = service.find_employee_duplicates(-0.1).await;
-            assert!(matches!(result, Err(DeduplicationError::InvalidThreshold { .. })));
-            
+            assert!(matches!(
+                result,
+                Err(DeduplicationError::InvalidThreshold { .. })
+            ));
+
             let result = service.find_employee_duplicates(1.1).await;
-            assert!(matches!(result, Err(DeduplicationError::InvalidThreshold { .. })));
+            assert!(matches!(
+                result,
+                Err(DeduplicationError::InvalidThreshold { .. })
+            ));
         });
     }
 }

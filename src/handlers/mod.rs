@@ -1,9 +1,9 @@
 pub mod batch;
 pub mod business;
-pub mod graphql;
-pub mod http;
 pub mod csv_import;
 pub mod deduplication;
+pub mod graphql;
+pub mod http;
 
 // Re-export business handlers for compatibility
 pub use batch::*;

@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// CSV インポート用の文書レコード
@@ -94,28 +94,33 @@ impl std::fmt::Display for ImportStatus {
 }
 
 /// CSV ヘッダー検証
-pub fn validate_csv_headers(headers: &csv::StringRecord) -> Result<(), crate::error::CsvImportError> {
+pub fn validate_csv_headers(
+    headers: &csv::StringRecord,
+) -> Result<(), crate::error::CsvImportError> {
     let required_headers = vec![
         "title",
-        "document_type_code", 
+        "document_type_code",
         "creator_name",
-        "created_date"
+        "created_date",
     ];
-    
+
     let mut missing_headers = Vec::new();
-    
+
     for required in &required_headers {
-        if !headers.iter().any(|h| h.trim().to_lowercase() == required.to_lowercase()) {
+        if !headers
+            .iter()
+            .any(|h| h.trim().to_lowercase() == required.to_lowercase())
+        {
             missing_headers.push(required.to_string());
         }
     }
-    
+
     if !missing_headers.is_empty() {
-        return Err(crate::error::CsvImportError::MissingHeaders { 
-            columns: missing_headers 
+        return Err(crate::error::CsvImportError::MissingHeaders {
+            columns: missing_headers,
         });
     }
-    
+
     Ok(())
 }
 
@@ -131,7 +136,7 @@ mod tests {
         headers.push_field("creator_name");
         headers.push_field("created_date");
         headers.push_field("optional_field");
-        
+
         assert!(validate_csv_headers(&headers).is_ok());
     }
 
@@ -141,10 +146,10 @@ mod tests {
         headers.push_field("title");
         headers.push_field("creator_name");
         // Missing document_type_code and created_date
-        
+
         let result = validate_csv_headers(&headers);
         assert!(result.is_err());
-        
+
         if let Err(crate::error::CsvImportError::MissingHeaders { columns }) = result {
             assert_eq!(columns.len(), 2);
             assert!(columns.contains(&"document_type_code".to_string()));
