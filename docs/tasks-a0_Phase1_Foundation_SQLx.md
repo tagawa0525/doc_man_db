@@ -16,14 +16,14 @@
 - **状態**: 未着手
 - **依存関係**: -
 
-#### 実装内容
+#### 実装内容(TASK-001)
 
 1. `Cargo.toml` の依存関係追加
 2. ディレクトリ構造作成 (`src/`, `tests/`, `migrations/`)
 3. 基本設定ファイル作成 (`.env.development`, `rustfmt.toml`)
 4. `.gitignore` 設定
 
-#### 成果物
+#### 成果物(TASK-001)
 
 - 完全な `Cargo.toml` 設定
 - プロジェクト ディレクトリ構造
@@ -39,7 +39,7 @@
 - **状態**: 未着手
 - **依存関係**: TASK-001
 
-#### 実装内容
+#### 実装内容(TASK-002)
 
 ```toml
 [dependencies]
@@ -68,7 +68,6 @@ config = "0.14"
 
 # Error handling
 thiserror = "1.0"
-anyhow = "1.0"
 
 # GraphQL
 async-graphql = "7.0"
@@ -87,7 +86,7 @@ mockall = "0.12"
 proptest = "1.0"
 ```
 
-#### 成果物
+#### 成果物(TASK-002)
 
 - 設定済み `Cargo.toml`
 - 基本ライブラリのビルド確認
@@ -102,7 +101,7 @@ proptest = "1.0"
 - **状態**: 未着手
 - **依存関係**: TASK-002
 
-#### 実装内容
+#### 実装内容(TASK-003)
 
 1. SQLx CLI インストール・設定
 2. 基本テーブル作成マイグレーション
@@ -224,7 +223,7 @@ BEGIN
 END;
 ```
 
-#### 成果物
+#### 成果物(TASK-003)
 
 - 完全なデータベーススキーマ
 - SQLxマイグレーションファイル
@@ -240,7 +239,7 @@ END;
 - **状態**: 未着手
 - **依存関係**: TASK-003
 
-#### 実装内容
+#### 実装内容(TASK-004)
 
 1. SQLx model 定義
 2. Serde シリアライゼーション設定
@@ -359,7 +358,7 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::migrate::Migr
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-004)
 
 - 全モデル struct 定義
 - Repository trait 定義
@@ -376,14 +375,14 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::migrate::Migr
 - **状態**: 未着手
 - **依存関係**: TASK-002
 
-#### 実装内容
+#### 実装内容(TASK-005)
 
 1. Axum サーバー設定
 2. 基本ミドルウェア (CORS, Logging)
 3. ヘルスチェック エンドポイント
 4. 基本エラーハンドリング
 
-#### 実装例
+#### 実装例(TASK-005)
 
 ```rust
 // src/main.rs
@@ -423,7 +422,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-005)
 
 - 動作するWebサーバー
 - データベース接続統合
@@ -440,7 +439,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - **状態**: 未着手
 - **依存関係**: TASK-005
 
-#### 実装内容
+#### 実装内容(TASK-006)
 
 ```rust
 // src/config/mod.rs
@@ -472,7 +471,7 @@ impl AppConfig {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-006)
 
 - 設定管理システム
 - 環境別設定ファイル
@@ -488,7 +487,7 @@ impl AppConfig {
 - **状態**: 未着手
 - **依存関係**: TASK-005
 
-#### 成果物
+#### 成果物(TASK-007)
 
 - ログ管理システム
 - ログファイル設定
@@ -504,7 +503,7 @@ impl AppConfig {
 - **状態**: 未着手
 - **依存関係**: TASK-005
 
-#### 成果物
+#### 成果物(TASK-008)
 
 - 開発環境設定
 - デバッグ設定
@@ -566,7 +565,7 @@ cargo test
 - **状態**: 未着手
 - **依存関係**: TASK-004
 
-#### 実装内容
+#### 実装内容(TASK-007)
 
 1. **SQL注入対策の徹底**
 2. **統一エラーハンドリング**

@@ -16,7 +16,7 @@
 - **状態**: 未着手
 - **依存関係**: TASK-004
 
-#### 実装内容
+#### 実装内容(TASK-009)
 
 1. 番号生成ルールエンジン
 2. 歴史的形式対応（CTA-2508001、技術-25001、DA-25001等）
@@ -35,7 +35,7 @@ src/services/
 │   └── sequence_manager.rs # 連番管理
 ```
 
-#### 実装例
+#### 実装例(TASK-009)
 
 ```rust
 // src/services/number_generation/rule_engine.rs
@@ -81,7 +81,7 @@ impl NumberGenerationService {
 }
 ```
 
-#### データベーステーブル
+#### データベーステーブル(TASK-009)
 
 ```sql
 -- 番号生成ルール
@@ -112,7 +112,7 @@ CREATE TABLE document_sequences (
 );
 ```
 
-#### 成果物
+#### 成果物(TASK-009)
 
 - 番号生成エンジン
 - 版管理システム
@@ -129,7 +129,7 @@ CREATE TABLE document_sequences (
 - **状態**: 未着手
 - **依存関係**: TASK-004
 
-#### 実装内容
+#### 実装内容(TASK-010)
 
 1. 部署管理API（階層構造対応）
 2. 社員管理API（異動履歴対応）
@@ -152,7 +152,7 @@ GraphQL API:
   - assignToDepartment(input: DepartmentAssignmentInput!): AssignmentResponse
 ```
 
-#### 実装例
+#### 実装例(TASK-010)
 
 ```rust
 // src/handlers/graphql/employee.rs
@@ -210,7 +210,7 @@ CREATE TABLE department_assignments (
 );
 ```
 
-#### 成果物
+#### 成果物(TASK-010)
 
 - 完全な組織管理API
 - 社員管理API
@@ -227,7 +227,7 @@ CREATE TABLE department_assignments (
 - **状態**: 未着手
 - **依存関係**: TASK-009
 
-#### 実装内容
+#### 実装内容(TASK-011)
 
 1. 文書CRUD API
 2. 複合条件検索API
@@ -276,7 +276,7 @@ type DocumentSearchResult {
 }
 ```
 
-#### 実装例
+#### 実装例(TASK-011)
 
 ```rust
 // src/services/document_service.rs
@@ -348,7 +348,7 @@ impl DocumentService {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-011)
 
 - 完全な文書管理API
 - 複合条件検索機能
@@ -365,14 +365,14 @@ impl DocumentService {
 - **状態**: 未着手
 - **依存関係**: TASK-011
 
-#### 実装内容
+#### 実装内容(TASK-012)
 
 1. パス生成ルールエンジン
 2. 動的パス解決
 3. サーバー設定管理
 4. パス履歴管理
 
-#### データベーステーブル
+#### データベーステーブル(TASK-012)
 
 ```sql
 -- パス生成ルール
@@ -400,7 +400,7 @@ CREATE TABLE server_configs (
 );
 ```
 
-#### 実装例
+#### 実装例(TASK-012)
 
 ```rust
 // src/services/path_generation_service.rs
@@ -434,7 +434,7 @@ impl PathGenerationService {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-012)
 
 - パス生成エンジン
 - 動的パス解決機能
@@ -451,14 +451,14 @@ impl PathGenerationService {
 - **状態**: 未着手
 - **依存関係**: TASK-012
 
-#### 実装内容
+#### 実装内容(TASK-013)
 
 1. ネットワークドライブアクセス機能
 2. ファイル存在確認API
 3. 承認書確認機能
 4. バッチ処理基盤
 
-#### 実装例
+#### 実装例(TASK-013)
 
 ```rust
 // src/services/file_check_service.rs
@@ -599,7 +599,7 @@ impl FileCheckService {
 }
 ```
 
-#### データベーステーブル
+#### データベーステーブル(TASK-013)
 
 ```sql
 -- ファイル確認ログ
@@ -666,7 +666,7 @@ pub enum FileCheckError {
 }
 ```
 
-#### 成果物
+#### 成果物(TASK-013)
 
 - **ファイル存在確認機能**
 - **承認書確認機能**  
@@ -684,7 +684,7 @@ pub enum FileCheckError {
 - **状態**: 未着手
 - **依存関係**: TASK-011
 
-#### 実装内容
+#### 実装内容(TASK-014)
 
 1. 検索用インデックス設計
 2. クエリ性能最適化
@@ -704,7 +704,7 @@ CREATE INDEX idx_dept_assignments_employee ON department_assignments(employee_id
 CREATE INDEX idx_dept_assignments_period ON department_assignments(start_date, end_date);
 ```
 
-#### 成果物
+#### 成果物(TASK-014)
 
 - 最適化されたインデックス
 - 高速検索クエリ
@@ -720,14 +720,14 @@ CREATE INDEX idx_dept_assignments_period ON department_assignments(start_date, e
 - **状態**: 未着手
 - **依存関係**: TASK-013
 
-#### 実装内容
+#### 実装内容(TASK-015)
 
 1. 統一エラー型定義
 2. エラーコード体系
 3. 多言語エラーメッセージ
 4. エラーログ統合
 
-#### 成果物
+#### 成果物(TASK-015)
 
 - 統一エラー処理システム
 - エラーコード体系
@@ -743,14 +743,14 @@ CREATE INDEX idx_dept_assignments_period ON department_assignments(start_date, e
 - **状態**: 未着手
 - **依存関係**: TASK-011
 
-#### 実装内容
+#### 実装内容(TASK-016)
 
 1. 入力値バリデーション
 2. ビジネスルール検証
 3. データ整合性チェック
 4. SQL注入対策
 
-#### 成果物
+#### 成果物(TASK-016)
 
 - 完全なバリデーション機能
 - セキュリティ対策
