@@ -28,7 +28,9 @@
       "Bash(git config:*)",
       "Bash(grep:*)",
       "Bash(mkdir:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": [
