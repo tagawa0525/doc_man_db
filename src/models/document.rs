@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{DateTime, Utc, NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
@@ -34,24 +34,38 @@ pub enum ValidationError {
 }
 
 // 文書モデル（データベースから取得用）
-#[derive(FromRow, Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Document {
     pub id: i32,
+    pub number: String,
     pub title: String,
     pub document_type_id: i32,
+    pub business_number: Option<String>,
     pub created_by: i32,
     pub created_date: NaiveDate,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub internal_external: Option<String>,
+    pub importance_class: Option<String>,
+    pub personal_info: Option<String>,
+    pub notes: Option<String>,
+    pub network_path: Option<String>,
+    pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 // 文書作成リクエスト
 #[derive(Debug, Clone, Deserialize)]
 pub struct CreateDocumentRequest {
+    pub number: Option<String>,
     pub title: String,
     pub document_type_id: i32,
+    pub business_number: Option<String>,
     pub created_by: i32,
     pub created_date: NaiveDate,
+    pub internal_external: Option<String>,
+    pub importance_class: Option<String>,
+    pub personal_info: Option<String>,
+    pub notes: Option<String>,
 }
 
 impl CreateDocumentRequest {
