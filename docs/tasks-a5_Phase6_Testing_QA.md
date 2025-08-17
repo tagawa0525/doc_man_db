@@ -243,12 +243,112 @@ cargo test --lib
 cargo test repositories::document_repository
 ```
 
+#### Property-based Testing
+
+```rust
+// tests/property/document_properties.rs
+use proptest::prelude::*;
+use crate::services::NumberGenerationService;
+use crate::models::CreateDocumentRequest;
+
+// 文書番号生成のプロパティテスト
+proptest! {
+    #[test]
+    fn test_document_number_generation_properties(
+        dept_code in "[A-Z]{1,3}",
+        year in 2020u32..2030u32,
+        sequence in 1u32..99999u32
+    ) {
+        let service = NumberGenerationService::new();
+        let result = service.format_number(&dept_code, year, sequence);
+        
+        // プロパティ検証
+        prop_assert!(result.len() <= 20, "Document number too long: {}", result);
+        prop_assert!(result.contains(&dept_code), "Missing department code: {}", result);
+        prop_assert!(result.contains(&year.to_string()[2..]), "Missing year: {}", result);
+        prop_assert!(!result.contains(" "), "Contains spaces: {}", result);
+        prop_assert!(result.chars().all(|c| c.is_alphanumeric() || c == '-'), "Invalid characters: {}", result);
+    }
+    
+    #[test] 
+    fn test_search_input_validation(
+        title in "[\\w\\s\u3042-\u3093\u30a2-\u30f3\u4e00-\u9fff]{0,100}",
+        limit in 1u32..1000u32,
+        offset in 0u32..100000u32
+    ) {
+        let search_input = DocumentSearchInput {
+            title: if title.trim().is_empty() { None } else { Some(title) },
+            pagination: Pagination { limit, offset },
+            ..Default::default()
+        };
+        
+        let validation_result = validate_search_input(&search_input);
+        
+        // 入力検証プロパティ
+        prop_assert!(validation_result.is_ok(), "Valid input should pass validation");
+        prop_assert!(search_input.pagination.limit > 0, "Limit must be positive");
+        prop_assert!(search_input.pagination.limit <= 1000, "Limit must not exceed 1000");
+    }
+    
+    #[test]
+    fn test_network_path_generation_properties(
+        document_number in "[A-Z]+-[0-9]{8}",
+        year in 2020u32..2030u32,
+        dept_name in "[\\w]{1,20}"
+    ) {
+        let path_service = PathGenerationService::new();
+        let result = path_service.generate_path(&document_number, &dept_name, year);
+        
+        prop_assert!(result.is_ok(), "Path generation should succeed");
+        
+        if let Ok(path) = result {
+            prop_assert!(path.starts_with("\\\\"), "Path should be UNC path: {}", path);
+            prop_assert!(path.contains(&year.to_string()), "Path should contain year: {}", path);
+            prop_assert!(path.contains(&dept_name), "Path should contain department: {}", path);
+            prop_assert!(!path.contains("//"), "Path should not have double slashes: {}", path);
+        }
+    }
+}
+
+// セキュリティプロパティテスト
+proptest! {
+    #[test]
+    fn test_sql_injection_resistance(
+        malicious_input in ".*['\";<>\\\\]",
+        table_name in "(users|documents|employees)",
+        operation in "(SELECT|INSERT|UPDATE|DELETE)"
+    ) {
+        let repository = DocumentRepositoryImpl::new(test_pool());
+        
+        // 悪意ある入力での検索テスト
+        let search_filters = DocumentSearchFilters {
+            title: Some(malicious_input.clone()),
+            business_number: Some(malicious_input),
+            ..Default::default()
+        };
+        
+        let result = repository.search_with_permissions(
+            search_filters, 
+            &UserPermissions::default()
+        ).await;
+        
+        // SQLインジェクションが成功しないことを確認
+        prop_assert!(
+            result.is_ok() || matches!(result, Err(DocumentError::Validation(_))),
+            "Malicious input should be handled safely"
+        );
+    }
+}
+```
+
 #### 成果物
 
-- 90%以上のテストカバレッジ
-- 全Repository・Serviceテスト
-- エラーケーステスト
-- モックテスト
+- **90%以上のテストカバレッジ**
+- **全Repository・Serviceテスト**
+- **エラーケーステスト** 
+- **モックテスト**
+- **🚀 Property-based Testing**
+- **🔒 セキュリティプロパティテスト**
 
 ---
 

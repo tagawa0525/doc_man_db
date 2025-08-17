@@ -66,6 +66,10 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Configuration
 config = "0.14"
 
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
 # GraphQL
 async-graphql = "7.0"
 async-graphql-axum = "7.0"
@@ -79,6 +83,8 @@ walkdir = "2.0"
 [dev-dependencies]
 tokio-test = "0.4"
 assert_matches = "1.5"
+mockall = "0.12"
+proptest = "1.0"
 ```
 
 #### 成果物
@@ -175,12 +181,47 @@ CREATE TABLE documents (
     personal_info TEXT CHECK(personal_info IN ('none', 'present')),
     notes TEXT,
     network_path TEXT,
+    network_path_status TEXT DEFAULT 'pending' CHECK(network_path_status IN ('pending', 'generated', 'failed')),
     is_active BOOLEAN DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (document_type_id) REFERENCES document_types (id),
     FOREIGN KEY (created_by) REFERENCES employees (id)
 );
+
+-- 検索性能用インデックス
+CREATE INDEX idx_documents_search ON documents(title, business_number, created_date);
+CREATE INDEX idx_documents_type_date ON documents(document_type_id, created_date);
+CREATE INDEX idx_documents_creator ON documents(created_by, is_active);
+CREATE INDEX idx_documents_number ON documents(number);
+
+-- 全文検索用仮想テーブル（SQLiteのFTS5）
+CREATE VIRTUAL TABLE documents_fts USING fts5(
+    title, business_number, notes,
+    content='documents',
+    content_rowid='id'
+);
+
+-- FTS5トリガー（自動更新）
+CREATE TRIGGER documents_fts_insert AFTER INSERT ON documents
+BEGIN
+    INSERT INTO documents_fts(rowid, title, business_number, notes)
+    VALUES (new.id, new.title, new.business_number, new.notes);
+END;
+
+CREATE TRIGGER documents_fts_update AFTER UPDATE ON documents
+BEGIN
+    UPDATE documents_fts SET 
+        title = new.title,
+        business_number = new.business_number,
+        notes = new.notes
+    WHERE rowid = new.id;
+END;
+
+CREATE TRIGGER documents_fts_delete AFTER DELETE ON documents
+BEGIN
+    DELETE FROM documents_fts WHERE rowid = old.id;
+END;
 ```
 
 #### 成果物
@@ -240,6 +281,7 @@ pub struct Document {
     pub personal_info: Option<String>,
     pub notes: Option<String>,
     pub network_path: Option<String>,
+    pub network_path_status: Option<String>,
     pub is_active: bool,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -259,15 +301,41 @@ pub struct CreateDocumentRequest {
     pub notes: Option<String>,
 }
 
-// Repository trait
+// 統一エラー型定義
+#[derive(Debug, thiserror::Error)]
+pub enum DocumentError {
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+    #[error("Validation error: {0}")]
+    Validation(String),
+    #[error("Permission denied")]
+    Unauthorized,
+    #[error("Resource not found: {id}")]
+    NotFound { id: String },
+    #[error("Network path generation failed: {0}")]
+    PathGeneration(String),
+    #[error("Duplicate resource: {0}")]
+    Duplicate(String),
+}
+
+// Repository trait (セキュリティ強化版)
 #[async_trait::async_trait]
 pub trait DocumentRepository: Send + Sync {
-    async fn create(&self, document: CreateDocumentRequest) -> Result<Document, sqlx::Error>;
-    async fn get_by_id(&self, id: i32) -> Result<Option<Document>, sqlx::Error>;
-    async fn get_by_number(&self, number: &str) -> Result<Option<Document>, sqlx::Error>;
-    async fn search(&self, filters: DocumentSearchFilters) -> Result<(Vec<Document>, i64), sqlx::Error>;
-    async fn update(&self, id: i32, document: UpdateDocumentRequest) -> Result<Document, sqlx::Error>;
-    async fn delete(&self, id: i32) -> Result<(), sqlx::Error>;
+    async fn create(&self, document: CreateDocumentRequest) -> Result<Document, DocumentError>;
+    async fn get_by_id(&self, id: i32) -> Result<Option<Document>, DocumentError>;
+    async fn get_by_id_with_permissions(
+        &self, 
+        id: i32, 
+        user_permissions: &UserPermissions
+    ) -> Result<Option<Document>, DocumentError>;
+    async fn get_by_number(&self, number: &str) -> Result<Option<Document>, DocumentError>;
+    async fn search_with_permissions(
+        &self, 
+        filters: DocumentSearchFilters,
+        user_permissions: &UserPermissions
+    ) -> Result<(Vec<Document>, i64), DocumentError>;
+    async fn update(&self, id: i32, document: UpdateDocumentRequest) -> Result<Document, DocumentError>;
+    async fn delete(&self, id: i32) -> Result<(), DocumentError>;
 }
 ```
 
@@ -485,5 +553,284 @@ cargo test
 ## 対応策
 
 - SQLite → SQL Server 移行計画
-- パス処理の抽象化
+- パス処理の抽象化  
 - マイグレーション戦略文書化
+
+---
+
+### TASK-008: セキュリティ・性能強化
+
+- **説明**: SQL注入対策・エラーハンドリング統一・観測可能性向上
+- **優先度**: High
+- **見積工数**: 8h
+- **状態**: 未着手
+- **依存関係**: TASK-004
+
+#### 実装内容
+
+1. **SQL注入対策の徹底**
+2. **統一エラーハンドリング**
+3. **設定管理外部化**
+4. **ログ・メトリクス強化**
+
+#### SQL注入対策実装
+
+```rust
+// src/repositories/document_repository.rs - セキュア実装例
+use sqlx::{QueryBuilder, Sqlite};
+
+impl DocumentRepositoryImpl {
+    // ✅ 安全な検索実装
+    pub async fn search_secure(
+        &self,
+        filters: &DocumentSearchFilters,
+        user_permissions: &UserPermissions,
+    ) -> Result<(Vec<Document>, i64), DocumentError> {
+        let mut query = QueryBuilder::<Sqlite>::new(
+            "SELECT d.*, dt.name as document_type_name FROM documents d 
+             JOIN document_types dt ON d.document_type_id = dt.id WHERE 1=1"
+        );
+        
+        // 権限ベースフィルタリング
+        if !user_permissions.can_view_confidential {
+            query.push(" AND d.importance_class != ");
+            query.push_bind("class1");
+        }
+        
+        // 部署制限
+        if !user_permissions.accessible_departments.is_empty() {
+            query.push(" AND d.created_by IN (
+                SELECT e.id FROM employees e 
+                JOIN department_assignments da ON e.id = da.employee_id 
+                WHERE da.department_id IN (");
+            
+            let mut separated = query.separated(", ");
+            for dept_id in &user_permissions.accessible_departments {
+                separated.push_bind(dept_id);
+            }
+            query.push("))");
+        }
+        
+        // 動的フィルター（すべてパラメータ化）
+        if let Some(title) = &filters.title {
+            query.push(" AND d.title LIKE ");
+            query.push_bind(format!("%{}%", title));
+        }
+        
+        if let Some(business_number) = &filters.business_number {
+            query.push(" AND d.business_number = ");
+            query.push_bind(business_number);
+        }
+        
+        if let Some(date_from) = filters.created_date_from {
+            query.push(" AND d.created_date >= ");
+            query.push_bind(date_from);
+        }
+        
+        if let Some(date_to) = filters.created_date_to {
+            query.push(" AND d.created_date <= ");
+            query.push_bind(date_to);
+        }
+        
+        // ページング
+        query.push(" ORDER BY d.created_date DESC LIMIT ");
+        query.push_bind(filters.pagination.limit);
+        query.push(" OFFSET ");
+        query.push_bind(filters.pagination.offset);
+        
+        let documents = query
+            .build_query_as::<Document>()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(DocumentError::Database)?;
+        
+        // 件数取得（同じフィルター条件）
+        let count = self.count_with_filters(filters, user_permissions).await?;
+        
+        Ok((documents, count))
+    }
+    
+    // ✅ 全文検索実装（FTS5使用）
+    pub async fn search_fulltext(
+        &self,
+        query_text: &str,
+        user_permissions: &UserPermissions,
+    ) -> Result<Vec<Document>, DocumentError> {
+        let documents = sqlx::query_as::<_, Document>(
+            r#"
+            SELECT d.* FROM documents d
+            JOIN documents_fts fts ON d.id = fts.rowid
+            WHERE documents_fts MATCH $1
+            AND ($2 OR d.importance_class != 'class1')
+            ORDER BY fts.rank
+            LIMIT 100
+            "#
+        )
+        .bind(query_text)
+        .bind(user_permissions.can_view_confidential)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(DocumentError::Database)?;
+        
+        Ok(documents)
+    }
+}
+```
+
+#### 設定管理外部化
+
+```rust
+// src/config/settings.rs
+use config::{Config, ConfigError, Environment, File};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Settings {
+    pub database: DatabaseSettings,
+    pub server: ServerSettings,
+    pub security: SecuritySettings,
+    pub logging: LoggingSettings,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DatabaseSettings {
+    pub url: String,
+    pub max_connections: u32,
+    pub acquire_timeout_seconds: u64,
+    pub statement_timeout_seconds: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct SecuritySettings {
+    pub jwt_secret: String,
+    pub jwt_expiration_hours: u32,
+    pub bcrypt_cost: u32,
+    pub max_login_attempts: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct LoggingSettings {
+    pub level: String,
+    pub format: String, // "json" or "pretty"
+    pub enable_performance_logs: bool,
+}
+
+impl Settings {
+    pub fn from_env() -> Result<Self, ConfigError> {
+        let mut config = Config::builder();
+        
+        // デフォルト設定
+        config = config.add_source(File::with_name("config/default"));
+        
+        // 環境別設定
+        let env = std::env::var("ENVIRONMENT").unwrap_or_else(|_| "development".into());
+        config = config.add_source(File::with_name(&format!("config/{}", env)).required(false));
+        
+        // 環境変数（DOC_MAN_DB プレフィックス）
+        config = config.add_source(Environment::with_prefix("DOC_MAN_DB").separator("__"));
+        
+        config.build()?.try_deserialize()
+    }
+}
+```
+
+#### 観測可能性向上
+
+```rust
+// src/observability/mod.rs
+use tracing::{instrument, info, warn, error};
+use std::time::Instant;
+
+// サービス層での統一ログ実装
+impl DocumentService {
+    #[instrument(
+        skip(self, input),
+        fields(
+            document_title = %input.title,
+            document_type_id = input.document_type_id,
+            user_id = user_permissions.user_id
+        )
+    )]
+    pub async fn create_document(
+        &self,
+        input: CreateDocumentRequest,
+        user_permissions: &UserPermissions,
+    ) -> Result<Document, DocumentError> {
+        let start = Instant::now();
+        
+        info!("Starting document creation");
+        
+        // 権限チェック
+        if !user_permissions.can_create_documents {
+            warn!("Document creation denied - insufficient permissions");
+            return Err(DocumentError::Unauthorized);
+        }
+        
+        // ビジネスロジック実行
+        let result = self.repository.create(input).await;
+        
+        match &result {
+            Ok(document) => {
+                info!(
+                    document_id = document.id,
+                    document_number = %document.number,
+                    duration_ms = start.elapsed().as_millis(),
+                    "Document created successfully"
+                );
+            }
+            Err(e) => {
+                error!(
+                    error = %e,
+                    duration_ms = start.elapsed().as_millis(),
+                    "Document creation failed"
+                );
+            }
+        }
+        
+        result
+    }
+}
+
+// メトリクス収集
+pub struct Metrics {
+    pub document_creation_counter: prometheus::Counter,
+    pub document_creation_duration: prometheus::Histogram,
+    pub search_query_duration: prometheus::Histogram,
+    pub active_connections: prometheus::Gauge,
+}
+
+impl Metrics {
+    pub fn new() -> Self {
+        Self {
+            document_creation_counter: prometheus::Counter::new(
+                "documents_created_total",
+                "Total number of documents created"
+            ).unwrap(),
+            document_creation_duration: prometheus::Histogram::new(
+                prometheus::HistogramOpts::new(
+                    "document_creation_duration_seconds",
+                    "Time spent creating documents"
+                )
+            ).unwrap(),
+            search_query_duration: prometheus::Histogram::new(
+                prometheus::HistogramOpts::new(
+                    "search_query_duration_seconds",
+                    "Time spent on search queries"
+                )
+            ).unwrap(),
+            active_connections: prometheus::Gauge::new(
+                "database_connections_active",
+                "Number of active database connections"
+            ).unwrap(),
+        }
+    }
+}
+```
+
+#### 成果物
+
+- **完全なSQL注入対策**
+- **統一エラーハンドリングシステム**
+- **外部化された設定管理**
+- **包括的ログ・メトリクス**
+- **セキュアなデータアクセス層**

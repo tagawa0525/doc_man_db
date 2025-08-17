@@ -615,24 +615,171 @@ impl AuditService {
 
 ### TASK-022: HTTPS設定
 
-- **説明**: TLS設定・証明書管理
-- **優先度**: Medium
-- **見積工数**: 4h
+- **説明**: TLS設定・証明書管理・セキュリティヘッダー
+- **優先度**: High
+- **見積工数**: 6h
 - **状態**: 未着手
 - **依存関係**: TASK-017
 
 #### 実装内容
 
-1. TLS設定
-2. 証明書管理
-3. HTTPS強制
-4. セキュリティヘッダー
+1. **TLS設定・証明書管理**
+2. **HTTPS強制リダイレクト**  
+3. **組断的セキュリティヘッダー**
+4. **CSRF/XSS対策**
+
+#### セキュリティヘッダー実装
+
+```rust
+// src/middleware/security.rs
+use axum::{
+    http::{HeaderMap, HeaderName, HeaderValue, StatusCode},
+    middleware::Next,
+    response::Response,
+    extract::Request,
+};
+
+pub async fn security_headers_middleware(
+    request: Request,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    let mut response = next.run(request).await;
+    
+    let headers = response.headers_mut();
+    
+    // HTTPS強制 (HSTS)
+    headers.insert(
+        HeaderName::from_static("strict-transport-security"),
+        HeaderValue::from_static("max-age=31536000; includeSubDomains; preload")
+    );
+    
+    // XSS保護
+    headers.insert(
+        HeaderName::from_static("x-xss-protection"),
+        HeaderValue::from_static("1; mode=block")
+    );
+    
+    // Content-Type スニッフィング防止
+    headers.insert(
+        HeaderName::from_static("x-content-type-options"),
+        HeaderValue::from_static("nosniff")
+    );
+    
+    // クリックジャッキング防止
+    headers.insert(
+        HeaderName::from_static("x-frame-options"),
+        HeaderValue::from_static("DENY")
+    );
+    
+    // Content Security Policy
+    headers.insert(
+        HeaderName::from_static("content-security-policy"),
+        HeaderValue::from_static(
+            "default-src 'self'; \
+             script-src 'self' 'unsafe-inline'; \
+             style-src 'self' 'unsafe-inline'; \
+             img-src 'self' data: blob:; \
+             connect-src 'self'; \
+             font-src 'self'; \
+             object-src 'none'; \
+             media-src 'self'; \
+             frame-src 'none';"
+        )
+    );
+    
+    // Referrer Policy
+    headers.insert(
+        HeaderName::from_static("referrer-policy"),
+        HeaderValue::from_static("strict-origin-when-cross-origin")
+    );
+    
+    // Permissions Policy
+    headers.insert(
+        HeaderName::from_static("permissions-policy"),
+        HeaderValue::from_static(
+            "camera=(), microphone=(), geolocation=(), \
+             usb=(), magnetometer=(), accelerometer=(), \
+             gyroscope=(), payment=()"
+        )
+    );
+    
+    Ok(response)
+}
+
+// CSRF保護ミドルウェア
+pub async fn csrf_protection_middleware(
+    headers: HeaderMap,
+    request: Request,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    // POST, PUT, DELETEリクエストのCSRFトークン確認
+    if matches!(request.method().as_str(), "POST" | "PUT" | "DELETE") {
+        let csrf_token = headers.get("x-csrf-token")
+            .and_then(|h| h.to_str().ok())
+            .ok_or(StatusCode::FORBIDDEN)?;
+        
+        // CSRFトークン検証
+        if !validate_csrf_token(csrf_token) {
+            return Err(StatusCode::FORBIDDEN);
+        }
+    }
+    
+    Ok(next.run(request).await)
+}
+
+fn validate_csrf_token(token: &str) -> bool {
+    // CSRFトークンの検証ロジック
+    // 実際にはセッションやJWTから生成されたトークンと比較
+    !token.is_empty() && token.len() >= 32
+}
+```
+
+#### TLS設定
+
+```rust
+// src/server/tls.rs
+use axum_server::tls_rustls::RustlsConfig;
+use std::path::PathBuf;
+
+pub async fn create_tls_config(
+    cert_path: PathBuf,
+    key_path: PathBuf,
+) -> Result<RustlsConfig, Box<dyn std::error::Error>> {
+    let config = RustlsConfig::from_pem_file(cert_path, key_path).await?;
+    Ok(config)
+}
+
+// src/main.rsに追加
+pub async fn start_server_with_tls(
+    app: Router,
+    addr: SocketAddr,
+    tls_config: Option<RustlsConfig>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match tls_config {
+        Some(config) => {
+            println!("🔒 Starting HTTPS server on {}", addr);
+            axum_server::bind_rustls(addr, config)
+                .serve(app.into_make_service())
+                .await?
+        }
+        None => {
+            println!("⚠️  Starting HTTP server on {} (TLS disabled)", addr);
+            let listener = tokio::net::TcpListener::bind(addr).await?;
+            axum::serve(listener, app).await?
+        }
+    }
+    
+    Ok(())
+}
+```
 
 #### 成果物
 
-- HTTPS通信設定
-- セキュリティヘッダー
-- 証明書管理システム
+- **完全なHTTPS通信設定**
+- **組断的セキュリティヘッダー**
+- **CSRF/XSS完全対策**
+- **CSP/HSTSセキュリティポリシー**
+- **証明書管理システム**
 
 ---
 

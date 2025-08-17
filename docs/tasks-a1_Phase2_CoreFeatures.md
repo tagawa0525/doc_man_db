@@ -497,6 +497,98 @@ impl FileCheckService {
         })
     }
     
+    /// 🚀 高性能並行処理バッチファイル確認
+    pub async fn batch_check_files_concurrent(
+        &self,
+        documents: Vec<Document>,
+        max_concurrent: usize,
+    ) -> Result<Vec<FileCheckResult>, FileCheckError> {
+        use tokio::sync::Semaphore;
+        use futures::stream::{StreamExt, FuturesUnordered};
+        
+        let semaphore = Arc::new(Semaphore::new(max_concurrent));
+        let mut futures = FuturesUnordered::new();
+        
+        for document in documents {
+            let semaphore = semaphore.clone();
+            let service = self.clone();
+            
+            let future = async move {
+                let _permit = semaphore.acquire().await.map_err(|_| {
+                    FileCheckError::ConcurrencyError("Failed to acquire semaphore".to_string())
+                })?;
+                
+                let start = std::time::Instant::now();
+                let result = service.check_document_existence(&document).await;
+                let duration = start.elapsed();
+                
+                Ok::<FileCheckResult, FileCheckError>(FileCheckResult {
+                    document_id: document.id,
+                    document_number: document.number.clone(),
+                    result,
+                    duration,
+                    checked_at: chrono::Utc::now(),
+                })
+            };
+            
+            futures.push(future);
+        }
+        
+        let mut results = Vec::new();
+        while let Some(result) = futures.next().await {
+            results.push(result?);
+        }
+        
+        Ok(results)
+    }
+    
+    /// 📊 統計情報付きバッチ処理
+    pub async fn batch_check_with_stats(
+        &self,
+        documents: Vec<Document>,
+    ) -> Result<BatchCheckStats, FileCheckError> {
+        let total_count = documents.len();
+        let start_time = std::time::Instant::now();
+        
+        let results = self.batch_check_files_concurrent(documents, 10).await?;
+        
+        let mut stats = BatchCheckStats {
+            total_documents: total_count,
+            processed_documents: results.len(),
+            missing_folders: 0,
+            missing_approvals: 0,
+            errors: 0,
+            total_duration: start_time.elapsed(),
+            average_duration: Duration::from_millis(0),
+        };
+        
+        let mut total_duration_ms = 0u128;
+        
+        for result in &results {
+            total_duration_ms += result.duration.as_millis();
+            
+            match &result.result {
+                Ok(existence_result) => {
+                    if !existence_result.folder_exists {
+                        stats.missing_folders += 1;
+                    }
+                    if let Some(false) = existence_result.approval_exists {
+                        stats.missing_approvals += 1;
+                    }
+                }
+                Err(_) => stats.errors += 1,
+            }
+        }
+        
+        if !results.is_empty() {
+            stats.average_duration = Duration::from_millis(
+                (total_duration_ms / results.len() as u128) as u64
+            );
+        }
+        
+        Ok(stats)
+    }
+    
     async fn check_folder_exists(&self, path: &str) -> Result<bool, FileCheckError> {
         match fs::metadata(path).await {
             Ok(metadata) => Ok(metadata.is_dir()),
@@ -531,12 +623,56 @@ CREATE TABLE file_check_exclusions (
 );
 ```
 
+#### 高性能データ構造
+
+```rust
+// src/models/file_check.rs
+use std::time::Duration;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileCheckResult {
+    pub document_id: i32,
+    pub document_number: String,
+    pub result: Result<FileExistenceResult, FileCheckError>,
+    pub duration: Duration,
+    pub checked_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchCheckStats {
+    pub total_documents: usize,
+    pub processed_documents: usize,
+    pub missing_folders: usize,
+    pub missing_approvals: usize,
+    pub errors: usize,
+    pub total_duration: Duration,
+    pub average_duration: Duration,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum FileCheckError {
+    #[error("Network path not generated for document")]
+    NoPathGenerated,
+    #[error("File access error: {0}")]
+    AccessError(#[from] std::io::Error),
+    #[error("Timeout after {seconds} seconds")]
+    Timeout { seconds: u64 },
+    #[error("Concurrency error: {0}")]
+    ConcurrencyError(String),
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+}
+```
+
 #### 成果物
 
-- ファイル存在確認機能
-- 承認書確認機能
-- バッチ処理基盤
-- エラーログ機能
+- **ファイル存在確認機能**
+- **承認書確認機能**  
+- **高性能並行処理バッチシステム**
+- **統計情報・監視機能**
+- **エラーログ・リトライ機能**
 
 ---
 
