@@ -117,7 +117,7 @@ impl DocumentNumberRuleRepository for SqliteDocumentNumberRuleRepository {
                    effective_from, effective_until, priority, created_at, updated_at
             FROM document_number_generation_rules
             WHERE (department_code IS NULL OR department_code = ?)
-              AND (document_type_codes LIKE ? OR document_type_codes LIKE ?)
+              AND JSON_EXTRACT(document_type_codes, '$') LIKE '%' || '"' || ? || '"' || '%'
               AND effective_from <= ?
               AND (effective_until IS NULL OR effective_until >= ?)
             ORDER BY priority ASC
@@ -125,8 +125,7 @@ impl DocumentNumberRuleRepository for SqliteDocumentNumberRuleRepository {
             "#,
         )
         .bind(department_code)
-        .bind(format!("%\"{}\",%", document_type_code))
-        .bind(format!("%\"{}\"", document_type_code))
+        .bind(document_type_code)
         .bind(date.format("%Y-%m-%d").to_string())
         .bind(date.format("%Y-%m-%d").to_string())
         .fetch_optional(&self.pool)

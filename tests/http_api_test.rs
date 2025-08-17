@@ -97,6 +97,13 @@ async fn test_get_document_by_id_api() {
         .await
         .unwrap();
 
+    // Debug: ステータスをチェック
+    println!("Create response status: {}", create_response.status());
+    if !create_response.status().is_success() {
+        let error_text = create_response.text().await.unwrap();
+        panic!("Document creation failed: {}", error_text);
+    }
+
     let created: CreatedDocumentWithNumber = create_response.json().await.unwrap();
     let document_id = created.document.id;
 
