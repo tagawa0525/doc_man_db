@@ -15,13 +15,11 @@
       "mcp__serena__think_about_collected_information",
       "mcp__serena__think_about_whether_you_are_done",
       "mcp__serena__write_memory",
-      "Bash(dir)",
-      "Bash(cargo --version)",
-      "Bash(rustc --version)",
+      "Bash(cargo:*)",
       "Bash(dir:*)",
-      "Bash(echo $env:OS)",
-      "Bash(where git)",
-      "Bash(where powershell)"
+      "Bash(echo:*)",
+      "Bash(git add:*)",
+      "Bash(where:*)"
     ],
     "deny": [],
     "ask": [
