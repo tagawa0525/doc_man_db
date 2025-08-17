@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import Button from '../ui/Button.svelte';
+  import NotificationCenter from '../notifications/NotificationCenter.svelte';
   
   export let user: { name: string; department?: string } | null = null;
   
@@ -29,8 +30,13 @@
         </div>
       </div>
       
-      <!-- User Menu -->
-      <div class="relative">
+      <!-- Notifications and User Menu -->
+      <div class="flex items-center space-x-4">
+        <!-- Notification Center -->
+        <NotificationCenter />
+        
+        <!-- User Menu -->
+        <div class="relative">
         {#if user}
           <button
             type="button"

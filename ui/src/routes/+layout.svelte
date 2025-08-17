@@ -2,6 +2,7 @@
   import '../app.css';
   import Header from '$lib/components/layout/Header.svelte';
   import Navigation from '$lib/components/layout/Navigation.svelte';
+  import ToastContainer from '$lib/components/notifications/ToastContainer.svelte';
   
   // TODO: 実際の認証システムと連携
   let user = {
@@ -20,4 +21,7 @@
       <slot />
     </main>
   </div>
+  
+  <!-- Toast Notifications -->
+  <ToastContainer />
 </div>
