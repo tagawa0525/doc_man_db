@@ -1,5 +1,5 @@
 use crate::models::backup::{
-    BackupJob, BackupRequest, BackupStatistics, RestoreJob, RestoreRequest,
+    BackupJob, BackupRequest, BackupStatistics, RestoreRequest,
 };
 use crate::services::BackupService;
 use axum::{

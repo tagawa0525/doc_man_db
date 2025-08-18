@@ -199,9 +199,8 @@ impl ValidationResult {
     /// エラーを追加
     pub fn add_error(&mut self, error: ValidationError) {
         self.errors.push(error);
-        if !self.errors.is_empty() {
-            self.mark_invalid();
-        }
+        self.is_valid = false;
+        self.quality_score = self.calculate_quality_score();
     }
 
     /// 警告を追加

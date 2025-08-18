@@ -1,6 +1,6 @@
 use crate::models::backup::{
-    BackupConfig, BackupJob, BackupRequest, BackupStatistics, BackupStatus, BackupType,
-    RestoreJob, RestoreRequest, RestoreType,
+    BackupConfig, BackupJob, BackupRequest, BackupStatistics, BackupType,
+    RestoreJob, RestoreRequest,
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
