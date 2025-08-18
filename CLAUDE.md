@@ -76,6 +76,9 @@ cargo fmt                    # Format code
 cargo clippy                 # Lint code
 cargo audit                  # Security audit
 
+# Code coverage (using tarpaulin)
+cargo tarpaulin --out html --output-dir coverage
+
 # Frontend type checking
 cd ui && npm run check       # TypeScript type checking
 ```
