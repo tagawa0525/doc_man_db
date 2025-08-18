@@ -23,12 +23,20 @@ impl DocumentRepository for TestDocumentRepository {
     ) -> Result<doc_man_db::models::Document, RepositoryError> {
         Ok(doc_man_db::models::Document {
             id: self.next_id,
+            number: format!("TEST-{:06}", self.next_id),
             title: request.title,
             document_type_id: request.document_type_id,
+            business_number: request.business_number,
             created_by: request.created_by,
             created_date: request.created_date,
-            created_at: chrono::Utc::now().naive_utc(),
-            updated_at: chrono::Utc::now().naive_utc(),
+            internal_external: request.internal_external,
+            importance_class: request.importance_class,
+            personal_info: request.personal_info,
+            notes: request.notes,
+            network_path: None,
+            is_active: true,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         })
     }
 

@@ -2,6 +2,7 @@
 
 use crate::models::{CreateDocumentRequest, Document, DocumentSearchFilters};
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{Row, SqlitePool};
 
 // Repository エラー型
@@ -45,10 +46,18 @@ impl SqliteDocumentRepository {
             r#"
             CREATE TABLE IF NOT EXISTS documents (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                number TEXT UNIQUE NOT NULL,
                 title TEXT NOT NULL,
                 document_type_id INTEGER NOT NULL,
+                business_number TEXT,
                 created_by INTEGER NOT NULL,
                 created_date TEXT NOT NULL,
+                internal_external TEXT,
+                importance_class TEXT,
+                personal_info TEXT,
+                notes TEXT,
+                network_path TEXT,
+                is_active INTEGER DEFAULT 1,
                 created_at TEXT DEFAULT (datetime('now')),
                 updated_at TEXT DEFAULT (datetime('now'))
             )
@@ -69,17 +78,28 @@ impl DocumentRepository for SqliteDocumentRepository {
             .validate()
             .map_err(|e| RepositoryError::Validation(e.to_string()))?;
 
+        // 文書番号を生成（簡易実装）
+        let document_number = format!("DOC-{:06}", chrono::Utc::now().timestamp_millis() % 1000000);
+
         // データベースに挿入
         let result = sqlx::query(
             r#"
-            INSERT INTO documents (title, document_type_id, created_by, created_date)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO documents (number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#,
         )
+        .bind(&document_number)
         .bind(&request.title)
         .bind(request.document_type_id)
+        .bind(&request.business_number)
         .bind(request.created_by)
         .bind(request.created_date.format("%Y-%m-%d").to_string())
+        .bind(&request.internal_external)
+        .bind(&request.importance_class)
+        .bind(&request.personal_info)
+        .bind(&request.notes)
+        .bind(&request.number) // network_pathとして使用
+        .bind(true)
         .execute(&self.pool)
         .await
         .map_err(RepositoryError::Database)?;
@@ -88,7 +108,7 @@ impl DocumentRepository for SqliteDocumentRepository {
 
         // 挿入されたレコードを取得
         let row = sqlx::query(
-            "SELECT id, title, document_type_id, created_by, created_date, created_at, updated_at FROM documents WHERE id = ?"
+            "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE id = ?"
         )
         .bind(id)
         .fetch_one(&self.pool)
@@ -100,24 +120,42 @@ impl DocumentRepository for SqliteDocumentRepository {
 
         let document = Document {
             id: row.get("id"),
+            number: row.get("number"),
             title: row.get("title"),
             document_type_id: row.get("document_type_id"),
+            business_number: row.get("business_number"),
             created_by: row.get("created_by"),
             created_date: NaiveDate::parse_from_str(
                 &row.get::<String, _>("created_date"),
                 "%Y-%m-%d",
             )
             .map_err(|e| RepositoryError::Validation(format!("Invalid date format: {e}")))?,
-            created_at: NaiveDateTime::parse_from_str(
-                &row.get::<String, _>("created_at"),
-                "%Y-%m-%d %H:%M:%S",
-            )
-            .map_err(|e| RepositoryError::Validation(format!("Invalid datetime format: {e}")))?,
-            updated_at: NaiveDateTime::parse_from_str(
-                &row.get::<String, _>("updated_at"),
-                "%Y-%m-%d %H:%M:%S",
-            )
-            .map_err(|e| RepositoryError::Validation(format!("Invalid datetime format: {e}")))?,
+            internal_external: row.get("internal_external"),
+            importance_class: row.get("importance_class"),
+            personal_info: row.get("personal_info"),
+            notes: row.get("notes"),
+            network_path: row.get("network_path"),
+            is_active: row.get("is_active"),
+            created_at: DateTime::<Utc>::from_naive_utc_and_offset(
+                NaiveDateTime::parse_from_str(
+                    &row.get::<String, _>("created_at"),
+                    "%Y-%m-%d %H:%M:%S",
+                )
+                .map_err(|e| {
+                    RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                })?,
+                Utc,
+            ),
+            updated_at: DateTime::<Utc>::from_naive_utc_and_offset(
+                NaiveDateTime::parse_from_str(
+                    &row.get::<String, _>("updated_at"),
+                    "%Y-%m-%d %H:%M:%S",
+                )
+                .map_err(|e| {
+                    RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                })?,
+                Utc,
+            ),
         };
 
         Ok(document)
@@ -125,7 +163,7 @@ impl DocumentRepository for SqliteDocumentRepository {
 
     async fn get_by_id(&self, id: i32) -> Result<Option<Document>, RepositoryError> {
         let row = sqlx::query(
-            "SELECT id, title, document_type_id, created_by, created_date, created_at, updated_at FROM documents WHERE id = ?"
+            "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE id = ?"
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -137,28 +175,42 @@ impl DocumentRepository for SqliteDocumentRepository {
 
             let document = Document {
                 id: row.get("id"),
+                number: row.get("number"),
                 title: row.get("title"),
                 document_type_id: row.get("document_type_id"),
+                business_number: row.get("business_number"),
                 created_by: row.get("created_by"),
                 created_date: NaiveDate::parse_from_str(
                     &row.get::<String, _>("created_date"),
                     "%Y-%m-%d",
                 )
                 .map_err(|e| RepositoryError::Validation(format!("Invalid date format: {e}")))?,
-                created_at: NaiveDateTime::parse_from_str(
-                    &row.get::<String, _>("created_at"),
-                    "%Y-%m-%d %H:%M:%S",
-                )
-                .map_err(|e| {
-                    RepositoryError::Validation(format!("Invalid datetime format: {e}"))
-                })?,
-                updated_at: NaiveDateTime::parse_from_str(
-                    &row.get::<String, _>("updated_at"),
-                    "%Y-%m-%d %H:%M:%S",
-                )
-                .map_err(|e| {
-                    RepositoryError::Validation(format!("Invalid datetime format: {e}"))
-                })?,
+                internal_external: row.get("internal_external"),
+                importance_class: row.get("importance_class"),
+                personal_info: row.get("personal_info"),
+                notes: row.get("notes"),
+                network_path: row.get("network_path"),
+                is_active: row.get("is_active"),
+                created_at: DateTime::<Utc>::from_naive_utc_and_offset(
+                    NaiveDateTime::parse_from_str(
+                        &row.get::<String, _>("created_at"),
+                        "%Y-%m-%d %H:%M:%S",
+                    )
+                    .map_err(|e| {
+                        RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                    })?,
+                    Utc,
+                ),
+                updated_at: DateTime::<Utc>::from_naive_utc_and_offset(
+                    NaiveDateTime::parse_from_str(
+                        &row.get::<String, _>("updated_at"),
+                        "%Y-%m-%d %H:%M:%S",
+                    )
+                    .map_err(|e| {
+                        RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                    })?,
+                    Utc,
+                ),
             };
             Ok(Some(document))
         } else {
@@ -170,7 +222,7 @@ impl DocumentRepository for SqliteDocumentRepository {
         &self,
         filters: DocumentSearchFilters,
     ) -> Result<(Vec<Document>, i64), RepositoryError> {
-        let mut query = "SELECT id, title, document_type_id, created_by, created_date, created_at, updated_at FROM documents WHERE 1=1".to_string();
+        let mut query = "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE 1=1".to_string();
         let mut count_query = "SELECT COUNT(*) as count FROM documents WHERE 1=1".to_string();
 
         // フィルター条件を構築
@@ -234,8 +286,10 @@ impl DocumentRepository for SqliteDocumentRepository {
             .map(|row| {
                 Ok(Document {
                     id: row.get("id"),
+                    number: row.get("number"),
                     title: row.get("title"),
                     document_type_id: row.get("document_type_id"),
+                    business_number: row.get("business_number"),
                     created_by: row.get("created_by"),
                     created_date: NaiveDate::parse_from_str(
                         &row.get::<String, _>("created_date"),
@@ -244,20 +298,32 @@ impl DocumentRepository for SqliteDocumentRepository {
                     .map_err(|e| {
                         RepositoryError::Validation(format!("Invalid date format: {e}"))
                     })?,
-                    created_at: NaiveDateTime::parse_from_str(
-                        &row.get::<String, _>("created_at"),
-                        "%Y-%m-%d %H:%M:%S",
-                    )
-                    .map_err(|e| {
-                        RepositoryError::Validation(format!("Invalid datetime format: {e}"))
-                    })?,
-                    updated_at: NaiveDateTime::parse_from_str(
-                        &row.get::<String, _>("updated_at"),
-                        "%Y-%m-%d %H:%M:%S",
-                    )
-                    .map_err(|e| {
-                        RepositoryError::Validation(format!("Invalid datetime format: {e}"))
-                    })?,
+                    internal_external: row.get("internal_external"),
+                    importance_class: row.get("importance_class"),
+                    personal_info: row.get("personal_info"),
+                    notes: row.get("notes"),
+                    network_path: row.get("network_path"),
+                    is_active: row.get("is_active"),
+                    created_at: DateTime::<Utc>::from_naive_utc_and_offset(
+                        NaiveDateTime::parse_from_str(
+                            &row.get::<String, _>("created_at"),
+                            "%Y-%m-%d %H:%M:%S",
+                        )
+                        .map_err(|e| {
+                            RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                        })?,
+                        Utc,
+                    ),
+                    updated_at: DateTime::<Utc>::from_naive_utc_and_offset(
+                        NaiveDateTime::parse_from_str(
+                            &row.get::<String, _>("updated_at"),
+                            "%Y-%m-%d %H:%M:%S",
+                        )
+                        .map_err(|e| {
+                            RepositoryError::Validation(format!("Invalid datetime format: {e}"))
+                        })?,
+                        Utc,
+                    ),
                 })
             })
             .collect();

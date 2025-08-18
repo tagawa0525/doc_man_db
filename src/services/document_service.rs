@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::models::{
     CreateDocumentRequest, CreateDocumentWithNumberRequest, CreatedDocumentWithNumber,
-    DocumentNumberGenerationError, DocumentNumberRequest, ValidationError,
+    DocumentNumberGenerationError, DocumentNumberRequest, DocumentValidationError,
 };
 use crate::repositories::{DocumentNumberRuleRepository, DocumentRepository};
 use crate::services::DocumentNumberGenerator;
@@ -55,10 +55,16 @@ impl DocumentService {
 
         // 文書作成リクエストを作成（仮のdocument_type_id=1を使用）
         let doc_request = CreateDocumentRequest {
+            number: None, // 生成される
             title: request.title,
             document_type_id: 1, // 実際にはdocument_type_codeから解決する必要がある
+            business_number: None,
             created_by: request.created_by,
             created_date: request.created_date,
+            internal_external: None,
+            importance_class: None,
+            personal_info: None,
+            notes: None,
         };
 
         // 文書を作成
@@ -102,7 +108,7 @@ impl DocumentService {
 #[derive(Debug, thiserror::Error)]
 pub enum DocumentServiceError {
     #[error("Validation error: {0}")]
-    ValidationError(#[from] ValidationError),
+    ValidationError(#[from] DocumentValidationError),
     #[error("Document number generation error: {0}")]
     NumberGenerationError(#[from] DocumentNumberGenerationError),
     #[error("Repository error: {0}")]
@@ -140,7 +146,10 @@ mod tests {
 
         let result = request.validate();
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::EmptyTitle));
+        assert!(matches!(
+            result.unwrap_err(),
+            DocumentValidationError::EmptyTitle
+        ));
     }
 
     #[test]
@@ -157,7 +166,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            ValidationError::InvalidDepartmentCodeLength
+            DocumentValidationError::InvalidDepartmentCodeLength
         ));
     }
 }

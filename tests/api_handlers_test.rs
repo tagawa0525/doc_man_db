@@ -17,12 +17,20 @@ impl DocumentRepository for MockDocumentRepository {
     ) -> Result<Document, RepositoryError> {
         Ok(Document {
             id: 1,
+            number: "TEST-000001".to_string(),
             title: request.title,
             document_type_id: request.document_type_id,
+            business_number: request.business_number,
             created_by: request.created_by,
             created_date: request.created_date,
-            created_at: chrono::Utc::now().naive_utc(),
-            updated_at: chrono::Utc::now().naive_utc(),
+            internal_external: request.internal_external,
+            importance_class: request.importance_class,
+            personal_info: request.personal_info,
+            notes: request.notes,
+            network_path: None,
+            is_active: true,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         })
     }
 
@@ -30,12 +38,20 @@ impl DocumentRepository for MockDocumentRepository {
         if id == 1 {
             Ok(Some(Document {
                 id: 1,
+                number: "TEST-000001".to_string(),
                 title: "テスト文書".to_string(),
                 document_type_id: 1,
+                business_number: None,
                 created_by: 1,
                 created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
-                created_at: chrono::Utc::now().naive_utc(),
-                updated_at: chrono::Utc::now().naive_utc(),
+                internal_external: None,
+                importance_class: None,
+                personal_info: None,
+                notes: None,
+                network_path: None,
+                is_active: true,
+                created_at: chrono::Utc::now(),
+                updated_at: chrono::Utc::now(),
             }))
         } else {
             Ok(None)
@@ -48,12 +64,20 @@ impl DocumentRepository for MockDocumentRepository {
     ) -> Result<(Vec<Document>, i64), RepositoryError> {
         let documents = vec![Document {
             id: 1,
+            number: "SEARCH-000001".to_string(),
             title: format!("検索結果文書1 - {}", filters.title.unwrap_or_default()),
             document_type_id: 1,
+            business_number: None,
             created_by: 1,
             created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
-            created_at: chrono::Utc::now().naive_utc(),
-            updated_at: chrono::Utc::now().naive_utc(),
+            internal_external: None,
+            importance_class: None,
+            personal_info: None,
+            notes: None,
+            network_path: None,
+            is_active: true,
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         }];
         Ok((documents, 1))
     }

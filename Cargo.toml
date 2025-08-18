@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 # Web Framework
-axum = "0.8.4"
+axum = { version = "0.8.4", features = ["multipart"] }
 tokio = { version = "1.47.1", features = ["full"] }
 tower = "0.5.2"
 tower-http = { version = "0.6.6", features = ["fs", "cors"] }
@@ -38,6 +38,19 @@ async-trait = "0.1.89"
 # GraphQL (for future phases)
 async-graphql = "7.0.17"
 async-graphql-axum = "7.0.17"
+
+# CSV processing and data import
+csv = "1.3.1"
+uuid = { version = "1.18.0", features = ["v4", "serde"] }
+
+# String similarity for deduplication
+strsim = "0.11.1"
+
+# For cron scheduling (batch processing)
+tokio-cron-scheduler = "0.14.0"
+
+# For backup compression
+flate2 = "1.0"
 
 [dev-dependencies]
 # Testing

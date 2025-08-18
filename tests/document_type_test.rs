@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use doc_man_db::models::{CreateDocumentTypeRequest, ValidationError};
+use doc_man_db::models::{CreateDocumentTypeRequest, DocumentValidationError};
 
 #[test]
 fn test_document_type_creation_success() {
@@ -39,7 +39,10 @@ fn test_document_type_empty_code() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyDocumentTypeCode);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::EmptyDocumentTypeCode
+    );
 }
 
 #[test]
@@ -62,7 +65,7 @@ fn test_document_type_invalid_code_length() {
     assert!(result.is_err());
     assert_matches::assert_matches!(
         result.unwrap_err(),
-        ValidationError::InvalidDocumentTypeCodeLength
+        DocumentValidationError::InvalidDocumentTypeCodeLength
     );
 }
 
@@ -84,7 +87,10 @@ fn test_document_type_empty_name() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyDocumentTypeName);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::EmptyDocumentTypeName
+    );
 }
 
 #[test]
@@ -107,7 +113,7 @@ fn test_document_type_invalid_department_code() {
     assert!(result.is_err());
     assert_matches::assert_matches!(
         result.unwrap_err(),
-        ValidationError::InvalidDepartmentCodeLength
+        DocumentValidationError::InvalidDepartmentCodeLength
     );
 }
 
@@ -129,5 +135,8 @@ fn test_document_type_effective_until_before_from() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::InvalidEffectivePeriod);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidEffectivePeriod
+    );
 }

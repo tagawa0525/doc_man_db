@@ -65,10 +65,11 @@ async fn test_manual_document_insert() {
     // When: 手動でdocumentを挿入
     let result = sqlx::query(
         r#"
-        INSERT INTO documents (title, document_type_id, created_by, created_date)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO documents (number, title, document_type_id, created_by, created_date)
+        VALUES (?, ?, ?, ?, ?)
         "#,
     )
+    .bind("TEST-000001")
     .bind("テスト文書")
     .bind(1)
     .bind(1)
@@ -83,18 +84,20 @@ async fn test_manual_document_insert() {
 
     // And: 挿入されたデータを取得できる
     let row = sqlx::query(
-        "SELECT id, title, document_type_id, created_by, created_date, created_at, updated_at FROM documents WHERE title = ?"
+        "SELECT id, number, title, document_type_id, created_by, created_date, created_at, updated_at FROM documents WHERE title = ?"
     )
     .bind("テスト文書")
     .fetch_one(&pool)
     .await
     .expect("Failed to fetch inserted document");
 
+    let number: String = row.get("number");
     let title: String = row.get("title");
     let document_type_id: i32 = row.get("document_type_id");
     let created_by: i32 = row.get("created_by");
     let created_date: String = row.get("created_date");
 
+    assert_eq!(number, "TEST-000001");
     assert_eq!(title, "テスト文書");
     assert_eq!(document_type_id, 1);
     assert_eq!(created_by, 1);
@@ -109,10 +112,16 @@ async fn test_repository_create_document() {
     let repo = SqliteDocumentRepository::new(pool);
 
     let request = CreateDocumentRequest {
+        number: None,
         title: "Repository テスト文書".to_string(),
         document_type_id: 1,
+        business_number: None,
         created_by: 1,
         created_date: NaiveDate::from_ymd_opt(2024, 12, 15).unwrap(),
+        internal_external: None,
+        importance_class: None,
+        personal_info: None,
+        notes: None,
     };
 
     // When: リポジトリ経由で文書作成
