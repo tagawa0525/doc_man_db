@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 // バリデーションエラー型
 #[derive(Debug, thiserror::Error, PartialEq)]
-pub enum ValidationError {
+pub enum DocumentValidationError {
     #[error("Title cannot be empty")]
     EmptyTitle,
     #[error("Invalid document type ID")]
@@ -69,20 +69,20 @@ pub struct CreateDocumentRequest {
 
 impl CreateDocumentRequest {
     /// バリデーションを実行
-    pub fn validate(&self) -> Result<(), ValidationError> {
+    pub fn validate(&self) -> Result<(), DocumentValidationError> {
         // タイトルが空でないことをチェック
         if self.title.trim().is_empty() {
-            return Err(ValidationError::EmptyTitle);
+            return Err(DocumentValidationError::EmptyTitle);
         }
 
         // 文書種別IDが有効であることをチェック
         if self.document_type_id < 1 {
-            return Err(ValidationError::InvalidDocumentTypeId);
+            return Err(DocumentValidationError::InvalidDocumentTypeId);
         }
 
         // 作成者IDが有効であることをチェック
         if self.created_by < 1 {
-            return Err(ValidationError::InvalidCreatedBy);
+            return Err(DocumentValidationError::InvalidCreatedBy);
         }
 
         Ok(())
@@ -134,35 +134,35 @@ pub struct CreateDocumentWithNumberRequest {
 
 impl CreateDocumentWithNumberRequest {
     /// バリデーションを実行
-    pub fn validate(&self) -> Result<(), ValidationError> {
+    pub fn validate(&self) -> Result<(), DocumentValidationError> {
         // タイトルが空でないことをチェック
         if self.title.trim().is_empty() {
-            return Err(ValidationError::EmptyTitle);
+            return Err(DocumentValidationError::EmptyTitle);
         }
 
         // 文書種別コードが空でないことをチェック
         if self.document_type_code.trim().is_empty() {
-            return Err(ValidationError::EmptyDocumentTypeCode);
+            return Err(DocumentValidationError::EmptyDocumentTypeCode);
         }
 
         // 文書種別コードが1文字であることをチェック
         if self.document_type_code.trim().len() != 1 {
-            return Err(ValidationError::InvalidDocumentTypeCodeLength);
+            return Err(DocumentValidationError::InvalidDocumentTypeCodeLength);
         }
 
         // 部署コードが空でないことをチェック
         if self.department_code.trim().is_empty() {
-            return Err(ValidationError::EmptyDepartmentCode);
+            return Err(DocumentValidationError::EmptyDepartmentCode);
         }
 
         // 部署コードが1文字であることをチェック
         if self.department_code.trim().len() != 1 {
-            return Err(ValidationError::InvalidDepartmentCodeLength);
+            return Err(DocumentValidationError::InvalidDepartmentCodeLength);
         }
 
         // 作成者IDが有効であることをチェック
         if self.created_by < 1 {
-            return Err(ValidationError::InvalidCreatedBy);
+            return Err(DocumentValidationError::InvalidCreatedBy);
         }
 
         Ok(())

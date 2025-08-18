@@ -58,9 +58,7 @@ pub async fn upload_and_import_csv(
             }
             "auto_create_references" => {
                 let value = field.text().await.map_err(|e| {
-                    AppError::ValidationError(format!(
-                        "Failed to read auto_create_references: {e}"
-                    ))
+                    AppError::ValidationError(format!("Failed to read auto_create_references: {e}"))
                 })?;
                 import_options.auto_create_references = value.parse().unwrap_or(false);
             }

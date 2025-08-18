@@ -248,10 +248,9 @@ impl AdSyncService {
         local_users: &[Employee],
     ) -> Result<UserSyncAction, BatchError> {
         // ADユーザー名で既存ユーザーを検索
-        let existing_user = local_users.iter().find(|u| {
-            u.ad_username
-                .as_ref() == Some(&ad_user.username)
-        });
+        let existing_user = local_users
+            .iter()
+            .find(|u| u.ad_username.as_ref() == Some(&ad_user.username));
 
         match existing_user {
             Some(user) => {

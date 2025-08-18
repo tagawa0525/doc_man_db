@@ -1,5 +1,7 @@
 use doc_man_db::models::validation::*;
-use doc_man_db::services::{ValidationService, ValidationServiceImpl, ReportService, ReportServiceImpl};
+use doc_man_db::services::{
+    ReportService, ReportServiceImpl, ValidationService, ValidationServiceImpl,
+};
 use std::collections::HashMap;
 use tokio;
 use uuid::Uuid;
@@ -13,30 +15,53 @@ async fn test_validation_service_creation() {
 #[tokio::test]
 async fn test_get_active_rules() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let rules = validation_service.get_active_rules().await.unwrap();
-    
+
     assert!(rules.len() > 0);
-    assert!(rules.iter().any(|r| r.rule_type == ValidationRuleType::ReferentialIntegrity));
-    assert!(rules.iter().any(|r| r.rule_type == ValidationRuleType::MandatoryFields));
-    assert!(rules.iter().any(|r| r.rule_type == ValidationRuleType::DuplicateCheck));
-    assert!(rules.iter().any(|r| r.rule_type == ValidationRuleType::FileExistence));
-    assert!(rules.iter().any(|r| r.rule_type == ValidationRuleType::DataFormat));
+    assert!(
+        rules
+            .iter()
+            .any(|r| r.rule_type == ValidationRuleType::ReferentialIntegrity)
+    );
+    assert!(
+        rules
+            .iter()
+            .any(|r| r.rule_type == ValidationRuleType::MandatoryFields)
+    );
+    assert!(
+        rules
+            .iter()
+            .any(|r| r.rule_type == ValidationRuleType::DuplicateCheck)
+    );
+    assert!(
+        rules
+            .iter()
+            .any(|r| r.rule_type == ValidationRuleType::FileExistence)
+    );
+    assert!(
+        rules
+            .iter()
+            .any(|r| r.rule_type == ValidationRuleType::DataFormat)
+    );
 }
 
 #[tokio::test]
 async fn test_execute_referential_integrity_validation() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::ReferentialIntegrity,
         target_ids: vec![1, 2, 3],
         parameters: HashMap::new(),
     };
-    
-    let result = validation_service.execute_validation(request).await.unwrap();
-    
+
+    let result = validation_service
+        .execute_validation(request)
+        .await
+        .unwrap();
+
     assert_eq!(result.rule_type, ValidationRuleType::ReferentialIntegrity);
     assert_eq!(result.rule_name, "参照整合性チェック");
     assert!(result.execution_time_ms > 0);
@@ -46,16 +71,19 @@ async fn test_execute_referential_integrity_validation() {
 #[tokio::test]
 async fn test_execute_mandatory_fields_validation() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::MandatoryFields,
         target_ids: vec![1],
         parameters: HashMap::new(),
     };
-    
-    let result = validation_service.execute_validation(request).await.unwrap();
-    
+
+    let result = validation_service
+        .execute_validation(request)
+        .await
+        .unwrap();
+
     assert_eq!(result.rule_type, ValidationRuleType::MandatoryFields);
     assert_eq!(result.rule_name, "必須フィールドチェック");
     assert!(result.execution_time_ms > 0);
@@ -64,16 +92,19 @@ async fn test_execute_mandatory_fields_validation() {
 #[tokio::test]
 async fn test_execute_duplicate_check_validation() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::DuplicateCheck,
         target_ids: vec![],
         parameters: HashMap::new(),
     };
-    
-    let result = validation_service.execute_validation(request).await.unwrap();
-    
+
+    let result = validation_service
+        .execute_validation(request)
+        .await
+        .unwrap();
+
     assert_eq!(result.rule_type, ValidationRuleType::DuplicateCheck);
     assert_eq!(result.rule_name, "重複チェック");
     assert!(result.is_valid);
@@ -83,16 +114,19 @@ async fn test_execute_duplicate_check_validation() {
 #[tokio::test]
 async fn test_execute_file_existence_validation() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::FileExistence,
         target_ids: vec![1, 2],
         parameters: HashMap::new(),
     };
-    
-    let result = validation_service.execute_validation(request).await.unwrap();
-    
+
+    let result = validation_service
+        .execute_validation(request)
+        .await
+        .unwrap();
+
     assert_eq!(result.rule_type, ValidationRuleType::FileExistence);
     assert_eq!(result.rule_name, "ファイル存在確認");
 }
@@ -100,16 +134,19 @@ async fn test_execute_file_existence_validation() {
 #[tokio::test]
 async fn test_execute_data_format_validation() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::DataFormat,
         target_ids: vec![1, 2, 3, 4, 5],
         parameters: HashMap::new(),
     };
-    
-    let result = validation_service.execute_validation(request).await.unwrap();
-    
+
+    let result = validation_service
+        .execute_validation(request)
+        .await
+        .unwrap();
+
     assert_eq!(result.rule_type, ValidationRuleType::DataFormat);
     assert_eq!(result.rule_name, "データ形式チェック");
 }
@@ -117,16 +154,19 @@ async fn test_execute_data_format_validation() {
 #[tokio::test]
 async fn test_execute_business_logic_validation() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::BusinessLogic,
         target_ids: vec![1],
         parameters: HashMap::new(),
     };
-    
-    let result = validation_service.execute_validation(request).await.unwrap();
-    
+
+    let result = validation_service
+        .execute_validation(request)
+        .await
+        .unwrap();
+
     assert_eq!(result.rule_type, ValidationRuleType::BusinessLogic);
     assert_eq!(result.rule_name, "業務ロジックチェック");
 }
@@ -134,7 +174,7 @@ async fn test_execute_business_logic_validation() {
 #[tokio::test]
 async fn test_invalid_rule_type() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     // 存在しないルールタイプでテスト（実際にはenumなので発生しないが、将来的な拡張性のため）
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
@@ -142,7 +182,7 @@ async fn test_invalid_rule_type() {
         target_ids: vec![],
         parameters: HashMap::new(),
     };
-    
+
     let result = validation_service.execute_validation(request).await;
     assert!(result.is_ok());
 }
@@ -158,7 +198,7 @@ async fn test_report_service_creation() {
 async fn test_generate_json_report() {
     let report_service = ReportServiceImpl::new();
     let validation_results = create_test_validation_results();
-    
+
     let request = doc_man_db::services::ReportGenerationRequest {
         request_id: Uuid::new_v4(),
         validation_results,
@@ -167,15 +207,15 @@ async fn test_generate_json_report() {
         template_config: None,
         output_path: None,
     };
-    
+
     let result = report_service.generate_report(request).await.unwrap();
-    
+
     match result.content {
         doc_man_db::services::ReportContent::Json(json_content) => {
             assert!(json_content.contains("summary"));
             assert!(json_content.contains("results"));
             assert!(json_content.contains("generated_at"));
-        },
+        }
         _ => panic!("Expected JSON content"),
     }
 }
@@ -184,7 +224,7 @@ async fn test_generate_json_report() {
 async fn test_generate_html_report() {
     let report_service = ReportServiceImpl::new();
     let validation_results = create_test_validation_results();
-    
+
     let request = doc_man_db::services::ReportGenerationRequest {
         request_id: Uuid::new_v4(),
         validation_results,
@@ -199,16 +239,16 @@ async fn test_generate_html_report() {
         }),
         output_path: None,
     };
-    
+
     let result = report_service.generate_report(request).await.unwrap();
-    
+
     match result.content {
         doc_man_db::services::ReportContent::Html(html_content) => {
             assert!(html_content.contains("<!DOCTYPE html>"));
             assert!(html_content.contains("テストレポート"));
             assert!(html_content.contains("テスト用"));
             assert!(html_content.contains("検証結果サマリー"));
-        },
+        }
         _ => panic!("Expected HTML content"),
     }
 }
@@ -217,7 +257,7 @@ async fn test_generate_html_report() {
 async fn test_generate_csv_report() {
     let report_service = ReportServiceImpl::new();
     let validation_results = create_test_validation_results();
-    
+
     let request = doc_man_db::services::ReportGenerationRequest {
         request_id: Uuid::new_v4(),
         validation_results,
@@ -226,15 +266,15 @@ async fn test_generate_csv_report() {
         template_config: None,
         output_path: None,
     };
-    
+
     let result = report_service.generate_report(request).await.unwrap();
-    
+
     match result.content {
         doc_man_db::services::ReportContent::Csv(csv_content) => {
             assert!(csv_content.contains("ルールタイプ,ルール名"));
             assert!(csv_content.contains("ReferentialIntegrity"));
             assert!(csv_content.contains("参照整合性チェック"));
-        },
+        }
         _ => panic!("Expected CSV content"),
     }
 }
@@ -243,9 +283,12 @@ async fn test_generate_csv_report() {
 async fn test_generate_summary_report() {
     let report_service = ReportServiceImpl::new();
     let validation_results = create_test_validation_results();
-    
-    let summary = report_service.generate_summary_report(validation_results).await.unwrap();
-    
+
+    let summary = report_service
+        .generate_summary_report(validation_results)
+        .await
+        .unwrap();
+
     assert_eq!(summary.total_count, 3);
     assert!(summary.success_count <= summary.total_count);
     assert!(summary.quality_score >= 0.0 && summary.quality_score <= 100.0);
@@ -256,7 +299,7 @@ async fn test_generate_summary_report() {
 async fn test_pdf_report_not_implemented() {
     let report_service = ReportServiceImpl::new();
     let validation_results = create_test_validation_results();
-    
+
     let request = doc_man_db::services::ReportGenerationRequest {
         request_id: Uuid::new_v4(),
         validation_results,
@@ -265,7 +308,7 @@ async fn test_pdf_report_not_implemented() {
         template_config: None,
         output_path: None,
     };
-    
+
     let result = report_service.generate_report(request).await;
     assert!(result.is_err());
 }
@@ -286,15 +329,13 @@ fn create_test_validation_results() -> Vec<ValidationResult> {
             rule_type: ValidationRuleType::MandatoryFields,
             rule_name: "必須フィールドチェック".to_string(),
             is_valid: false,
-            errors: vec![
-                ValidationError {
-                    error_type: ValidationErrorType::MissingValue,
-                    message: "必須フィールド 'title' が空です".to_string(),
-                    field_name: Some("title".to_string()),
-                    entity_id: Some(123),
-                    severity: ValidationSeverity::Error,
-                }
-            ],
+            errors: vec![ValidationError {
+                error_type: ValidationErrorType::MissingValue,
+                message: "必須フィールド 'title' が空です".to_string(),
+                field_name: Some("title".to_string()),
+                entity_id: Some(123),
+                severity: ValidationSeverity::Error,
+            }],
             warnings: vec![],
             quality_score: 60.0,
             execution_time_ms: 80,
@@ -304,15 +345,13 @@ fn create_test_validation_results() -> Vec<ValidationResult> {
             rule_name: "ファイル存在確認".to_string(),
             is_valid: true,
             errors: vec![],
-            warnings: vec![
-                ValidationError {
-                    error_type: ValidationErrorType::DataInconsistency,
-                    message: "ファイルが見つかりませんが、参照は有効です".to_string(),
-                    field_name: Some("network_path".to_string()),
-                    entity_id: Some(456),
-                    severity: ValidationSeverity::Warning,
-                }
-            ],
+            warnings: vec![ValidationError {
+                error_type: ValidationErrorType::DataInconsistency,
+                message: "ファイルが見つかりませんが、参照は有効です".to_string(),
+                field_name: Some("network_path".to_string()),
+                entity_id: Some(456),
+                severity: ValidationSeverity::Warning,
+            }],
             quality_score: 85.0,
             execution_time_ms: 200,
         },
@@ -324,10 +363,10 @@ fn create_test_validation_results() -> Vec<ValidationResult> {
 async fn test_validation_and_report_integration() {
     let validation_service = ValidationServiceImpl::new();
     let report_service = ReportServiceImpl::new();
-    
+
     // 複数の検証を実行
     let mut all_results = Vec::new();
-    
+
     for rule_type in [
         ValidationRuleType::ReferentialIntegrity,
         ValidationRuleType::MandatoryFields,
@@ -339,11 +378,14 @@ async fn test_validation_and_report_integration() {
             target_ids: vec![1, 2, 3],
             parameters: HashMap::new(),
         };
-        
-        let result = validation_service.execute_validation(request).await.unwrap();
+
+        let result = validation_service
+            .execute_validation(request)
+            .await
+            .unwrap();
         all_results.push(result);
     }
-    
+
     // レポート生成
     let report_request = doc_man_db::services::ReportGenerationRequest {
         request_id: Uuid::new_v4(),
@@ -353,9 +395,12 @@ async fn test_validation_and_report_integration() {
         template_config: None,
         output_path: None,
     };
-    
-    let report_result = report_service.generate_report(report_request).await.unwrap();
-    
+
+    let report_result = report_service
+        .generate_report(report_request)
+        .await
+        .unwrap();
+
     assert_eq!(report_result.format, ValidationReportFormat::Html);
     assert_eq!(report_result.summary.total_count, 3);
 }
@@ -364,7 +409,7 @@ async fn test_validation_and_report_integration() {
 #[tokio::test]
 async fn test_validation_error_handling() {
     let validation_service = ValidationServiceImpl::new();
-    
+
     // 空のターゲットIDでテスト（一部のルールではエラーになる可能性）
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
@@ -372,7 +417,7 @@ async fn test_validation_error_handling() {
         target_ids: vec![],
         parameters: HashMap::new(),
     };
-    
+
     let result = validation_service.execute_validation(request).await;
     // エラーハンドリングが適切に動作することを確認
     assert!(result.is_ok() || result.is_err());

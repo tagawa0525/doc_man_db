@@ -1,8 +1,8 @@
-use crate::models::validation::{ValidationResult, ValidationError, ValidationReportFormat, ValidationSummary};
+use crate::models::validation::{ValidationReportFormat, ValidationResult, ValidationSummary};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde_json;
-use std::collections::HashMap;
+
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -10,16 +10,16 @@ use uuid::Uuid;
 pub enum ReportServiceError {
     #[error("レポート生成エラー: {message}")]
     GenerationError { message: String },
-    
+
     #[error("レポートフォーマットエラー: {format}")]
     FormatError { format: String },
-    
+
     #[error("テンプレートエラー: {message}")]
     TemplateError { message: String },
-    
+
     #[error("ファイル出力エラー: {message}")]
     FileOutputError { message: String },
-    
+
     #[error("データ変換エラー: {message}")]
     ConversionError { message: String },
 }
@@ -67,9 +67,19 @@ pub enum ReportContent {
 
 #[async_trait]
 pub trait ReportService: Send + Sync {
-    async fn generate_report(&self, request: ReportGenerationRequest) -> Result<ReportGenerationResult, ReportServiceError>;
-    async fn generate_summary_report(&self, validation_results: Vec<ValidationResult>) -> Result<ValidationSummary, ReportServiceError>;
-    async fn export_to_file(&self, result: &ReportGenerationResult, file_path: &str) -> Result<(), ReportServiceError>;
+    async fn generate_report(
+        &self,
+        request: ReportGenerationRequest,
+    ) -> Result<ReportGenerationResult, ReportServiceError>;
+    async fn generate_summary_report(
+        &self,
+        validation_results: Vec<ValidationResult>,
+    ) -> Result<ValidationSummary, ReportServiceError>;
+    async fn export_to_file(
+        &self,
+        result: &ReportGenerationResult,
+        file_path: &str,
+    ) -> Result<(), ReportServiceError>;
 }
 
 /// レポートサービス実装
@@ -91,7 +101,11 @@ impl ReportServiceImpl {
         }
     }
 
-    fn generate_json_report(&self, validation_results: &[ValidationResult], include_details: bool) -> Result<String, ReportServiceError> {
+    fn generate_json_report(
+        &self,
+        validation_results: &[ValidationResult],
+        include_details: bool,
+    ) -> Result<String, ReportServiceError> {
         let report_data = if include_details {
             serde_json::json!({
                 "summary": self.calculate_summary(validation_results),
@@ -107,16 +121,23 @@ impl ReportServiceImpl {
             })
         };
 
-        serde_json::to_string_pretty(&report_data)
-            .map_err(|e| ReportServiceError::ConversionError { 
-                message: format!("JSONシリアライゼーションエラー: {}", e) 
-            })
+        serde_json::to_string_pretty(&report_data).map_err(|e| {
+            ReportServiceError::ConversionError {
+                message: format!("JSONシリアライゼーションエラー: {}", e),
+            }
+        })
     }
 
-    fn generate_html_report(&self, validation_results: &[ValidationResult], template_config: &ReportTemplateConfig, include_details: bool) -> Result<String, ReportServiceError> {
+    fn generate_html_report(
+        &self,
+        validation_results: &[ValidationResult],
+        template_config: &ReportTemplateConfig,
+        include_details: bool,
+    ) -> Result<String, ReportServiceError> {
         let summary = self.calculate_summary(validation_results);
-        
-        let mut html = format!(r#"
+
+        let mut html = format!(
+            r#"
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -148,16 +169,20 @@ impl ReportServiceImpl {
         <div class="subtitle">{}</div>
         <div style="color: #95a5a6; margin-top: 10px;">生成日時: {}</div>
     </div>
-"#, 
+"#,
             template_config.title,
-            template_config.custom_styles.as_ref().unwrap_or(&String::new()),
+            template_config
+                .custom_styles
+                .as_ref()
+                .unwrap_or(&String::new()),
             template_config.title,
             template_config.subtitle.as_ref().unwrap_or(&String::new()),
             Utc::now().format("%Y年%m月%d日 %H:%M:%S UTC")
         );
 
         // サマリーセクション
-        html.push_str(&format!(r#"
+        html.push_str(&format!(
+            r#"
     <div class="summary">
         <h2>検証結果サマリー</h2>
         <div class="summary-item">
@@ -181,9 +206,9 @@ impl ReportServiceImpl {
             <div class="summary-label">品質スコア</div>
         </div>
     </div>
-"#, 
+"#,
             summary.success_count,
-            summary.warning_count, 
+            summary.warning_count,
             summary.error_count,
             summary.total_count,
             summary.quality_score
@@ -192,27 +217,28 @@ impl ReportServiceImpl {
         // 詳細セクション（オプション）
         if include_details {
             html.push_str("<div class=\"details\"><h2>検証結果詳細</h2>");
-            
+
             for result in validation_results {
                 let status_class = match result.is_valid {
                     true if result.errors.is_empty() => "status-success",
                     true => "status-warning",
                     false => "status-error",
                 };
-                
-                html.push_str(&format!(r#"
+
+                html.push_str(&format!(
+                    r#"
                 <div class="result-item">
                     <div class="result-header {}">{} - {}</div>
                     <div>実行時間: {}ms</div>
                     <div>品質スコア: {:.1}%</div>
-"#, 
+"#,
                     status_class,
                     result.rule_type.to_string(),
                     result.rule_name,
                     result.execution_time_ms,
                     result.quality_score
                 ));
-                
+
                 if !result.errors.is_empty() {
                     html.push_str("<div class=\"error-list\"><strong>エラー:</strong><ul>");
                     for error in &result.errors {
@@ -220,10 +246,10 @@ impl ReportServiceImpl {
                     }
                     html.push_str("</ul></div>");
                 }
-                
+
                 html.push_str("</div>");
             }
-            
+
             html.push_str("</div>");
         }
 
@@ -231,15 +257,22 @@ impl ReportServiceImpl {
         Ok(html)
     }
 
-    fn generate_csv_report(&self, validation_results: &[ValidationResult]) -> Result<String, ReportServiceError> {
-        let mut csv = String::from("ルールタイプ,ルール名,有効,実行時間(ms),品質スコア,エラー数,警告数,エラー詳細\n");
-        
+    fn generate_csv_report(
+        &self,
+        validation_results: &[ValidationResult],
+    ) -> Result<String, ReportServiceError> {
+        let mut csv = String::from(
+            "ルールタイプ,ルール名,有効,実行時間(ms),品質スコア,エラー数,警告数,エラー詳細\n",
+        );
+
         for result in validation_results {
-            let error_details = result.errors.iter()
+            let error_details = result
+                .errors
+                .iter()
                 .map(|e| e.message.replace(",", ";").replace("\n", " "))
                 .collect::<Vec<_>>()
                 .join(" | ");
-            
+
             csv.push_str(&format!(
                 "{},{},{},{},{:.1},{},{},{}\n",
                 result.rule_type.to_string(),
@@ -252,25 +285,38 @@ impl ReportServiceImpl {
                 error_details
             ));
         }
-        
+
         Ok(csv)
     }
 
-    fn generate_pdf_report(&self, _validation_results: &[ValidationResult], _template_config: &ReportTemplateConfig) -> Result<Vec<u8>, ReportServiceError> {
+    fn generate_pdf_report(
+        &self,
+        _validation_results: &[ValidationResult],
+        _template_config: &ReportTemplateConfig,
+    ) -> Result<Vec<u8>, ReportServiceError> {
         // PDF生成は将来的な実装として、現在はプレースホルダー
         // 実装時にはwkhtmltopdfやprintpdfなどのライブラリを使用
-        Err(ReportServiceError::FormatError { 
-            format: "PDF生成は現在未実装です".to_string() 
+        Err(ReportServiceError::FormatError {
+            format: "PDF生成は現在未実装です".to_string(),
         })
     }
 
     fn calculate_summary(&self, validation_results: &[ValidationResult]) -> ValidationSummary {
         let total_count = validation_results.len();
-        let success_count = validation_results.iter().filter(|r| r.is_valid && r.errors.is_empty()).count();
-        let warning_count = validation_results.iter().filter(|r| r.is_valid && !r.errors.is_empty()).count();
+        let success_count = validation_results
+            .iter()
+            .filter(|r| r.is_valid && r.errors.is_empty())
+            .count();
+        let warning_count = validation_results
+            .iter()
+            .filter(|r| r.is_valid && !r.errors.is_empty())
+            .count();
         let error_count = validation_results.iter().filter(|r| !r.is_valid).count();
-        
-        let total_quality_score = validation_results.iter().map(|r| r.quality_score).sum::<f64>();
+
+        let total_quality_score = validation_results
+            .iter()
+            .map(|r| r.quality_score)
+            .sum::<f64>();
         let average_quality_score = if total_count > 0 {
             total_quality_score / total_count as f64
         } else {
@@ -290,26 +336,37 @@ impl ReportServiceImpl {
 
 #[async_trait]
 impl ReportService for ReportServiceImpl {
-    async fn generate_report(&self, request: ReportGenerationRequest) -> Result<ReportGenerationResult, ReportServiceError> {
-        let template_config = request.template_config.unwrap_or_else(|| self.default_template.clone());
-        
+    async fn generate_report(
+        &self,
+        request: ReportGenerationRequest,
+    ) -> Result<ReportGenerationResult, ReportServiceError> {
+        let template_config = request
+            .template_config
+            .unwrap_or_else(|| self.default_template.clone());
+
         let content = match request.format {
             ValidationReportFormat::Json => {
-                let json_content = self.generate_json_report(&request.validation_results, request.include_details)?;
+                let json_content = self
+                    .generate_json_report(&request.validation_results, request.include_details)?;
                 ReportContent::Json(json_content)
-            },
+            }
             ValidationReportFormat::Html => {
-                let html_content = self.generate_html_report(&request.validation_results, &template_config, request.include_details)?;
+                let html_content = self.generate_html_report(
+                    &request.validation_results,
+                    &template_config,
+                    request.include_details,
+                )?;
                 ReportContent::Html(html_content)
-            },
+            }
             ValidationReportFormat::Csv => {
                 let csv_content = self.generate_csv_report(&request.validation_results)?;
                 ReportContent::Csv(csv_content)
-            },
+            }
             ValidationReportFormat::Pdf => {
-                let pdf_content = self.generate_pdf_report(&request.validation_results, &template_config)?;
+                let pdf_content =
+                    self.generate_pdf_report(&request.validation_results, &template_config)?;
                 ReportContent::Pdf(pdf_content)
-            },
+            }
         };
 
         let summary = self.calculate_summary(&request.validation_results);
@@ -324,30 +381,35 @@ impl ReportService for ReportServiceImpl {
         })
     }
 
-    async fn generate_summary_report(&self, validation_results: Vec<ValidationResult>) -> Result<ValidationSummary, ReportServiceError> {
+    async fn generate_summary_report(
+        &self,
+        validation_results: Vec<ValidationResult>,
+    ) -> Result<ValidationSummary, ReportServiceError> {
         Ok(self.calculate_summary(&validation_results))
     }
 
-    async fn export_to_file(&self, result: &ReportGenerationResult, file_path: &str) -> Result<(), ReportServiceError> {
+    async fn export_to_file(
+        &self,
+        result: &ReportGenerationResult,
+        file_path: &str,
+    ) -> Result<(), ReportServiceError> {
         use std::fs;
-        
+
         match &result.content {
-            ReportContent::Json(content) |
-            ReportContent::Html(content) |
-            ReportContent::Csv(content) => {
-                fs::write(file_path, content)
-                    .map_err(|e| ReportServiceError::FileOutputError { 
-                        message: format!("ファイル出力エラー: {}", e) 
-                    })?;
-            },
+            ReportContent::Json(content)
+            | ReportContent::Html(content)
+            | ReportContent::Csv(content) => {
+                fs::write(file_path, content).map_err(|e| ReportServiceError::FileOutputError {
+                    message: format!("ファイル出力エラー: {}", e),
+                })?;
+            }
             ReportContent::Pdf(content) => {
-                fs::write(file_path, content)
-                    .map_err(|e| ReportServiceError::FileOutputError { 
-                        message: format!("PDFファイル出力エラー: {}", e) 
-                    })?;
-            },
+                fs::write(file_path, content).map_err(|e| ReportServiceError::FileOutputError {
+                    message: format!("PDFファイル出力エラー: {}", e),
+                })?;
+            }
         }
-        
+
         Ok(())
     }
 }

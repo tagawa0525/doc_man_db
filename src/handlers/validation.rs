@@ -1,12 +1,12 @@
 use crate::models::validation::{
-    ValidationExecutionRequest, ValidationResult, ValidationReportFormat, ValidationSummary
+    ValidationExecutionRequest, ValidationReportFormat, ValidationResult, ValidationSummary,
 };
-use crate::services::{ValidationService, ReportService, ReportGenerationRequest, ReportGenerationResult};
+use crate::services::{ReportGenerationRequest, ReportService, ValidationService};
 use axum::{
+    Json as JsonBody,
     extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
-    Json as JsonBody,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -91,16 +91,16 @@ impl ValidationHandlers {
 
     /// 検証実行
     pub async fn execute_validation(
-        State(handlers): State<Arc<ValidationHandlers>>,
+        State(_handlers): State<Arc<ValidationHandlers>>,
         JsonBody(request): JsonBody<ValidationExecutionRequest>,
     ) -> Result<Json<ValidationExecutionResponse>, StatusCode> {
-        let result = handlers
+        let result = _handlers
             .validation_service
             .execute_validation(request.clone())
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-        let summary = handlers
+        let summary = _handlers
             .report_service
             .generate_summary_report(vec![result.clone()])
             .await
@@ -115,14 +115,14 @@ impl ValidationHandlers {
 
     /// バッチ検証実行
     pub async fn execute_batch_validation(
-        State(handlers): State<Arc<ValidationHandlers>>,
+        State(_handlers): State<Arc<ValidationHandlers>>,
         JsonBody(request): JsonBody<BatchValidationRequest>,
     ) -> Result<Json<BatchValidationResponse>, StatusCode> {
         let batch_id = Uuid::new_v4();
         let start_time = std::time::Instant::now();
 
         // 実行するルールを取得
-        let active_rules = handlers
+        let active_rules = _handlers
             .validation_service
             .get_active_rules()
             .await
@@ -132,7 +132,8 @@ impl ValidationHandlers {
 
         // 指定されたルールタイプでフィルタリング
         let filtered_rules = if let Some(ref rule_types) = request.rule_types {
-            active_rules.into_iter()
+            active_rules
+                .into_iter()
                 .filter(|rule| rule_types.contains(&rule.rule_type))
                 .collect()
         } else {
@@ -148,7 +149,7 @@ impl ValidationHandlers {
                 parameters: HashMap::new(),
             };
 
-            match handlers
+            match _handlers
                 .validation_service
                 .execute_validation(validation_request)
                 .await
@@ -160,7 +161,7 @@ impl ValidationHandlers {
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
 
-        let summary = handlers
+        let summary = _handlers
             .report_service
             .generate_summary_report(results.clone())
             .await
@@ -176,10 +177,10 @@ impl ValidationHandlers {
 
     /// アクティブな検証ルール一覧取得
     pub async fn get_validation_rules(
-        State(handlers): State<Arc<ValidationHandlers>>,
+        State(_handlers): State<Arc<ValidationHandlers>>,
         Query(params): Query<ValidationQueryParams>,
     ) -> Result<Json<ValidationRulesResponse>, StatusCode> {
-        let mut rules = handlers
+        let mut rules = _handlers
             .validation_service
             .get_active_rules()
             .await
@@ -209,15 +210,12 @@ impl ValidationHandlers {
             rules.truncate(limit);
         }
 
-        Ok(Json(ValidationRulesResponse {
-            rules,
-            total_count,
-        }))
+        Ok(Json(ValidationRulesResponse { rules, total_count }))
     }
 
     /// レポート生成
     pub async fn create_report(
-        State(handlers): State<Arc<ValidationHandlers>>,
+        State(_handlers): State<Arc<ValidationHandlers>>,
         JsonBody(request): JsonBody<CreateReportRequest>,
     ) -> Result<Json<CreateReportResponse>, StatusCode> {
         // 実際の実装では、validation_result_idsから検証結果を取得する
@@ -230,7 +228,9 @@ impl ValidationHandlers {
             format: request.format.clone(),
             include_details: request.include_details.unwrap_or(true),
             template_config: Some(crate::services::ReportTemplateConfig {
-                title: request.title.unwrap_or_else(|| "データ検証レポート".to_string()),
+                title: request
+                    .title
+                    .unwrap_or_else(|| "データ検証レポート".to_string()),
                 subtitle: request.subtitle,
                 logo_path: None,
                 custom_styles: None,
@@ -239,7 +239,7 @@ impl ValidationHandlers {
             output_path: None,
         };
 
-        let report_result = handlers
+        let report_result = _handlers
             .report_service
             .generate_report(report_request)
             .await
@@ -262,12 +262,15 @@ impl ValidationHandlers {
     ) -> Result<String, StatusCode> {
         // 実装時には実際のレポートファイルを返す
         // 現在はプレースホルダー
-        Ok(format!("レポート {} のダウンロード機能は開発中です", report_id))
+        Ok(format!(
+            "レポート {} のダウンロード機能は開発中です",
+            report_id
+        ))
     }
 
     /// 検証統計情報取得
     pub async fn get_validation_statistics(
-        State(handlers): State<Arc<ValidationHandlers>>,
+        State(_handlers): State<Arc<ValidationHandlers>>,
     ) -> Result<Json<ValidationSummary>, StatusCode> {
         // 実装時には実際の統計データを計算
         // 現在はサンプルデータ
@@ -281,28 +284,5 @@ impl ValidationHandlers {
         };
 
         Ok(Json(sample_summary))
-    }
-}
-
-// エラーハンドリング用のヘルパー関数
-impl ValidationHandlers {
-    fn handle_validation_error(error: crate::services::ValidationServiceError) -> StatusCode {
-        match error {
-            crate::services::ValidationServiceError::RuleNotFound { .. } => StatusCode::NOT_FOUND,
-            crate::services::ValidationServiceError::ValidationFailed { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            crate::services::ValidationServiceError::DatabaseError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
-            crate::services::ValidationServiceError::ConfigurationError { .. } => StatusCode::BAD_REQUEST,
-            _ => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-
-    fn handle_report_error(error: crate::services::ReportServiceError) -> StatusCode {
-        match error {
-            crate::services::ReportServiceError::GenerationError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
-            crate::services::ReportServiceError::FormatError { .. } => StatusCode::BAD_REQUEST,
-            crate::services::ReportServiceError::TemplateError { .. } => StatusCode::BAD_REQUEST,
-            crate::services::ReportServiceError::FileOutputError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
-            crate::services::ReportServiceError::ConversionError { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-        }
     }
 }

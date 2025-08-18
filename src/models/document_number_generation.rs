@@ -2,7 +2,7 @@ use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-use super::ValidationError;
+use super::DocumentValidationError;
 
 // 文書番号生成ルールモデル（データベースから取得用）
 #[derive(FromRow, Serialize, Deserialize, Debug, Clone)]
@@ -35,38 +35,38 @@ pub struct CreateDocumentNumberGenerationRuleRequest {
 
 impl CreateDocumentNumberGenerationRuleRequest {
     /// バリデーションを実行
-    pub fn validate(&self) -> Result<(), ValidationError> {
+    pub fn validate(&self) -> Result<(), DocumentValidationError> {
         // ルール名が空でないことをチェック
         if self.rule_name.trim().is_empty() {
-            return Err(ValidationError::EmptyRuleName);
+            return Err(DocumentValidationError::EmptyRuleName);
         }
 
         // テンプレートが空でないことをチェック
         if self.template.trim().is_empty() {
-            return Err(ValidationError::EmptyTemplate);
+            return Err(DocumentValidationError::EmptyTemplate);
         }
 
         // 連番桁数が有効であることをチェック
         if self.sequence_digits <= 0 {
-            return Err(ValidationError::InvalidSequenceDigits);
+            return Err(DocumentValidationError::InvalidSequenceDigits);
         }
 
         // 文書種別コードリストが空でないことをチェック
         if self.document_type_codes.is_empty() {
-            return Err(ValidationError::EmptyDocumentTypeCodes);
+            return Err(DocumentValidationError::EmptyDocumentTypeCodes);
         }
 
         // 部署コードが指定されている場合、1文字であることをチェック
         if let Some(dept_code) = &self.department_code {
             if !dept_code.trim().is_empty() && dept_code.trim().len() != 1 {
-                return Err(ValidationError::InvalidDepartmentCodeLength);
+                return Err(DocumentValidationError::InvalidDepartmentCodeLength);
             }
         }
 
         // 有効期間の整合性をチェック
         if let Some(effective_until) = self.effective_until {
             if effective_until <= self.effective_from {
-                return Err(ValidationError::InvalidEffectivePeriod);
+                return Err(DocumentValidationError::InvalidEffectivePeriod);
             }
         }
 
@@ -85,30 +85,30 @@ pub struct DocumentNumberRequest {
 
 impl DocumentNumberRequest {
     /// バリデーションを実行
-    pub fn validate(&self) -> Result<(), ValidationError> {
+    pub fn validate(&self) -> Result<(), DocumentValidationError> {
         // 文書種別コードが空でないことをチェック
         if self.document_type_code.trim().is_empty() {
-            return Err(ValidationError::EmptyDocumentTypeCode);
+            return Err(DocumentValidationError::EmptyDocumentTypeCode);
         }
 
         // 文書種別コードが1文字であることをチェック
         if self.document_type_code.trim().len() != 1 {
-            return Err(ValidationError::InvalidDocumentTypeCodeLength);
+            return Err(DocumentValidationError::InvalidDocumentTypeCodeLength);
         }
 
         // 部署コードが空でないことをチェック
         if self.department_code.trim().is_empty() {
-            return Err(ValidationError::EmptyDepartmentCode);
+            return Err(DocumentValidationError::EmptyDepartmentCode);
         }
 
         // 部署コードが1文字であることをチェック
         if self.department_code.trim().len() != 1 {
-            return Err(ValidationError::InvalidDepartmentCodeLength);
+            return Err(DocumentValidationError::InvalidDepartmentCodeLength);
         }
 
         // 作成者IDが有効であることをチェック
         if self.created_by < 1 {
-            return Err(ValidationError::InvalidCreatedBy);
+            return Err(DocumentValidationError::InvalidCreatedBy);
         }
 
         Ok(())

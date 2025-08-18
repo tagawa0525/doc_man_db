@@ -2,7 +2,7 @@ use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-use super::ValidationError;
+use super::DocumentValidationError;
 
 // 文書種別モデル（データベースから取得用）
 #[derive(FromRow, Serialize, Deserialize, Debug, Clone)]
@@ -35,33 +35,33 @@ pub struct CreateDocumentTypeRequest {
 
 impl CreateDocumentTypeRequest {
     /// バリデーションを実行
-    pub fn validate(&self) -> Result<(), ValidationError> {
+    pub fn validate(&self) -> Result<(), DocumentValidationError> {
         // コードが空でないことをチェック
         if self.code.trim().is_empty() {
-            return Err(ValidationError::EmptyDocumentTypeCode);
+            return Err(DocumentValidationError::EmptyDocumentTypeCode);
         }
 
         // コードが1文字であることをチェック
         if self.code.trim().len() != 1 {
-            return Err(ValidationError::InvalidDocumentTypeCodeLength);
+            return Err(DocumentValidationError::InvalidDocumentTypeCodeLength);
         }
 
         // 名前が空でないことをチェック
         if self.name.trim().is_empty() {
-            return Err(ValidationError::EmptyDocumentTypeName);
+            return Err(DocumentValidationError::EmptyDocumentTypeName);
         }
 
         // 部署コードが指定されている場合、1文字であることをチェック
         if let Some(dept_code) = &self.department_code {
             if !dept_code.trim().is_empty() && dept_code.trim().len() != 1 {
-                return Err(ValidationError::InvalidDepartmentCodeLength);
+                return Err(DocumentValidationError::InvalidDepartmentCodeLength);
             }
         }
 
         // 有効期間の整合性をチェック
         if let Some(effective_until) = self.effective_until {
             if effective_until <= self.effective_from {
-                return Err(ValidationError::InvalidEffectivePeriod);
+                return Err(DocumentValidationError::InvalidEffectivePeriod);
             }
         }
 

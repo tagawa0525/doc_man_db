@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::models::{
     CreateDocumentRequest, CreateDocumentWithNumberRequest, CreatedDocumentWithNumber,
-    DocumentNumberGenerationError, DocumentNumberRequest, ValidationError,
+    DocumentNumberGenerationError, DocumentNumberRequest, DocumentValidationError,
 };
 use crate::repositories::{DocumentNumberRuleRepository, DocumentRepository};
 use crate::services::DocumentNumberGenerator;
@@ -108,7 +108,7 @@ impl DocumentService {
 #[derive(Debug, thiserror::Error)]
 pub enum DocumentServiceError {
     #[error("Validation error: {0}")]
-    ValidationError(#[from] ValidationError),
+    ValidationError(#[from] DocumentValidationError),
     #[error("Document number generation error: {0}")]
     NumberGenerationError(#[from] DocumentNumberGenerationError),
     #[error("Repository error: {0}")]
@@ -146,7 +146,10 @@ mod tests {
 
         let result = request.validate();
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::EmptyTitle));
+        assert!(matches!(
+            result.unwrap_err(),
+            DocumentValidationError::EmptyTitle
+        ));
     }
 
     #[test]
@@ -163,7 +166,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            ValidationError::InvalidDepartmentCodeLength
+            DocumentValidationError::InvalidDepartmentCodeLength
         ));
     }
 }

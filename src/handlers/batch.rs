@@ -77,9 +77,7 @@ pub async fn get_batch_execution(
     // TODO: 実際のデータベースから取得
     let execution = get_mock_batch_execution(execution_id)
         .await
-        .ok_or_else(|| {
-            AppError::NotFound(format!("Batch execution not found: {execution_id}"))
-        })?;
+        .ok_or_else(|| AppError::NotFound(format!("Batch execution not found: {execution_id}")))?;
 
     Ok(Json(execution))
 }
