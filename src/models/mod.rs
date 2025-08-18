@@ -6,6 +6,7 @@ pub mod document;
 pub mod document_number_generation;
 pub mod document_type;
 pub mod employee;
+pub mod migration;
 pub mod validation;
 
 // Re-export all models
@@ -15,4 +16,5 @@ pub use document::*;
 pub use document_number_generation::*;
 pub use document_type::*;
 pub use employee::*;
+pub use migration::*;
 pub use validation::*;
