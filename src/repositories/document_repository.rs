@@ -222,7 +222,7 @@ impl DocumentRepository for SqliteDocumentRepository {
         &self,
         filters: DocumentSearchFilters,
     ) -> Result<(Vec<Document>, i64), RepositoryError> {
-        let mut query = "SELECT id, title, document_type_id, created_by, created_date, created_at, updated_at FROM documents WHERE 1=1".to_string();
+        let mut query = "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE 1=1".to_string();
         let mut count_query = "SELECT COUNT(*) as count FROM documents WHERE 1=1".to_string();
 
         // フィルター条件を構築

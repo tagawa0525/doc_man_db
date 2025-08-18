@@ -123,7 +123,7 @@ impl ReportServiceImpl {
 
         serde_json::to_string_pretty(&report_data).map_err(|e| {
             ReportServiceError::ConversionError {
-                message: format!("JSONシリアライゼーションエラー: {}", e),
+                message: format!("JSONシリアライゼーションエラー: {e}"),
             }
         })
     }
@@ -233,7 +233,7 @@ impl ReportServiceImpl {
                     <div>品質スコア: {:.1}%</div>
 "#,
                     status_class,
-                    result.rule_type.to_string(),
+                    result.rule_type,
                     result.rule_name,
                     result.execution_time_ms,
                     result.quality_score
@@ -275,7 +275,7 @@ impl ReportServiceImpl {
 
             csv.push_str(&format!(
                 "{},{},{},{},{:.1},{},{},{}\n",
-                result.rule_type.to_string(),
+                result.rule_type,
                 result.rule_name.replace(",", ";"),
                 if result.is_valid { "有効" } else { "無効" },
                 result.execution_time_ms,
@@ -400,12 +400,12 @@ impl ReportService for ReportServiceImpl {
             | ReportContent::Html(content)
             | ReportContent::Csv(content) => {
                 fs::write(file_path, content).map_err(|e| ReportServiceError::FileOutputError {
-                    message: format!("ファイル出力エラー: {}", e),
+                    message: format!("ファイル出力エラー: {e}"),
                 })?;
             }
             ReportContent::Pdf(content) => {
                 fs::write(file_path, content).map_err(|e| ReportServiceError::FileOutputError {
-                    message: format!("PDFファイル出力エラー: {}", e),
+                    message: format!("PDFファイル出力エラー: {e}"),
                 })?;
             }
         }

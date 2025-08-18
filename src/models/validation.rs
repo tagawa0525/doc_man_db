@@ -187,9 +187,7 @@ impl ValidationResult {
             + (self.warnings.len() as f64 * warning_weight);
 
         let max_penalty = 100.0;
-        let score = ((max_penalty - penalty) / max_penalty * 100.0).max(0.0);
-
-        score
+        ((max_penalty - penalty) / max_penalty * 100.0).max(0.0)
     }
 
     /// 検証を無効としてマーク

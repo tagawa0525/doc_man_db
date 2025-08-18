@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use doc_man_db::models::{CreateDocumentRequest, ValidationError};
+use doc_man_db::models::{CreateDocumentRequest, DocumentValidationError};
 
 #[test]
 fn test_create_document_request_validation_success() {
@@ -45,7 +45,7 @@ fn test_create_document_request_empty_title() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyTitle);
+    assert_matches::assert_matches!(result.unwrap_err(), DocumentValidationError::EmptyTitle);
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn test_create_document_request_whitespace_only_title() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyTitle);
+    assert_matches::assert_matches!(result.unwrap_err(), DocumentValidationError::EmptyTitle);
 }
 
 #[test]
@@ -93,7 +93,10 @@ fn test_create_document_request_invalid_document_type_id() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::InvalidDocumentTypeId);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidDocumentTypeId
+    );
 }
 
 #[test]
@@ -117,5 +120,8 @@ fn test_create_document_request_invalid_created_by() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::InvalidCreatedBy);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidCreatedBy
+    );
 }

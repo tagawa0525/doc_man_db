@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use doc_man_db::models::{
-    CreateDocumentNumberGenerationRuleRequest, DocumentNumberRequest, ValidationError,
+    CreateDocumentNumberGenerationRuleRequest, DocumentNumberRequest, DocumentValidationError,
 };
 
 #[test]
@@ -43,7 +43,7 @@ fn test_document_number_rule_empty_name() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyRuleName);
+    assert_matches::assert_matches!(result.unwrap_err(), DocumentValidationError::EmptyRuleName);
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn test_document_number_rule_empty_template() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyTemplate);
+    assert_matches::assert_matches!(result.unwrap_err(), DocumentValidationError::EmptyTemplate);
 }
 
 #[test]
@@ -87,7 +87,10 @@ fn test_document_number_rule_invalid_sequence_digits() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::InvalidSequenceDigits);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidSequenceDigits
+    );
 }
 
 #[test]
@@ -109,7 +112,10 @@ fn test_document_number_rule_empty_document_types() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyDocumentTypeCodes);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::EmptyDocumentTypeCodes
+    );
 }
 
 #[test]
@@ -144,7 +150,10 @@ fn test_document_number_request_empty_document_type() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyDocumentTypeCode);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::EmptyDocumentTypeCode
+    );
 }
 
 #[test]
@@ -162,7 +171,10 @@ fn test_document_number_request_empty_department_code() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::EmptyDepartmentCode);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::EmptyDepartmentCode
+    );
 }
 
 #[test]
@@ -180,5 +192,8 @@ fn test_document_number_request_invalid_created_by() {
 
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches::assert_matches!(result.unwrap_err(), ValidationError::InvalidCreatedBy);
+    assert_matches::assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidCreatedBy
+    );
 }

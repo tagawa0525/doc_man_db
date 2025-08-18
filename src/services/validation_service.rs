@@ -120,7 +120,7 @@ impl ValidationServiceImpl {
             if id <= 0 || id > 1000 {
                 result.add_error(ValidationError {
                     error_type: ValidationErrorType::ReferenceError,
-                    message: format!("ID {} は無効な参照です", id),
+                    message: format!("ID {id} は無効な参照です"),
                     field_name: Some("id".to_string()),
                     entity_id: Some(id),
                     severity: ValidationSeverity::Error,
@@ -148,7 +148,7 @@ impl ValidationServiceImpl {
                 // 5で割り切れるIDは必須フィールドが不足と仮定
                 result.add_error(ValidationError {
                     error_type: ValidationErrorType::MissingValue,
-                    message: format!("エンティティ {} で必須フィールドが不足しています", id),
+                    message: format!("エンティティ {id} で必須フィールドが不足しています"),
                     field_name: Some("title".to_string()),
                     entity_id: Some(id),
                     severity: ValidationSeverity::Error,
@@ -191,7 +191,7 @@ impl ValidationServiceImpl {
                 // 3で割り切れるIDはファイルが存在しないと仮定
                 result.add_warning(ValidationError {
                     error_type: ValidationErrorType::DataInconsistency,
-                    message: format!("エンティティ {} のファイルが見つかりません", id),
+                    message: format!("エンティティ {id} のファイルが見つかりません"),
                     field_name: Some("file_path".to_string()),
                     entity_id: Some(id),
                     severity: ValidationSeverity::Warning,
@@ -219,7 +219,7 @@ impl ValidationServiceImpl {
                 // 7で割り切れるIDは形式が不正と仮定
                 result.add_warning(ValidationError {
                     error_type: ValidationErrorType::InvalidFormat,
-                    message: format!("エンティティ {} のデータ形式が不正です", id),
+                    message: format!("エンティティ {id} のデータ形式が不正です"),
                     field_name: Some("number".to_string()),
                     entity_id: Some(id),
                     severity: ValidationSeverity::Warning,
@@ -247,7 +247,7 @@ impl ValidationServiceImpl {
                 // 11で割り切れるIDは業務ルール違反と仮定
                 result.add_warning(ValidationError {
                     error_type: ValidationErrorType::BusinessRuleViolation,
-                    message: format!("エンティティ {} で業務ルール違反が検出されました", id),
+                    message: format!("エンティティ {id} で業務ルール違反が検出されました"),
                     field_name: None,
                     entity_id: Some(id),
                     severity: ValidationSeverity::Info,
@@ -321,6 +321,7 @@ impl Default for ValidationServiceImpl {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_validation_service_creation() {
