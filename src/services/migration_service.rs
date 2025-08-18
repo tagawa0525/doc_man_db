@@ -194,7 +194,7 @@ impl MigrationServiceImpl {
                     severity: IssueSeverity::Medium,
                     category: IssueCategory::PerformanceImpact,
                     title: "大容量データ移行".to_string(),
-                    description: format!("移行データサイズが大きいです: {}MB", data_size),
+                    description: format!("移行データサイズが大きいです: {data_size}MB"),
                     affected_tables: vec![],
                     affected_records: None,
                     recommendation: Some("バッチ処理での移行を検討してください".to_string()),
@@ -231,7 +231,7 @@ impl MigrationServiceImpl {
             .source_database_url
             .strip_prefix("sqlite://")
             .unwrap_or(&plan.source_database_url);
-        let backup_path = format!("{}.backup", source_path);
+        let backup_path = format!("{source_path}.backup");
 
         let backup_output = Command::new("cp")
             .arg(source_path)
@@ -251,7 +251,7 @@ impl MigrationServiceImpl {
 
         job.add_log(
             LogLevel::Info,
-            format!("バックアップ作成完了: {}", backup_path),
+            format!("バックアップ作成完了: {backup_path}"),
             Some("backup_created".to_string()),
             None,
         );
@@ -350,8 +350,7 @@ impl MigrationServiceImpl {
             job.add_log(
                 LogLevel::Warning,
                 format!(
-                    "レコード数の不一致を検出: ソース={}, ターゲット={}",
-                    source_count, target_count
+                    "レコード数の不一致を検出: ソース={source_count}, ターゲット={target_count}"
                 ),
                 Some("integrity_check".to_string()),
                 None,
@@ -359,7 +358,7 @@ impl MigrationServiceImpl {
         } else {
             job.add_log(
                 LogLevel::Info,
-                format!("データ整合性チェック完了: {} レコード", source_count),
+                format!("データ整合性チェック完了: {source_count} レコード"),
                 Some("integrity_check".to_string()),
                 None,
             );
