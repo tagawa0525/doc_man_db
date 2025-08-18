@@ -128,7 +128,7 @@ impl ValidationServiceImpl {
             }
         }
 
-        result.execution_time_ms = start_time.elapsed().as_millis() as u64;
+        result.execution_time_ms = start_time.elapsed().as_millis().max(1) as u64;
         Ok(result)
     }
 
@@ -156,7 +156,7 @@ impl ValidationServiceImpl {
             }
         }
 
-        result.execution_time_ms = start_time.elapsed().as_millis() as u64;
+        result.execution_time_ms = start_time.elapsed().as_millis().max(1) as u64;
         Ok(result)
     }
 
@@ -171,7 +171,7 @@ impl ValidationServiceImpl {
         );
 
         // 模擬的な重複チェック（重複なしと仮定）
-        result.execution_time_ms = start_time.elapsed().as_millis() as u64;
+        result.execution_time_ms = start_time.elapsed().as_millis().max(1) as u64;
         Ok(result)
     }
 
@@ -199,7 +199,7 @@ impl ValidationServiceImpl {
             }
         }
 
-        result.execution_time_ms = start_time.elapsed().as_millis() as u64;
+        result.execution_time_ms = start_time.elapsed().as_millis().max(1) as u64;
         Ok(result)
     }
 
@@ -227,7 +227,7 @@ impl ValidationServiceImpl {
             }
         }
 
-        result.execution_time_ms = start_time.elapsed().as_millis() as u64;
+        result.execution_time_ms = start_time.elapsed().as_millis().max(1) as u64;
         Ok(result)
     }
 
@@ -255,7 +255,7 @@ impl ValidationServiceImpl {
             }
         }
 
-        result.execution_time_ms = start_time.elapsed().as_millis() as u64;
+        result.execution_time_ms = start_time.elapsed().as_millis().max(1) as u64;
         Ok(result)
     }
 }
