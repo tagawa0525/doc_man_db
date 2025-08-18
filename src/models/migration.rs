@@ -106,7 +106,7 @@ pub struct MigrationValidation {
     pub id: Uuid,
     pub plan_id: Uuid,
     pub validation_type: ValidationType,
-    pub status: ValidationStatus,
+    pub status: MigrationValidationStatus,
     pub issues: Vec<ValidationIssue>,
     pub recommendations: Vec<String>,
     pub estimated_duration_minutes: Option<i32>,
@@ -129,7 +129,7 @@ pub enum ValidationType {
 /// 検証ステータス
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
-pub enum ValidationStatus {
+pub enum MigrationValidationStatus {
     Passed,      // 合格
     Failed,      // 失敗
     Warning,     // 警告
@@ -357,7 +357,7 @@ impl MigrationValidation {
             id: Uuid::new_v4(),
             plan_id,
             validation_type,
-            status: ValidationStatus::InProgress,
+            status: MigrationValidationStatus::InProgress,
             issues: Vec::new(),
             recommendations: Vec::new(),
             estimated_duration_minutes: None,
@@ -384,11 +384,11 @@ impl MigrationValidation {
 
     pub fn complete(&mut self) {
         self.status = if self.has_critical_issues() {
-            ValidationStatus::Failed
+            MigrationValidationStatus::Failed
         } else if self.has_issues() {
-            ValidationStatus::Warning
+            MigrationValidationStatus::Warning
         } else {
-            ValidationStatus::Passed
+            MigrationValidationStatus::Passed
         };
     }
 
@@ -450,7 +450,7 @@ mod tests {
             "validator".to_string(),
         );
 
-        assert_eq!(validation.status, ValidationStatus::InProgress);
+        assert_eq!(validation.status, MigrationValidationStatus::InProgress);
         assert_eq!(validation.risk_level, RiskLevel::Medium);
 
         let issue = ValidationIssue {
@@ -469,6 +469,6 @@ mod tests {
         assert_eq!(validation.risk_level, RiskLevel::Critical);
 
         validation.complete();
-        assert_eq!(validation.status, ValidationStatus::Failed);
+        assert_eq!(validation.status, MigrationValidationStatus::Failed);
     }
 }

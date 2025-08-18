@@ -154,7 +154,7 @@ async fn test_migration_validation_creation() {
 
     assert_eq!(validation.plan_id, plan_id);
     assert_eq!(validation.validation_type, ValidationType::PreMigration);
-    assert_eq!(validation.status, ValidationStatus::InProgress);
+    assert_eq!(validation.status, MigrationValidationStatus::InProgress);
     assert_eq!(validation.risk_level, RiskLevel::Medium);
     assert_eq!(validation.validated_by, "validator");
     assert!(validation.issues.is_empty());
@@ -218,7 +218,7 @@ async fn test_migration_validation_with_issues() {
 
     // 検証完了
     validation.complete();
-    assert_eq!(validation.status, ValidationStatus::Failed); // クリティカルな問題があるため
+    assert_eq!(validation.status, MigrationValidationStatus::Failed); // クリティカルな問題があるため
     assert!(validation.has_critical_issues());
     assert!(validation.has_issues());
     assert_eq!(validation.issues.len(), 3);
@@ -234,7 +234,7 @@ async fn test_migration_validation_success() {
 
     // 問題なしで完了
     validation.complete();
-    assert_eq!(validation.status, ValidationStatus::Passed);
+    assert_eq!(validation.status, MigrationValidationStatus::Passed);
     assert!(!validation.has_critical_issues());
     assert!(!validation.has_issues());
 }

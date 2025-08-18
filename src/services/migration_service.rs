@@ -1,7 +1,7 @@
 use crate::models::migration::{
     IssueCategory, IssueSeverity, LogLevel, MigrationJob, MigrationPlan, MigrationRequest,
-    MigrationStatistics, MigrationStatus, MigrationValidation, RiskLevel, RollbackRequest,
-    ValidationType, ValidationIssue, ValidationStatus,
+    MigrationStatistics, MigrationStatus, MigrationValidation,
+    RollbackRequest, ValidationType, ValidationIssue,
 };
 use async_trait::async_trait;
 use chrono::Utc;
@@ -325,8 +325,10 @@ impl MigrationServiceImpl {
                 message: format!("ターゲットレコード数取得エラー: {e}"),
             })?;
 
-        let source_count = String::from_utf8_lossy(&source_count_output.stdout).trim();
-        let target_count = String::from_utf8_lossy(&target_count_output.stdout).trim();
+        let source_count_str = String::from_utf8_lossy(&source_count_output.stdout);
+        let source_count = source_count_str.trim();
+        let target_count_str = String::from_utf8_lossy(&target_count_output.stdout);
+        let target_count = target_count_str.trim();
 
         if source_count != target_count {
             warn!("レコード数の不一致: ソース={}, ターゲット={}", source_count, target_count);
