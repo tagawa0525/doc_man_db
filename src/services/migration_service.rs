@@ -1,7 +1,7 @@
 use crate::models::migration::{
     IssueCategory, IssueSeverity, LogLevel, MigrationJob, MigrationPlan, MigrationRequest,
-    MigrationStatistics, MigrationStatus, MigrationValidation,
-    RollbackRequest, ValidationType, ValidationIssue,
+    MigrationStatistics, MigrationStatus, MigrationValidation, RollbackRequest, ValidationIssue,
+    ValidationType,
 };
 use async_trait::async_trait;
 use chrono::Utc;
@@ -94,7 +94,10 @@ impl MigrationServiceImpl {
     ) -> Result<(), MigrationServiceError> {
         // 依存関係チェック（簡易実装）
         if !plan.dependencies.is_empty() {
-            info!("依存関係をチェック中: {} 個の依存関係", plan.dependencies.len());
+            info!(
+                "依存関係をチェック中: {} 個の依存関係",
+                plan.dependencies.len()
+            );
             // 実際の実装では、データベースから依存関係の状態を確認
             for dep_id in &plan.dependencies {
                 info!("依存関係チェック: {}", dep_id);
@@ -111,7 +114,9 @@ impl MigrationServiceImpl {
 
         // SQLiteの場合の接続確認
         if database_url.starts_with("sqlite://") {
-            let db_path = database_url.strip_prefix("sqlite://").unwrap_or(database_url);
+            let db_path = database_url
+                .strip_prefix("sqlite://")
+                .unwrap_or(database_url);
             if !std::path::Path::new(db_path).exists() {
                 return Err(MigrationServiceError::DatabaseError {
                     message: format!("データベースファイルが見つかりません: {db_path}"),
@@ -207,7 +212,10 @@ impl MigrationServiceImpl {
         job: &mut MigrationJob,
         plan: &MigrationPlan,
     ) -> Result<(), MigrationServiceError> {
-        info!("SQLite移行を開始: {} -> {}", plan.source_database_url, plan.target_database_url);
+        info!(
+            "SQLite移行を開始: {} -> {}",
+            plan.source_database_url, plan.target_database_url
+        );
 
         job.add_log(
             LogLevel::Info,
@@ -218,10 +226,13 @@ impl MigrationServiceImpl {
 
         // ステップ1: ソースデータベースのバックアップ
         job.update_progress("ソースデータベースバックアップ".to_string(), 1, None);
-        
-        let source_path = plan.source_database_url.strip_prefix("sqlite://").unwrap_or(&plan.source_database_url);
+
+        let source_path = plan
+            .source_database_url
+            .strip_prefix("sqlite://")
+            .unwrap_or(&plan.source_database_url);
         let backup_path = format!("{}.backup", source_path);
-        
+
         let backup_output = Command::new("cp")
             .arg(source_path)
             .arg(&backup_path)
@@ -249,8 +260,11 @@ impl MigrationServiceImpl {
         job.update_progress("スキーマ移行".to_string(), 2, None);
 
         // 簡易的なスキーマコピー（実際の実装では、より詳細なスキーマ変換が必要）
-        let target_path = plan.target_database_url.strip_prefix("sqlite://").unwrap_or(&plan.target_database_url);
-        
+        let target_path = plan
+            .target_database_url
+            .strip_prefix("sqlite://")
+            .unwrap_or(&plan.target_database_url);
+
         let schema_output = Command::new("sqlite3")
             .arg(source_path)
             .arg(".schema")
@@ -329,10 +343,16 @@ impl MigrationServiceImpl {
         let target_count = target_count_str.trim();
 
         if source_count != target_count {
-            warn!("レコード数の不一致: ソース={}, ターゲット={}", source_count, target_count);
+            warn!(
+                "レコード数の不一致: ソース={}, ターゲット={}",
+                source_count, target_count
+            );
             job.add_log(
                 LogLevel::Warning,
-                format!("レコード数の不一致を検出: ソース={}, ターゲット={}", source_count, target_count),
+                format!(
+                    "レコード数の不一致を検出: ソース={}, ターゲット={}",
+                    source_count, target_count
+                ),
                 Some("integrity_check".to_string()),
                 None,
             );
@@ -402,7 +422,7 @@ impl MigrationService for MigrationServiceImpl {
 
         // 計画を保存（実際の実装では、データベースに保存）
         plan.updated_at = Utc::now();
-        
+
         info!("移行計画作成完了: {}", plan.id);
         Ok(plan)
     }
@@ -430,7 +450,8 @@ impl MigrationService for MigrationServiceImpl {
 
         let validation = match validation_type {
             ValidationType::PreMigration => {
-                self.execute_pre_migration_validation(&mock_plan, &validator).await?
+                self.execute_pre_migration_validation(&mock_plan, &validator)
+                    .await?
             }
             ValidationType::PostMigration => {
                 let mut validation = MigrationValidation::new(plan_id, validation_type, validator);
@@ -454,7 +475,10 @@ impl MigrationService for MigrationServiceImpl {
             }
         };
 
-        info!("移行計画検証完了: {} (結果: {:?})", plan_id, validation.status);
+        info!(
+            "移行計画検証完了: {} (結果: {:?})",
+            plan_id, validation.status
+        );
         Ok(validation)
     }
 
@@ -477,7 +501,10 @@ impl MigrationService for MigrationServiceImpl {
         mock_plan.id = request.plan_id; // テスト用にIDを設定
 
         // 承認チェック（ドライランは除く）
-        if !request.dry_run.unwrap_or(false) && !mock_plan.is_approved() && !request.force_execution.unwrap_or(false) {
+        if !request.dry_run.unwrap_or(false)
+            && !mock_plan.is_approved()
+            && !request.force_execution.unwrap_or(false)
+        {
             return Err(MigrationServiceError::ApprovalError {
                 message: "移行計画が承認されていません".to_string(),
             });
@@ -653,7 +680,11 @@ mod tests {
 
         let plan_id = Uuid::new_v4();
         let result = service
-            .validate_migration_plan(plan_id, ValidationType::PreMigration, "validator".to_string())
+            .validate_migration_plan(
+                plan_id,
+                ValidationType::PreMigration,
+                "validator".to_string(),
+            )
             .await;
 
         assert!(result.is_ok());
@@ -675,7 +706,7 @@ mod tests {
 
         let result = service.execute_migration(request).await;
         match &result {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 eprintln!("Migration failed: {}", e);
                 panic!("Expected migration to succeed in dry run mode");

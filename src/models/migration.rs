@@ -6,24 +6,24 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum MigrationType {
-    DatabaseMigration,  // データベース移行
-    DataMigration,      // データ移行
-    SchemaMigration,    // スキーマ移行
-    FullMigration,      // 完全移行
+    DatabaseMigration, // データベース移行
+    DataMigration,     // データ移行
+    SchemaMigration,   // スキーマ移行
+    FullMigration,     // 完全移行
 }
 
 /// 移行ステータス
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum MigrationStatus {
-    Pending,      // 待機中
-    Planning,     // 計画中
-    Validating,   // 検証中
-    Running,      // 実行中
-    Completed,    // 完了
-    Failed,       // 失敗
-    RollingBack,  // ロールバック中
-    RolledBack,   // ロールバック完了
+    Pending,     // 待機中
+    Planning,    // 計画中
+    Validating,  // 検証中
+    Running,     // 実行中
+    Completed,   // 完了
+    Failed,      // 失敗
+    RollingBack, // ロールバック中
+    RolledBack,  // ロールバック完了
 }
 
 /// 移行環境
@@ -119,21 +119,21 @@ pub struct MigrationValidation {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidationType {
-    PreMigration,    // 移行前検証
-    PostMigration,   // 移行後検証
-    DataIntegrity,   // データ整合性
-    Performance,     // パフォーマンス
-    Security,        // セキュリティ
+    PreMigration,  // 移行前検証
+    PostMigration, // 移行後検証
+    DataIntegrity, // データ整合性
+    Performance,   // パフォーマンス
+    Security,      // セキュリティ
 }
 
 /// 検証ステータス
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum MigrationValidationStatus {
-    Passed,      // 合格
-    Failed,      // 失敗
-    Warning,     // 警告
-    InProgress,  // 実行中
+    Passed,     // 合格
+    Failed,     // 失敗
+    Warning,    // 警告
+    InProgress, // 実行中
 }
 
 /// 検証問題
@@ -164,11 +164,11 @@ pub enum IssueSeverity {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum IssueCategory {
-    DataInconsistency,  // データ不整合
-    SchemaChange,       // スキーマ変更
-    PerformanceImpact,  // パフォーマンス影響
-    SecurityRisk,       // セキュリティリスク
-    DependencyIssue,    // 依存関係問題
+    DataInconsistency, // データ不整合
+    SchemaChange,      // スキーマ変更
+    PerformanceImpact, // パフォーマンス影響
+    SecurityRisk,      // セキュリティリスク
+    DependencyIssue,   // 依存関係問題
 }
 
 /// リスクレベル
@@ -316,7 +316,12 @@ impl MigrationJob {
         self.updated_at = Utc::now();
     }
 
-    pub fn update_progress(&mut self, step: String, completed_steps: i32, data_processed: Option<i64>) {
+    pub fn update_progress(
+        &mut self,
+        step: String,
+        completed_steps: i32,
+        data_processed: Option<i64>,
+    ) {
         self.current_step = Some(step);
         self.completed_steps = completed_steps;
         self.progress_percentage = (completed_steps as f64 / self.total_steps as f64) * 100.0;
@@ -326,7 +331,13 @@ impl MigrationJob {
         self.updated_at = Utc::now();
     }
 
-    pub fn add_log(&mut self, level: LogLevel, message: String, step_name: Option<String>, data: Option<serde_json::Value>) {
+    pub fn add_log(
+        &mut self,
+        level: LogLevel,
+        message: String,
+        step_name: Option<String>,
+        data: Option<serde_json::Value>,
+    ) {
         let log = MigrationLog {
             id: Uuid::new_v4(),
             job_id: self.id,
@@ -348,11 +359,7 @@ impl MigrationJob {
 }
 
 impl MigrationValidation {
-    pub fn new(
-        plan_id: Uuid,
-        validation_type: ValidationType,
-        validated_by: String,
-    ) -> Self {
+    pub fn new(plan_id: Uuid, validation_type: ValidationType, validated_by: String) -> Self {
         Self {
             id: Uuid::new_v4(),
             plan_id,
@@ -393,7 +400,9 @@ impl MigrationValidation {
     }
 
     pub fn has_critical_issues(&self) -> bool {
-        self.issues.iter().any(|i| i.severity == IssueSeverity::Critical)
+        self.issues
+            .iter()
+            .any(|i| i.severity == IssueSeverity::Critical)
     }
 
     pub fn has_issues(&self) -> bool {

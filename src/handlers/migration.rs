@@ -4,10 +4,10 @@ use crate::models::migration::{
 };
 use crate::services::MigrationService;
 use axum::{
+    Json as JsonBody,
     extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
-    Json as JsonBody,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

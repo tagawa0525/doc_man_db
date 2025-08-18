@@ -75,7 +75,10 @@ async fn test_migration_job_lifecycle() {
     job.update_progress("Step 1: Schema Migration".to_string(), 1, Some(100));
     assert_eq!(job.progress_percentage, 20.0);
     assert_eq!(job.completed_steps, 1);
-    assert_eq!(job.current_step, Some("Step 1: Schema Migration".to_string()));
+    assert_eq!(
+        job.current_step,
+        Some("Step 1: Schema Migration".to_string())
+    );
     assert_eq!(job.data_processed_mb, Some(100));
 
     job.update_progress("Step 2: Data Migration".to_string(), 2, Some(500));
@@ -287,7 +290,11 @@ async fn test_migration_service_validate_plan() {
 
     let plan_id = Uuid::new_v4();
     let result = service
-        .validate_migration_plan(plan_id, ValidationType::PreMigration, "validator".to_string())
+        .validate_migration_plan(
+            plan_id,
+            ValidationType::PreMigration,
+            "validator".to_string(),
+        )
         .await;
 
     assert!(result.is_ok());
