@@ -5,7 +5,6 @@ use crate::models::migration::{
 };
 use async_trait::async_trait;
 use chrono::Utc;
-use std::collections::HashMap;
 use thiserror::Error;
 use tokio::process::Command;
 use tracing::{error, info, warn};
@@ -79,7 +78,6 @@ pub trait MigrationService: Send + Sync {
 pub struct MigrationServiceImpl {
     source_database_url: String,
     target_database_url: String,
-    active_jobs: HashMap<Uuid, MigrationJob>,
 }
 
 impl MigrationServiceImpl {
@@ -87,7 +85,6 @@ impl MigrationServiceImpl {
         Self {
             source_database_url,
             target_database_url,
-            active_jobs: HashMap::new(),
         }
     }
 
@@ -128,9 +125,10 @@ impl MigrationServiceImpl {
     async fn execute_pre_migration_validation(
         &self,
         plan: &MigrationPlan,
+        validator: &str,
     ) -> Result<MigrationValidation, MigrationServiceError> {
         let mut validation =
-            MigrationValidation::new(plan.id, ValidationType::PreMigration, "system".to_string());
+            MigrationValidation::new(plan.id, ValidationType::PreMigration, validator.to_string());
 
         // データベース接続チェック
         if let Err(e) = self
@@ -419,7 +417,7 @@ impl MigrationService for MigrationServiceImpl {
 
         // 実際の実装では、データベースから計画を取得
         // 現在は模擬的な計画を作成
-        let mock_plan = MigrationPlan::new(
+        let mut mock_plan = MigrationPlan::new(
             "Mock Plan".to_string(),
             crate::models::migration::MigrationType::DataMigration,
             crate::models::migration::MigrationEnvironment::Development,
@@ -428,10 +426,11 @@ impl MigrationService for MigrationServiceImpl {
             self.target_database_url.clone(),
             "admin".to_string(),
         );
+        mock_plan.id = plan_id; // テスト用にIDを設定
 
         let validation = match validation_type {
             ValidationType::PreMigration => {
-                self.execute_pre_migration_validation(&mock_plan).await?
+                self.execute_pre_migration_validation(&mock_plan, &validator).await?
             }
             ValidationType::PostMigration => {
                 let mut validation = MigrationValidation::new(plan_id, validation_type, validator);
@@ -466,7 +465,7 @@ impl MigrationService for MigrationServiceImpl {
         info!("移行実行開始: {}", request.plan_id);
 
         // 実際の実装では、データベースから計画を取得
-        let mock_plan = MigrationPlan::new(
+        let mut mock_plan = MigrationPlan::new(
             "Mock Migration".to_string(),
             crate::models::migration::MigrationType::DataMigration,
             crate::models::migration::MigrationEnvironment::Development,
@@ -475,9 +474,10 @@ impl MigrationService for MigrationServiceImpl {
             self.target_database_url.clone(),
             "admin".to_string(),
         );
+        mock_plan.id = request.plan_id; // テスト用にIDを設定
 
-        // 承認チェック
-        if !mock_plan.is_approved() && !request.force_execution.unwrap_or(false) {
+        // 承認チェック（ドライランは除く）
+        if !request.dry_run.unwrap_or(false) && !mock_plan.is_approved() && !request.force_execution.unwrap_or(false) {
             return Err(MigrationServiceError::ApprovalError {
                 message: "移行計画が承認されていません".to_string(),
             });
@@ -674,7 +674,13 @@ mod tests {
         };
 
         let result = service.execute_migration(request).await;
-        assert!(result.is_ok());
+        match &result {
+            Ok(_) => {},
+            Err(e) => {
+                eprintln!("Migration failed: {}", e);
+                panic!("Expected migration to succeed in dry run mode");
+            }
+        }
 
         let job = result.unwrap();
         assert_eq!(job.status, MigrationStatus::Completed);
