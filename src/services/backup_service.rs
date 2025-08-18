@@ -1,6 +1,6 @@
 use crate::models::backup::{
-    BackupConfig, BackupJob, BackupRequest, BackupStatistics, BackupType,
-    RestoreJob, RestoreRequest,
+    BackupConfig, BackupJob, BackupRequest, BackupStatistics, BackupType, RestoreJob,
+    RestoreRequest,
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -38,9 +38,15 @@ pub enum BackupServiceError {
 #[async_trait]
 pub trait BackupService: Send + Sync {
     async fn create_backup(&self, request: BackupRequest) -> Result<BackupJob, BackupServiceError>;
-    async fn restore_backup(&self, request: RestoreRequest) -> Result<RestoreJob, BackupServiceError>;
+    async fn restore_backup(
+        &self,
+        request: RestoreRequest,
+    ) -> Result<RestoreJob, BackupServiceError>;
     async fn get_backup_job(&self, job_id: Uuid) -> Result<Option<BackupJob>, BackupServiceError>;
-    async fn list_backup_jobs(&self, limit: Option<usize>) -> Result<Vec<BackupJob>, BackupServiceError>;
+    async fn list_backup_jobs(
+        &self,
+        limit: Option<usize>,
+    ) -> Result<Vec<BackupJob>, BackupServiceError>;
     async fn delete_backup(&self, job_id: Uuid) -> Result<(), BackupServiceError>;
     async fn get_backup_statistics(&self) -> Result<BackupStatistics, BackupServiceError>;
     async fn cleanup_old_backups(&self, retention_days: i32) -> Result<i32, BackupServiceError>;
@@ -70,14 +76,22 @@ impl BackupServiceImpl {
         Ok(())
     }
 
-    fn generate_backup_filename(&self, backup_type: &BackupType, timestamp: DateTime<Utc>) -> String {
+    fn generate_backup_filename(
+        &self,
+        backup_type: &BackupType,
+        timestamp: DateTime<Utc>,
+    ) -> String {
         let type_str = match backup_type {
             BackupType::Full => "full",
             BackupType::Incremental => "incremental",
             BackupType::Differential => "differential",
         };
-        
-        let extension = if self.config.compression_level > 0 { "gz" } else { "sql" };
+
+        let extension = if self.config.compression_level > 0 {
+            "gz"
+        } else {
+            "sql"
+        };
         format!(
             "{}/backup_{}_{}.{}",
             self.config.backup_directory,
@@ -132,11 +146,12 @@ impl BackupServiceImpl {
         }
 
         // ファイルサイズを取得
-        let metadata = fs::metadata(file_path).await.map_err(|e| {
-            BackupServiceError::FileError {
-                message: format!("バックアップファイルメタデータ取得エラー: {e}"),
-            }
-        })?;
+        let metadata =
+            fs::metadata(file_path)
+                .await
+                .map_err(|e| BackupServiceError::FileError {
+                    message: format!("バックアップファイルメタデータ取得エラー: {e}"),
+                })?;
 
         job.mark_completed(file_path.to_string(), metadata.len() as i64);
         info!("バックアップ完了: {} ({}バイト)", file_path, metadata.len());
@@ -149,8 +164,8 @@ impl BackupServiceImpl {
         data: &[u8],
         output_path: &str,
     ) -> Result<(), BackupServiceError> {
-        use flate2::write::GzEncoder;
         use flate2::Compression;
+        use flate2::write::GzEncoder;
         use std::io::Write;
 
         let file = std::fs::File::create(output_path).map_err(|e| {
@@ -159,18 +174,19 @@ impl BackupServiceImpl {
             }
         })?;
 
-        let mut encoder = GzEncoder::new(file, Compression::new(self.config.compression_level as u32));
-        encoder.write_all(data).map_err(|e| {
-            BackupServiceError::CompressionError {
+        let mut encoder =
+            GzEncoder::new(file, Compression::new(self.config.compression_level as u32));
+        encoder
+            .write_all(data)
+            .map_err(|e| BackupServiceError::CompressionError {
                 message: format!("データ圧縮エラー: {e}"),
-            }
-        })?;
+            })?;
 
-        encoder.finish().map_err(|e| {
-            BackupServiceError::CompressionError {
+        encoder
+            .finish()
+            .map_err(|e| BackupServiceError::CompressionError {
                 message: format!("圧縮完了エラー: {e}"),
-            }
-        })?;
+            })?;
 
         Ok(())
     }
@@ -244,14 +260,16 @@ impl BackupServiceImpl {
         })?;
 
         // 一時ファイルに書き出し
-        let temp_file_path = format!("{}/temp_restore_{}.sql", 
-                                   self.config.backup_directory, 
-                                   Uuid::new_v4());
-        fs::write(&temp_file_path, decompressed_data).await.map_err(|e| {
-            BackupServiceError::RestoreError {
+        let temp_file_path = format!(
+            "{}/temp_restore_{}.sql",
+            self.config.backup_directory,
+            Uuid::new_v4()
+        );
+        fs::write(&temp_file_path, decompressed_data)
+            .await
+            .map_err(|e| BackupServiceError::RestoreError {
                 message: format!("一時ファイル作成エラー: {e}"),
-            }
-        })?;
+            })?;
 
         // SQLiteでリストア実行
         let output = Command::new("sqlite3")
@@ -270,7 +288,10 @@ impl BackupServiceImpl {
         Ok(output)
     }
 
-    async fn validate_backup_request(&self, request: &BackupRequest) -> Result<(), BackupServiceError> {
+    async fn validate_backup_request(
+        &self,
+        request: &BackupRequest,
+    ) -> Result<(), BackupServiceError> {
         // バックアップディレクトリの存在確認
         self.ensure_backup_directory().await?;
 
@@ -289,7 +310,10 @@ impl BackupServiceImpl {
             });
         }
 
-        info!("バックアップリクエストの検証完了: {:?}", request.backup_type);
+        info!(
+            "バックアップリクエストの検証完了: {:?}",
+            request.backup_type
+        );
         Ok(())
     }
 }
@@ -302,7 +326,11 @@ impl BackupService for BackupServiceImpl {
 
         // バックアップジョブを作成
         let target_tables = request.target_tables.unwrap_or_else(|| {
-            vec!["documents".to_string(), "document_types".to_string(), "users".to_string()]
+            vec![
+                "documents".to_string(),
+                "document_types".to_string(),
+                "users".to_string(),
+            ]
         });
 
         let mut job = BackupJob::new(request.backup_type.clone(), target_tables);
@@ -326,7 +354,10 @@ impl BackupService for BackupServiceImpl {
         }
     }
 
-    async fn restore_backup(&self, request: RestoreRequest) -> Result<RestoreJob, BackupServiceError> {
+    async fn restore_backup(
+        &self,
+        request: RestoreRequest,
+    ) -> Result<RestoreJob, BackupServiceError> {
         // バックアップジョブの存在確認（実際の実装では、DBから取得）
         // 現在は簡略化のため、リクエストから直接ファイルパスを推定
 
@@ -338,7 +369,10 @@ impl BackupService for BackupServiceImpl {
         // バックアップファイルパスを推定（実際の実装では、DBから取得）
         let backup_file_path = format!("{}/backup_*.sql", self.config.backup_directory);
 
-        match self.execute_restore(&mut restore_job, &backup_file_path).await {
+        match self
+            .execute_restore(&mut restore_job, &backup_file_path)
+            .await
+        {
             Ok(()) => {
                 info!("リストア成功: {}", restore_job.id);
                 Ok(restore_job)
@@ -358,7 +392,10 @@ impl BackupService for BackupServiceImpl {
         Ok(None)
     }
 
-    async fn list_backup_jobs(&self, _limit: Option<usize>) -> Result<Vec<BackupJob>, BackupServiceError> {
+    async fn list_backup_jobs(
+        &self,
+        _limit: Option<usize>,
+    ) -> Result<Vec<BackupJob>, BackupServiceError> {
         // 実際の実装では、データベースから取得
         // 現在は空のリストを返す
         warn!("list_backup_jobs: サンプル実装");
@@ -394,24 +431,32 @@ impl BackupService for BackupServiceImpl {
         }
 
         let mut deleted_count = 0;
-        let mut entries = fs::read_dir(backup_dir).await.map_err(|e| {
-            BackupServiceError::FileError {
-                message: format!("バックアップディレクトリ読み込みエラー: {e}"),
-            }
-        })?;
+        let mut entries =
+            fs::read_dir(backup_dir)
+                .await
+                .map_err(|e| BackupServiceError::FileError {
+                    message: format!("バックアップディレクトリ読み込みエラー: {e}"),
+                })?;
 
-        while let Some(entry) = entries.next_entry().await.map_err(|e| {
-            BackupServiceError::FileError {
-                message: format!("ディレクトリエントリ読み込みエラー: {e}"),
-            }
-        })? {
+        while let Some(entry) =
+            entries
+                .next_entry()
+                .await
+                .map_err(|e| BackupServiceError::FileError {
+                    message: format!("ディレクトリエントリ読み込みエラー: {e}"),
+                })?
+        {
             let path = entry.path();
             if let Ok(metadata) = fs::metadata(&path).await {
                 if let Ok(created) = metadata.created() {
                     let created_datetime: DateTime<Utc> = created.into();
                     if created_datetime < cutoff_date {
                         if let Err(e) = fs::remove_file(&path).await {
-                            warn!("古いバックアップファイル削除失敗: {}: {}", path.display(), e);
+                            warn!(
+                                "古いバックアップファイル削除失敗: {}: {}",
+                                path.display(),
+                                e
+                            );
                         } else {
                             deleted_count += 1;
                             info!("古いバックアップファイル削除: {}", path.display());
@@ -447,7 +492,7 @@ mod tests {
     async fn test_backup_service_creation() {
         let config = BackupConfig::default();
         let service = BackupServiceImpl::new(config, "test.db".to_string());
-        
+
         assert_eq!(service.database_url, "test.db");
     }
 
@@ -455,11 +500,11 @@ mod tests {
     fn test_backup_filename_generation() {
         let config = BackupConfig::default();
         let service = BackupServiceImpl::new(config, "test.db".to_string());
-        
+
         let timestamp = DateTime::parse_from_rfc3339("2024-01-01T12:00:00Z")
             .unwrap()
             .with_timezone(&Utc);
-        
+
         let filename = service.generate_backup_filename(&BackupType::Full, timestamp);
         assert!(filename.contains("backup_full_20240101_120000"));
     }
@@ -468,10 +513,10 @@ mod tests {
     async fn test_backup_request_validation() {
         let config = BackupConfig::default();
         let service = BackupServiceImpl::new(config, "non_existent.db".to_string());
-        
+
         let request = BackupRequest::default();
         let result = service.validate_backup_request(&request).await;
-        
+
         // データベースファイルが存在しないためエラーになる
         assert!(result.is_err());
     }

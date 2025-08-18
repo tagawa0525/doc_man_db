@@ -1,12 +1,10 @@
-use crate::models::backup::{
-    BackupJob, BackupRequest, BackupStatistics, RestoreRequest,
-};
+use crate::models::backup::{BackupJob, BackupRequest, BackupStatistics, RestoreRequest};
 use crate::services::BackupService;
 use axum::{
+    Json as JsonBody,
     extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
-    Json as JsonBody,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -159,7 +157,9 @@ impl BackupHandlers {
             // ドライランモード（実際には削除しない）
             return Ok(Json(CleanupResponse {
                 deleted_count: 0,
-                message: format!("ドライランモード: {}日以前のバックアップが削除対象です", retention_days),
+                message: format!(
+                    "ドライランモード: {retention_days}日以前のバックアップが削除対象です"
+                ),
             }));
         }
 
@@ -170,7 +170,7 @@ impl BackupHandlers {
         {
             Ok(deleted_count) => Ok(Json(CleanupResponse {
                 deleted_count,
-                message: format!("{}個のバックアップファイルを削除しました", deleted_count),
+                message: format!("{deleted_count}個のバックアップファイルを削除しました"),
             })),
             Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
         }

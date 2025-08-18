@@ -6,8 +6,8 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum BackupType {
-    Full,        // フルバックアップ
-    Incremental, // 増分バックアップ
+    Full,         // フルバックアップ
+    Incremental,  // 増分バックアップ
     Differential, // 差分バックアップ
 }
 
@@ -15,11 +15,11 @@ pub enum BackupType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum BackupStatus {
-    Pending,    // 待機中
-    Running,    // 実行中
-    Completed,  // 完了
-    Failed,     // 失敗
-    Cancelled,  // キャンセル
+    Pending,   // 待機中
+    Running,   // 実行中
+    Completed, // 完了
+    Failed,    // 失敗
+    Cancelled, // キャンセル
 }
 
 /// バックアップスケジュール設定
@@ -29,7 +29,7 @@ pub struct BackupSchedule {
     pub name: String,
     pub description: Option<String>,
     pub backup_type: BackupType,
-    pub cron_expression: String,  // "0 2 * * *" = 毎日2時
+    pub cron_expression: String, // "0 2 * * *" = 毎日2時
     pub retention_days: i32,
     pub is_active: bool,
     pub target_tables: Vec<String>,
@@ -74,9 +74,9 @@ pub struct RestoreJob {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum RestoreType {
-    Full,           // フルリストア
-    TableSpecific,  // 特定テーブルのみ
-    PointInTime,    // 特定時点へのリストア
+    Full,          // フルリストア
+    TableSpecific, // 特定テーブルのみ
+    PointInTime,   // 特定時点へのリストア
 }
 
 /// バックアップリクエスト
@@ -216,7 +216,7 @@ mod tests {
     #[test]
     fn test_backup_job_creation() {
         let job = BackupJob::new(BackupType::Full, vec!["documents".to_string()]);
-        
+
         assert_eq!(job.backup_type, BackupType::Full);
         assert_eq!(job.status, BackupStatus::Pending);
         assert_eq!(job.target_tables.len(), 1);
@@ -227,12 +227,12 @@ mod tests {
     #[test]
     fn test_backup_job_lifecycle() {
         let mut job = BackupJob::new(BackupType::Incremental, vec!["documents".to_string()]);
-        
+
         // 開始マーク
         job.mark_started();
         assert_eq!(job.status, BackupStatus::Running);
         assert!(job.started_at.is_some());
-        
+
         // 完了マーク
         job.mark_completed("/backup/test.sql".to_string(), 1024);
         assert_eq!(job.status, BackupStatus::Completed);
@@ -244,10 +244,10 @@ mod tests {
     #[test]
     fn test_backup_job_failure() {
         let mut job = BackupJob::new(BackupType::Full, vec!["documents".to_string()]);
-        
+
         job.mark_started();
         job.mark_failed("Disk full".to_string());
-        
+
         assert_eq!(job.status, BackupStatus::Failed);
         assert!(job.completed_at.is_some());
         assert_eq!(job.error_message, Some("Disk full".to_string()));
@@ -257,7 +257,7 @@ mod tests {
     fn test_restore_job_creation() {
         let backup_id = Uuid::new_v4();
         let restore = RestoreJob::new(backup_id, RestoreType::Full);
-        
+
         assert_eq!(restore.backup_job_id, backup_id);
         assert_eq!(restore.restore_type, RestoreType::Full);
         assert_eq!(restore.status, BackupStatus::Pending);
