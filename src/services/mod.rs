@@ -1,5 +1,6 @@
 // Document Management System Services
 
+pub mod backup_service;
 pub mod csv_import_service;
 pub mod deduplication_service;
 pub mod document_number_generator;
@@ -9,6 +10,7 @@ pub mod report_service;
 pub mod validation_service;
 
 // Re-export all services
+pub use backup_service::*;
 pub use csv_import_service::*;
 pub use deduplication_service::*;
 pub use document_number_generator::*;
