@@ -2,7 +2,7 @@
 
 use chrono::{NaiveDate, Utc};
 use doc_man_db::graphql::types::*;
-use doc_man_db::models::{Document as ModelDocument, CreateDocumentWithNumberRequest};
+use doc_man_db::models::{CreateDocumentWithNumberRequest, Document as ModelDocument};
 
 #[test]
 fn test_document_conversion() {
@@ -51,7 +51,10 @@ fn test_create_document_input_conversion() {
     assert_eq!(request.document_type_code, "技術");
     assert_eq!(request.department_code, "DEV");
     assert_eq!(request.created_by, 1);
-    assert_eq!(request.created_date, NaiveDate::from_ymd_opt(2024, 8, 19).unwrap());
+    assert_eq!(
+        request.created_date,
+        NaiveDate::from_ymd_opt(2024, 8, 19).unwrap()
+    );
 }
 
 #[test]
@@ -71,8 +74,14 @@ fn test_document_search_filters_conversion() {
     assert_eq!(model_filters.title, Some("テスト".to_string()));
     assert_eq!(model_filters.document_type_id, Some(1));
     assert_eq!(model_filters.created_by, Some(1));
-    assert_eq!(model_filters.created_date_from, Some(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap()));
-    assert_eq!(model_filters.created_date_to, Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()));
+    assert_eq!(
+        model_filters.created_date_from,
+        Some(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap())
+    );
+    assert_eq!(
+        model_filters.created_date_to,
+        Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap())
+    );
     assert_eq!(model_filters.limit, 20);
     assert_eq!(model_filters.offset, 10);
 }
@@ -97,7 +106,7 @@ fn test_document_search_filters_defaults() {
     assert_eq!(model_filters.created_date_from, None);
     assert_eq!(model_filters.created_date_to, None);
     assert_eq!(model_filters.limit, 10); // デフォルト値
-    assert_eq!(model_filters.offset, 0);  // デフォルト値
+    assert_eq!(model_filters.offset, 0); // デフォルト値
 }
 
 #[test]
@@ -108,7 +117,8 @@ fn test_generated_document_number_conversion() {
         template_used: "技術-{YY}{SEQUENCE:5}".to_string(),
     };
 
-    let graphql_generated: doc_man_db::graphql::types::GeneratedDocumentNumber = model_generated.into();
+    let graphql_generated: doc_man_db::graphql::types::GeneratedDocumentNumber =
+        model_generated.into();
 
     assert_eq!(graphql_generated.rule_id, 1);
     assert_eq!(graphql_generated.sequence_number, 25001);
@@ -147,7 +157,8 @@ fn test_created_document_with_number_conversion() {
         generated_number: model_generated,
     };
 
-    let graphql_created: doc_man_db::graphql::types::CreatedDocumentWithNumber = model_created.into();
+    let graphql_created: doc_man_db::graphql::types::CreatedDocumentWithNumber =
+        model_created.into();
 
     assert_eq!(graphql_created.document.id, 1);
     assert_eq!(graphql_created.document.title, "技術文書");
@@ -195,10 +206,8 @@ fn test_search_documents_result_creation() {
         },
     ];
 
-    let graphql_documents: Vec<doc_man_db::graphql::types::Document> = model_documents
-        .into_iter()
-        .map(|doc| doc.into())
-        .collect();
+    let graphql_documents: Vec<doc_man_db::graphql::types::Document> =
+        model_documents.into_iter().map(|doc| doc.into()).collect();
 
     let result = SearchDocumentsResult {
         documents: graphql_documents,
@@ -245,5 +254,8 @@ fn test_document_search_filters_with_invalid_dates() {
 
     // 無効な日付は None になる
     assert_eq!(model_filters.created_date_from, None);
-    assert_eq!(model_filters.created_date_to, Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()));
+    assert_eq!(
+        model_filters.created_date_to,
+        Some(NaiveDate::from_ymd_opt(2024, 12, 31).unwrap())
+    );
 }

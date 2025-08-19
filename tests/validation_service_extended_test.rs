@@ -4,8 +4,8 @@ use doc_man_db::models::validation::*;
 use doc_man_db::services::validation_service::{
     ValidationService, ValidationServiceError, ValidationServiceImpl,
 };
-use uuid::Uuid;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[tokio::test]
 async fn test_validation_service_get_active_rules() {
@@ -139,7 +139,7 @@ async fn test_validation_service_execute_data_format() {
     assert_eq!(result.warnings.len(), 3);
     assert_eq!(result.rule_type, ValidationRuleType::DataFormat);
     assert!(result.execution_time_ms > 0);
-    
+
     for warning in &result.warnings {
         assert_eq!(warning.error_type, ValidationErrorType::InvalidFormat);
         assert_eq!(warning.severity, ValidationSeverity::Warning);
@@ -164,9 +164,12 @@ async fn test_validation_service_execute_business_logic() {
     assert_eq!(result.warnings.len(), 3);
     assert_eq!(result.rule_type, ValidationRuleType::BusinessLogic);
     assert!(result.execution_time_ms > 0);
-    
+
     for warning in &result.warnings {
-        assert_eq!(warning.error_type, ValidationErrorType::BusinessRuleViolation);
+        assert_eq!(
+            warning.error_type,
+            ValidationErrorType::BusinessRuleViolation
+        );
         assert_eq!(warning.severity, ValidationSeverity::Info);
     }
 }
@@ -262,7 +265,10 @@ async fn test_validation_service_mixed_results() {
         parameters: HashMap::new(),
     };
 
-    let ref_integrity_result = service.execute_validation(ref_integrity_request).await.unwrap();
+    let ref_integrity_result = service
+        .execute_validation(ref_integrity_request)
+        .await
+        .unwrap();
     assert_eq!(ref_integrity_result.errors.len(), 1); // 1001
 
     // 必須フィールドチェック
@@ -294,14 +300,14 @@ async fn test_validation_service_execution_time_recording() {
     let target_ids = vec![1, 2, 3];
 
     let start = std::time::Instant::now();
-    
+
     let request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::MandatoryFields,
         target_ids,
         parameters: HashMap::new(),
     };
-    
+
     let result = service.execute_validation(request).await.unwrap();
     let total_duration = start.elapsed();
 
@@ -321,7 +327,7 @@ async fn test_validation_service_quality_score_calculation() {
         target_ids,
         parameters: HashMap::new(),
     };
-    
+
     let result = service.execute_validation(request).await.unwrap();
 
     // 品質スコアが計算されること
