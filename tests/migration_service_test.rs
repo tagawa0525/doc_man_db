@@ -88,7 +88,10 @@ fn test_migration_error_handling() {
     job.fail("Critical error occurred".to_string());
     assert_eq!(job.status, MigrationStatus::Failed);
     assert!(job.completed_at.is_some());
-    assert_eq!(job.error_message, Some("Critical error occurred".to_string()));
+    assert_eq!(
+        job.error_message,
+        Some("Critical error occurred".to_string())
+    );
 }
 
 #[test]
@@ -115,7 +118,7 @@ fn test_migration_plan_validation() {
 fn test_migration_log_functionality() {
     let plan_id = Uuid::new_v4();
     let mut job = MigrationJob::new(plan_id, 5);
-    
+
     // ログ追加
     job.add_log(
         LogLevel::Info,
@@ -123,7 +126,7 @@ fn test_migration_log_functionality() {
         Some("initialization".to_string()),
         None,
     );
-    
+
     assert_eq!(job.logs.len(), 1);
     assert_eq!(job.logs[0].message, "Migration started");
     assert_eq!(job.logs[0].level, LogLevel::Info);
@@ -167,7 +170,7 @@ fn test_migration_environment_hierarchy() {
 fn test_migration_duration_calculation() {
     let plan_id = Uuid::new_v4();
     let mut job = MigrationJob::new(plan_id, 3);
-    
+
     // まだ開始していない
     assert!(job.duration_minutes().is_none());
 

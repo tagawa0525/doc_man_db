@@ -1,7 +1,7 @@
 // Document Repository の基本的なテスト（簡易版）
 
-use doc_man_db::models::document::{CreateDocumentRequest, UpdateDocumentRequest};
 use chrono::NaiveDate;
+use doc_man_db::models::document::{CreateDocumentRequest, UpdateDocumentRequest};
 
 #[test]
 fn test_create_document_request_validation() {

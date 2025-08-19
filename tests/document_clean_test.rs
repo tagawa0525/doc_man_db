@@ -1,7 +1,7 @@
 // Document Service の整理されたテスト
 
+use chrono::{NaiveDate, Utc};
 use doc_man_db::models::document::*;
-use chrono::{Utc, NaiveDate};
 
 #[test]
 fn test_document_create_request() {
@@ -93,5 +93,8 @@ fn test_document_validation() {
         notes: None,
     };
 
-    assert_eq!(invalid_title_request.validate(), Err(DocumentValidationError::EmptyTitle));
+    assert_eq!(
+        invalid_title_request.validate(),
+        Err(DocumentValidationError::EmptyTitle)
+    );
 }

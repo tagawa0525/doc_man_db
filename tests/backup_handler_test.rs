@@ -1,8 +1,6 @@
 // Backup Handler の基本的なテスト
 
 use doc_man_db::models::backup::*;
-use uuid::Uuid;
-use chrono::Utc;
 
 #[test]
 fn test_backup_request_creation() {
@@ -14,7 +12,10 @@ fn test_backup_request_creation() {
     };
 
     assert_eq!(request.backup_type, BackupType::Full);
-    assert_eq!(request.target_tables, Some(vec!["documents".to_string(), "users".to_string()]));
+    assert_eq!(
+        request.target_tables,
+        Some(vec!["documents".to_string(), "users".to_string()])
+    );
     assert_eq!(request.compression_enabled, Some(true));
     assert_eq!(request.description, Some("テストバックアップ".to_string()));
 }
@@ -58,7 +59,10 @@ fn test_backup_job_failure() {
 
     assert_eq!(job.status, BackupStatus::Failed);
     assert!(job.completed_at.is_some());
-    assert_eq!(job.error_message, Some("Disk space insufficient".to_string()));
+    assert_eq!(
+        job.error_message,
+        Some("Disk space insufficient".to_string())
+    );
 }
 
 #[test]
@@ -115,8 +119,8 @@ fn test_backup_duration_calculation() {
     assert_eq!(job.duration_seconds(), None);
 
     job.mark_started();
-    
-    // まだ完了していない  
+
+    // まだ完了していない
     assert_eq!(job.duration_seconds(), None);
 
     std::thread::sleep(std::time::Duration::from_millis(10));

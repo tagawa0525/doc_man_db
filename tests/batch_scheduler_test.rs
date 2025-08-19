@@ -1,7 +1,7 @@
 // Batch Scheduler の基本的なテスト
 
-use uuid::Uuid;
 use chrono::Utc;
+use uuid::Uuid;
 
 // Batch関連の構造体を簡易定義（実際のBatchSchedulerは別途実装が必要）
 #[derive(Debug, Clone, PartialEq)]

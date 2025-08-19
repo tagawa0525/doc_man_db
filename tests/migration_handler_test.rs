@@ -2,7 +2,6 @@
 
 use doc_man_db::models::migration::*;
 use uuid::Uuid;
-use chrono::Utc;
 
 #[test]
 fn test_migration_request_creation() {
