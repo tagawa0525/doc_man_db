@@ -1,6 +1,6 @@
+use assert_matches::assert_matches;
 use chrono::NaiveDate;
 use doc_man_db::models::{CreateDocumentRequest, DocumentValidationError};
-use assert_matches::assert_matches;
 
 #[test]
 fn test_create_document_request_validation_success() {
@@ -17,10 +17,10 @@ fn test_create_document_request_validation_success() {
         personal_info: None,
         notes: None,
     };
-    
+
     // When: バリデーション実行
     let result = request.validate();
-    
+
     // Then: 成功する
     assert!(result.is_ok());
 }
@@ -40,10 +40,10 @@ fn test_create_document_request_empty_title() {
         personal_info: None,
         notes: None,
     };
-    
+
     // When: バリデーション実行
     let result = request.validate();
-    
+
     // Then: エラーになる
     assert!(result.is_err());
     assert_matches!(result.unwrap_err(), DocumentValidationError::EmptyTitle);
@@ -64,10 +64,10 @@ fn test_create_document_request_whitespace_only_title() {
         personal_info: None,
         notes: None,
     };
-    
+
     // When: バリデーション実行
     let result = request.validate();
-    
+
     // Then: エラーになる
     assert!(result.is_err());
     assert_matches!(result.unwrap_err(), DocumentValidationError::EmptyTitle);
@@ -88,13 +88,16 @@ fn test_create_document_request_invalid_document_type_id() {
         personal_info: None,
         notes: None,
     };
-    
+
     // When: バリデーション実行
     let result = request.validate();
-    
+
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches!(result.unwrap_err(), DocumentValidationError::InvalidDocumentTypeId);
+    assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidDocumentTypeId
+    );
 }
 
 #[test]
@@ -112,11 +115,14 @@ fn test_create_document_request_invalid_created_by() {
         personal_info: None,
         notes: None,
     };
-    
+
     // When: バリデーション実行
     let result = request.validate();
-    
+
     // Then: エラーになる
     assert!(result.is_err());
-    assert_matches!(result.unwrap_err(), DocumentValidationError::InvalidCreatedBy);
+    assert_matches!(
+        result.unwrap_err(),
+        DocumentValidationError::InvalidCreatedBy
+    );
 }
