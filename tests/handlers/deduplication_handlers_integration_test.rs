@@ -1,18 +1,21 @@
+use async_trait::async_trait;
 use axum::{
-    extract::{Path, Query, State},
     Json,
+    extract::{Path, Query, State},
 };
-use doc_man_db::handlers::deduplication::{
-    find_employee_duplicates, find_customer_duplicates, find_business_number_duplicates,
-    DuplicationQuery, FindDuplicatesRequest, UpdateDuplicationStatusRequest, MergeDataRequest,
-};
-use doc_man_db::services::{DeduplicationService, DuplicationStatus, DuplicationType, DuplicationCandidate, MergeResult, MergeRecord};
+use chrono::Utc;
 use doc_man_db::error::DeduplicationError;
+use doc_man_db::handlers::deduplication::{
+    DuplicationQuery, FindDuplicatesRequest, MergeDataRequest, UpdateDuplicationStatusRequest,
+    find_business_number_duplicates, find_customer_duplicates, find_employee_duplicates,
+};
+use doc_man_db::services::{
+    DeduplicationService, DuplicationCandidate, DuplicationStatus, DuplicationType, MergeRecord,
+    MergeResult,
+};
 use std::sync::Arc;
 use tokio;
 use uuid::Uuid;
-use async_trait::async_trait;
-use chrono::Utc;
 
 // モック重複除去サービス
 #[derive(Debug)]
@@ -28,90 +31,105 @@ impl MockDeduplicationService {
 
 #[async_trait]
 impl DeduplicationService for MockDeduplicationService {
-    async fn find_employee_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+    async fn find_employee_duplicates(
+        &self,
+        _threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: 0.0 });
         }
 
-        Ok(vec![
-            DuplicationCandidate {
-                id: Uuid::new_v4(),
-                candidate_type: DuplicationType::Employee,
-                primary_id: 1,
-                duplicate_id: 2,
-                similarity_score: 0.95,
-                field_name: "name".to_string(),
-                primary_value: "田中太郎".to_string(),
-                duplicate_value: "田中 太郎".to_string(),
-                status: DuplicationStatus::Pending,
-                created_at: Utc::now(),
-                reviewed_at: None,
-                reviewed_by: None,
-            },
-        ])
+        Ok(vec![DuplicationCandidate {
+            id: Uuid::new_v4(),
+            candidate_type: DuplicationType::Employee,
+            primary_id: 1,
+            duplicate_id: 2,
+            similarity_score: 0.95,
+            field_name: "name".to_string(),
+            primary_value: "田中太郎".to_string(),
+            duplicate_value: "田中 太郎".to_string(),
+            status: DuplicationStatus::Pending,
+            created_at: Utc::now(),
+            reviewed_at: None,
+            reviewed_by: None,
+        }])
     }
 
-    async fn find_customer_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+    async fn find_customer_duplicates(
+        &self,
+        _threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: -1.0 });
         }
 
-        Ok(vec![
-            DuplicationCandidate {
-                id: Uuid::new_v4(),
-                candidate_type: DuplicationType::Customer,
-                primary_id: 1,
-                duplicate_id: 2,
-                similarity_score: 0.95,
-                field_name: "name".to_string(),
-                primary_value: "株式会社テスト".to_string(),
-                duplicate_value: "テスト株式会社".to_string(),
-                status: DuplicationStatus::Pending,
-                created_at: Utc::now(),
-                reviewed_at: None,
-                reviewed_by: None,
-            },
-        ])
+        Ok(vec![DuplicationCandidate {
+            id: Uuid::new_v4(),
+            candidate_type: DuplicationType::Customer,
+            primary_id: 1,
+            duplicate_id: 2,
+            similarity_score: 0.95,
+            field_name: "name".to_string(),
+            primary_value: "株式会社テスト".to_string(),
+            duplicate_value: "テスト株式会社".to_string(),
+            status: DuplicationStatus::Pending,
+            created_at: Utc::now(),
+            reviewed_at: None,
+            reviewed_by: None,
+        }])
     }
 
-    async fn find_business_number_duplicates(&self) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+    async fn find_business_number_duplicates(
+        &self,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: 2.0 });
         }
 
-        Ok(vec![
-            DuplicationCandidate {
-                id: Uuid::new_v4(),
-                candidate_type: DuplicationType::BusinessNumber,
-                primary_id: 101,
-                duplicate_id: 102,
-                similarity_score: 1.0,
-                field_name: "business_number".to_string(),
-                primary_value: "BIZ-2024-001".to_string(),
-                duplicate_value: "BIZ-2024-001".to_string(),
-                status: DuplicationStatus::Pending,
-                created_at: Utc::now(),
-                reviewed_at: None,
-                reviewed_by: None,
-            },
-        ])
+        Ok(vec![DuplicationCandidate {
+            id: Uuid::new_v4(),
+            candidate_type: DuplicationType::BusinessNumber,
+            primary_id: 101,
+            duplicate_id: 102,
+            similarity_score: 1.0,
+            field_name: "business_number".to_string(),
+            primary_value: "BIZ-2024-001".to_string(),
+            duplicate_value: "BIZ-2024-001".to_string(),
+            status: DuplicationStatus::Pending,
+            created_at: Utc::now(),
+            reviewed_at: None,
+            reviewed_by: None,
+        }])
     }
 
-    async fn find_document_duplicates(&self, _threshold: f64) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
+    async fn find_document_duplicates(
+        &self,
+        _threshold: f64,
+    ) -> Result<Vec<DuplicationCandidate>, DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: 3.0 });
         }
         Ok(vec![])
     }
 
-    async fn update_duplication_status(&self, _candidate_id: Uuid, _status: DuplicationStatus, _reviewed_by: i32) -> Result<(), DeduplicationError> {
+    async fn update_duplication_status(
+        &self,
+        _candidate_id: Uuid,
+        _status: DuplicationStatus,
+        _reviewed_by: i32,
+    ) -> Result<(), DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: 4.0 });
         }
         Ok(())
     }
 
-    async fn merge_employees(&self, _primary_id: i32, _duplicate_ids: Vec<i32>, _merged_by: i32) -> Result<MergeResult, DeduplicationError> {
+    async fn merge_employees(
+        &self,
+        _primary_id: i32,
+        _duplicate_ids: Vec<i32>,
+        _merged_by: i32,
+    ) -> Result<MergeResult, DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: 5.0 });
         }
@@ -126,7 +144,10 @@ impl DeduplicationService for MockDeduplicationService {
         })
     }
 
-    async fn get_merge_history(&self, _limit: Option<i32>) -> Result<Vec<MergeRecord>, DeduplicationError> {
+    async fn get_merge_history(
+        &self,
+        _limit: Option<i32>,
+    ) -> Result<Vec<MergeRecord>, DeduplicationError> {
         if self.should_fail {
             return Err(DeduplicationError::InvalidThreshold { threshold: 6.0 });
         }
@@ -234,7 +255,7 @@ async fn test_find_business_number_duplicates_success() {
     let response = result.unwrap();
     assert_eq!(response.0["duplicate_type"], "business_number");
     assert_eq!(response.0["total_count"], 1);
-    
+
     let candidates = response.0["candidates"].as_array().unwrap();
     assert_eq!(candidates.len(), 1);
 }

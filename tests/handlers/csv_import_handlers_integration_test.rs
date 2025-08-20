@@ -1,14 +1,13 @@
 use axum::{
+    Extension, Json,
     extract::{Multipart, Path, State},
-    Extension,
-    Json,
-};
-use doc_man_db::handlers::csv_import::{
-    download_csv_template, get_import_executions, get_import_execution, get_import_progress
 };
 use doc_man_db::app::AppState;
+use doc_man_db::handlers::csv_import::{
+    download_csv_template, get_import_execution, get_import_executions, get_import_progress,
+};
 use doc_man_db::handlers::{DocumentHandlers, HealthHandler};
-use doc_man_db::repositories::{SqliteDocumentRepository, SqliteDocumentNumberRuleRepository};
+use doc_man_db::repositories::{SqliteDocumentNumberRuleRepository, SqliteDocumentRepository};
 use doc_man_db::services::DocumentService;
 use std::sync::Arc;
 use tokio;
@@ -41,11 +40,11 @@ async fn test_download_csv_template() {
     // Then: 成功する
     assert!(result.is_ok());
     let (headers, content) = result.unwrap();
-    
+
     // ヘッダーチェック
     assert!(headers.contains_key(axum::http::header::CONTENT_TYPE));
     assert!(headers.contains_key(axum::http::header::CONTENT_DISPOSITION));
-    
+
     // コンテンツチェック
     assert!(content.contains("title,document_type_code"));
     assert!(content.contains("サンプル文書1"));
@@ -65,7 +64,7 @@ async fn test_get_import_executions() {
     assert!(result.is_ok());
     let response = result.unwrap();
     assert!(response.0["executions"].is_array());
-    
+
     let executions = response.0["executions"].as_array().unwrap();
     assert_eq!(executions.len(), 1);
     assert!(executions[0]["import_id"].is_string());
@@ -131,9 +130,16 @@ async fn test_csv_template_content_format() {
     // ヘッダー行の確認
     let header = lines[0];
     let expected_headers = vec![
-        "title", "document_type_code", "creator_name", "created_date", 
-        "business_number", "department_code", "internal_external", 
-        "importance_class", "personal_info", "notes"
+        "title",
+        "document_type_code",
+        "creator_name",
+        "created_date",
+        "business_number",
+        "department_code",
+        "internal_external",
+        "importance_class",
+        "personal_info",
+        "notes",
     ];
     for expected_header in expected_headers {
         assert!(header.contains(expected_header));
@@ -159,19 +165,27 @@ async fn test_import_execution_response_structure() {
     // Then: レスポンス構造が正しい
     let executions = &response.0["executions"];
     assert!(executions.is_array());
-    
+
     let execution = &executions[0];
-    
+
     // 必要なフィールドがすべて存在する
     let required_fields = vec![
-        "import_id", "file_name", "total_records", 
-        "successful_imports", "failed_imports", 
-        "start_time", "end_time", "status"
+        "import_id",
+        "file_name",
+        "total_records",
+        "successful_imports",
+        "failed_imports",
+        "start_time",
+        "end_time",
+        "status",
     ];
-    
+
     for field in required_fields {
-        assert!(execution[field].is_string() || execution[field].is_number(), 
-                "Field '{}' should exist and have correct type", field);
+        assert!(
+            execution[field].is_string() || execution[field].is_number(),
+            "Field '{}' should exist and have correct type",
+            field
+        );
     }
 }
 
@@ -189,19 +203,25 @@ async fn test_import_progress_response_structure() {
     // Then: レスポンス構造が正しい
     let required_fields = vec![
         ("import_id", "string"),
-        ("status", "string"), 
+        ("status", "string"),
         ("progress", "number"),
         ("current_record", "number"),
         ("total_records", "number"),
         ("message", "string"),
     ];
-    
+
     for (field, expected_type) in required_fields {
         match expected_type {
-            "string" => assert!(response.0[field].is_string(), 
-                              "Field '{}' should be a string", field),
-            "number" => assert!(response.0[field].is_number(), 
-                              "Field '{}' should be a number", field),
+            "string" => assert!(
+                response.0[field].is_string(),
+                "Field '{}' should be a string",
+                field
+            ),
+            "number" => assert!(
+                response.0[field].is_number(),
+                "Field '{}' should be a number",
+                field
+            ),
             _ => panic!("Unexpected type: {}", expected_type),
         }
     }

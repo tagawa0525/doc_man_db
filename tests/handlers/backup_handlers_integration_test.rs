@@ -1,21 +1,19 @@
+use async_trait::async_trait;
 use axum::{
+    Json,
     extract::{Path, Query, State},
     http::StatusCode,
-    Json,
 };
-use doc_man_db::handlers::backup::{
-    BackupHandlers, BackupQueryParams, CleanupRequest,
-};
+use chrono::Utc;
+use doc_man_db::handlers::backup::{BackupHandlers, BackupQueryParams, CleanupRequest};
 use doc_man_db::models::backup::{
-    BackupJob, BackupRequest, BackupStatistics, RestoreRequest, BackupStatus, BackupType,
-    RestoreJob, RestoreType,
+    BackupJob, BackupRequest, BackupStatistics, BackupStatus, BackupType, RestoreJob,
+    RestoreRequest, RestoreType,
 };
 use doc_man_db::services::{BackupService, BackupServiceError};
 use std::sync::Arc;
 use tokio;
 use uuid::Uuid;
-use chrono::Utc;
-use async_trait::async_trait;
 
 // モックバックアップサービス
 #[derive(Debug)]
@@ -31,9 +29,14 @@ impl MockBackupService {
 
 #[async_trait]
 impl BackupService for MockBackupService {
-    async fn create_backup(&self, _request: BackupRequest) -> Result<BackupJob, BackupServiceError> {
+    async fn create_backup(
+        &self,
+        _request: BackupRequest,
+    ) -> Result<BackupJob, BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::BackupError { message: "バックアップ作成に失敗しました".to_string() });
+            return Err(BackupServiceError::BackupError {
+                message: "バックアップ作成に失敗しました".to_string(),
+            });
         }
 
         Ok(BackupJob {
@@ -52,9 +55,14 @@ impl BackupService for MockBackupService {
         })
     }
 
-    async fn restore_backup(&self, _request: RestoreRequest) -> Result<RestoreJob, BackupServiceError> {
+    async fn restore_backup(
+        &self,
+        _request: RestoreRequest,
+    ) -> Result<RestoreJob, BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::RestoreError { message: "リストア作成に失敗しました".to_string() });
+            return Err(BackupServiceError::RestoreError {
+                message: "リストア作成に失敗しました".to_string(),
+            });
         }
 
         Ok(RestoreJob {
@@ -73,7 +81,9 @@ impl BackupService for MockBackupService {
 
     async fn get_backup_job(&self, job_id: Uuid) -> Result<Option<BackupJob>, BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::DatabaseError { message: "ジョブ取得に失敗しました".to_string() });
+            return Err(BackupServiceError::DatabaseError {
+                message: "ジョブ取得に失敗しました".to_string(),
+            });
         }
 
         if job_id == Uuid::nil() {
@@ -96,9 +106,14 @@ impl BackupService for MockBackupService {
         }))
     }
 
-    async fn list_backup_jobs(&self, _limit: Option<usize>) -> Result<Vec<BackupJob>, BackupServiceError> {
+    async fn list_backup_jobs(
+        &self,
+        _limit: Option<usize>,
+    ) -> Result<Vec<BackupJob>, BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::DatabaseError { message: "ジョブ一覧取得に失敗しました".to_string() });
+            return Err(BackupServiceError::DatabaseError {
+                message: "ジョブ一覧取得に失敗しました".to_string(),
+            });
         }
 
         Ok(vec![
@@ -135,14 +150,18 @@ impl BackupService for MockBackupService {
 
     async fn delete_backup(&self, _job_id: Uuid) -> Result<(), BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::FileError { message: "バックアップ削除に失敗しました".to_string() });
+            return Err(BackupServiceError::FileError {
+                message: "バックアップ削除に失敗しました".to_string(),
+            });
         }
         Ok(())
     }
 
     async fn get_backup_statistics(&self) -> Result<BackupStatistics, BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::DatabaseError { message: "統計取得に失敗しました".to_string() });
+            return Err(BackupServiceError::DatabaseError {
+                message: "統計取得に失敗しました".to_string(),
+            });
         }
 
         Ok(BackupStatistics {
@@ -158,7 +177,9 @@ impl BackupService for MockBackupService {
 
     async fn cleanup_old_backups(&self, _retention_days: i32) -> Result<i32, BackupServiceError> {
         if self.should_fail {
-            return Err(BackupServiceError::FileError { message: "クリーンアップに失敗しました".to_string() });
+            return Err(BackupServiceError::FileError {
+                message: "クリーンアップに失敗しました".to_string(),
+            });
         }
         Ok(3)
     }
