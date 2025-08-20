@@ -23,6 +23,7 @@ pub enum BatchStatus {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct BatchExecution {
     pub id: Uuid,
     pub batch_type: BatchType,

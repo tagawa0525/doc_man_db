@@ -1,13 +1,10 @@
 use async_trait::async_trait;
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-};
+use axum::extract::{Query, State};
 use chrono::Utc;
 use doc_man_db::error::DeduplicationError;
 use doc_man_db::handlers::deduplication::{
-    DuplicationQuery, FindDuplicatesRequest, MergeDataRequest, UpdateDuplicationStatusRequest,
-    find_business_number_duplicates, find_customer_duplicates, find_employee_duplicates,
+    DuplicationQuery, find_business_number_duplicates, find_customer_duplicates,
+    find_employee_duplicates,
 };
 use doc_man_db::services::{
     DeduplicationService, DuplicationCandidate, DuplicationStatus, DuplicationType, MergeRecord,

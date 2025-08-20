@@ -1,7 +1,4 @@
-use axum::{
-    Extension, Json,
-    extract::{Multipart, Path, State},
-};
+use axum::extract::{Path, State};
 use doc_man_db::app::AppState;
 use doc_man_db::handlers::csv_import::{
     download_csv_template, get_import_execution, get_import_executions, get_import_progress,
@@ -9,7 +6,6 @@ use doc_man_db::handlers::csv_import::{
 use doc_man_db::handlers::{DocumentHandlers, HealthHandler};
 use doc_man_db::repositories::{SqliteDocumentNumberRuleRepository, SqliteDocumentRepository};
 use doc_man_db::services::DocumentService;
-use std::sync::Arc;
 use tokio;
 use uuid::Uuid;
 
