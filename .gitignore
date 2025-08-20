@@ -1,2 +1,5 @@
 /target
 /.serena
+*.profraw
+/coverage
+cobertura.xml

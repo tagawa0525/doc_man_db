@@ -72,9 +72,19 @@ cargo test                    # Run all tests
 cargo test --lib             # Unit tests only
 cargo test --test '*'        # Integration tests only
 cargo test models::          # Run specific test module
+cargo test backup_handler_test  # Run specific test file
+cargo test --test migration_test -- test_complex_migration_scenario  # Run specific test
+
+# Code formatting and linting
 cargo fmt                    # Format code
 cargo clippy                 # Lint code
+cargo clippy -- -D warnings  # Fail on warnings
 cargo audit                  # Security audit
+
+# Code coverage (using tarpaulin)
+cargo tarpaulin --out html --output-dir coverage  # Generate HTML coverage report
+cargo tarpaulin --out xml                         # Generate XML for CI/CD
+cargo tarpaulin --ignore-tests                   # Exclude test code from coverage
 
 # Frontend type checking
 cd ui && npm run check       # TypeScript type checking
@@ -119,12 +129,20 @@ src/
 │   ├── mod.rs
 │   ├── business.rs      # Business logic handlers
 │   ├── graphql.rs       # GraphQL endpoint handlers
-│   └── http.rs          # REST API handlers
+│   ├── http.rs          # REST API handlers
+│   ├── migration.rs     # Migration endpoint handlers
+│   ├── backup.rs        # Backup operation handlers
+│   ├── validation.rs    # Validation handlers
+│   └── batch.rs         # Batch processing handlers
 ├── models/             # Data models
 │   ├── mod.rs
 │   ├── document.rs      # Document entity
 │   ├── document_type.rs # Document type definitions
-│   └── document_number_generation.rs  # Number generation rules
+│   ├── document_number_generation.rs  # Number generation rules
+│   ├── migration.rs     # Migration system models
+│   ├── backup.rs        # Backup operation models
+│   ├── validation.rs    # Validation system models
+│   └── batch.rs         # Batch processing models
 ├── repositories/       # Database access layer
 │   ├── mod.rs
 │   ├── document_repository.rs
@@ -132,14 +150,26 @@ src/
 ├── services/           # Business logic
 │   ├── mod.rs
 │   ├── document_service.rs
-│   └── document_number_generator.rs
+│   ├── document_number_generator.rs
+│   ├── migration_service.rs   # Database migration services
+│   ├── backup_service.rs      # Backup operation services
+│   ├── validation_service.rs  # Data validation services
+│   └── batch_service.rs       # Batch processing services
 └── migrations/         # Database schema migrations
 
 tests/                  # Test organization
 ├── integration/        # Integration tests  
 ├── unit/              # Unit tests
 │   ├── models/        # Model unit tests
-│   └── repositories/  # Repository unit tests
+│   ├── repositories/  # Repository unit tests
+│   ├── services/      # Service unit tests
+│   └── handlers/      # Handler unit tests
+├── backup_handler_test.rs     # Backup functionality tests
+├── batch_scheduler_test.rs    # Batch processing tests
+├── document_repository_test.rs # Document repository tests
+├── migration_handler_test.rs  # Migration handler tests
+├── migration_test.rs          # Comprehensive migration tests
+└── validation_handler_test.rs # Validation handler tests
 ```
 
 ### Frontend (SvelteKit)
@@ -205,6 +235,8 @@ The system is designed to support SQLite → SQL Server migration:
 2. **Phase 2**: Windows AD integration + Web interface  
 3. **Phase 3**: Full feature set + SQL Server migration capability
 4. **Phase 4** (✅ Completed): Complete SvelteKit UI implementation with notifications, responsive design, and testing components
+5. **Phase 5** (✅ Completed): Advanced system features including CSV import/export, deduplication, batch processing, and database migration
+6. **Phase 6** (🔄 Current): Comprehensive testing implementation - achieving 90%+ code coverage with unit tests
 
 ## Important Implementation Notes
 
