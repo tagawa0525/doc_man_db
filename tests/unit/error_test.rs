@@ -1,5 +1,5 @@
-use doc_man_db::error::{AppError, CsvImportError, ResolveError, DeduplicationError, BatchError};
 use axum::http::StatusCode;
+use doc_man_db::error::{AppError, BatchError, CsvImportError, DeduplicationError, ResolveError};
 use std::io;
 
 #[test]
@@ -95,9 +95,18 @@ fn test_app_error_from_batch_error() {
 #[test]
 fn test_app_error_to_status_code() {
     let test_cases = vec![
-        (AppError::ValidationError("test".to_string()), StatusCode::BAD_REQUEST),
-        (AppError::NotFound("test".to_string()), StatusCode::NOT_FOUND),
-        (AppError::InternalError("test".to_string()), StatusCode::INTERNAL_SERVER_ERROR),
+        (
+            AppError::ValidationError("test".to_string()),
+            StatusCode::BAD_REQUEST,
+        ),
+        (
+            AppError::NotFound("test".to_string()),
+            StatusCode::NOT_FOUND,
+        ),
+        (
+            AppError::InternalError("test".to_string()),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ),
     ];
 
     for (error, expected_status) in test_cases {

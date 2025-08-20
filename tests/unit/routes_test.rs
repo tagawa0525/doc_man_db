@@ -1,11 +1,11 @@
-use doc_man_db::routes::create_routes;
 use axum::Router;
 use doc_man_db::app::AppState;
+use doc_man_db::routes::create_routes;
 
 #[test]
 fn test_create_routes_returns_router() {
     let routes = create_routes();
-    
+
     // Router型であることを確認
     assert!(std::mem::size_of_val(&routes) > 0);
 }
@@ -14,7 +14,7 @@ fn test_create_routes_returns_router() {
 fn test_create_routes_multiple_calls() {
     let routes1 = create_routes();
     let routes2 = create_routes();
-    
+
     // 複数回呼び出しても正常に作成できることを確認
     assert!(std::mem::size_of_val(&routes1) > 0);
     assert!(std::mem::size_of_val(&routes2) > 0);
