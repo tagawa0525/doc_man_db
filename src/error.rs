@@ -173,23 +173,23 @@ impl From<AppError> for axum::http::StatusCode {
             AppError::Deduplication(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Batch(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Business(ref business_error) => match business_error {
-                BusinessError::NotFound | BusinessError::BusinessNotFound | BusinessError::EmployeeNotFound => {
-                    axum::http::StatusCode::NOT_FOUND
-                }
+                BusinessError::NotFound
+                | BusinessError::BusinessNotFound
+                | BusinessError::EmployeeNotFound => axum::http::StatusCode::NOT_FOUND,
                 BusinessError::PermissionDenied => axum::http::StatusCode::FORBIDDEN,
                 BusinessError::BusinessNumberExists(_) | BusinessError::MemberAlreadyExists => {
                     axum::http::StatusCode::CONFLICT
                 }
-                BusinessError::InvalidStatus(_) | BusinessError::InvalidRole(_) 
-                | BusinessError::InvalidParticipationLevel(_) | BusinessError::InvalidDateRange => {
-                    axum::http::StatusCode::BAD_REQUEST
-                }
+                BusinessError::InvalidStatus(_)
+                | BusinessError::InvalidRole(_)
+                | BusinessError::InvalidParticipationLevel(_)
+                | BusinessError::InvalidDateRange => axum::http::StatusCode::BAD_REQUEST,
                 _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             },
             AppError::Search(ref search_error) => match search_error {
                 SearchError::InvalidParameters(_) => axum::http::StatusCode::BAD_REQUEST,
                 SearchError::Timeout => axum::http::StatusCode::REQUEST_TIMEOUT,
-                SearchError::TooManyResults { .. } => axum::http::StatusCode::REQUEST_ENTITY_TOO_LARGE,
+                SearchError::TooManyResults { .. } => axum::http::StatusCode::PAYLOAD_TOO_LARGE,
                 _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             },
         }

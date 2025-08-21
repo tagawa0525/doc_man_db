@@ -305,7 +305,9 @@ impl BusinessMember {
             business_id: row.try_get("business_id")?,
             employee_id: row.try_get("employee_id")?,
             role: BusinessRole::from(row.try_get::<String, _>("role")?),
-            participation_level: ParticipationLevel::from(row.try_get::<String, _>("participation_level")?),
+            participation_level: ParticipationLevel::from(
+                row.try_get::<String, _>("participation_level")?,
+            ),
             start_date: row.try_get("start_date")?,
             end_date: row.try_get("end_date")?,
             notes: row.try_get("notes")?,
@@ -316,7 +318,8 @@ impl BusinessMember {
     }
 
     pub fn is_active(&self) -> bool {
-        self.end_date.map_or(true, |end| end >= chrono::Utc::now().date_naive())
+        self.end_date
+            .is_none_or(|end| end >= chrono::Utc::now().date_naive())
     }
 }
 
