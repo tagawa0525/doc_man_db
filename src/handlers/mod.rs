@@ -1,6 +1,7 @@
 pub mod backup;
 pub mod batch;
 pub mod business;
+pub mod business_management;
 pub mod csv_import;
 pub mod deduplication;
 pub mod graphql;
@@ -12,6 +13,7 @@ pub mod validation;
 pub use backup::*;
 pub use batch::*;
 pub use business::{DocumentHandlers, HealthHandler};
+pub use business_management::*;
 pub use csv_import::*;
 pub use deduplication::*;
 pub use migration::*;
