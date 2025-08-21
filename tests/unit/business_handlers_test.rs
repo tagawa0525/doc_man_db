@@ -141,7 +141,7 @@ async fn test_health_handler_creation() {
 
 #[tokio::test]
 async fn test_health_handler_default() {
-    let handler = HealthHandler::default();
+    let handler = HealthHandler;
 
     // デフォルト実装が正しく動作することを確認
     let _ = handler;
@@ -195,7 +195,7 @@ fn test_document_structure() {
     assert_eq!(document.document_type_id, 1);
     assert_eq!(document.business_number, Some("BIZ-001".to_string()));
     assert_eq!(document.created_by, 123);
-    assert_eq!(document.is_active, true);
+    assert!(document.is_active);
     assert!(document.internal_external.is_some());
     assert!(document.importance_class.is_some());
     assert!(document.personal_info.is_some());
@@ -281,11 +281,11 @@ fn test_app_error_types() {
 #[test]
 fn test_error_display_formats() {
     let validation_error = AppError::ValidationError("Field is required".to_string());
-    let error_string = format!("{}", validation_error);
+    let error_string = format!("{validation_error}");
     assert!(error_string.contains("Field is required"));
 
     let not_found_error = AppError::NotFound("Document not found".to_string());
-    let error_string = format!("{}", not_found_error);
+    let error_string = format!("{not_found_error}");
     assert!(error_string.contains("Document not found"));
 }
 
@@ -450,7 +450,7 @@ fn test_document_clone_and_debug() {
     assert_eq!(document.title, cloned_document.title);
 
     // Debug trait
-    let debug_string = format!("{:?}", document);
+    let debug_string = format!("{document:?}");
     assert!(debug_string.contains("Document"));
     assert!(debug_string.contains("Test Document"));
 }

@@ -61,13 +61,11 @@ fn test_batch_execution_creation() {
 
 #[test]
 fn test_batch_type_variants() {
-    let batch_types = vec![
-        BatchType::FileCheck,
+    let batch_types = [BatchType::FileCheck,
         BatchType::AdSync,
         BatchType::DataCleanup,
         BatchType::Backup,
-        BatchType::Migration,
-    ];
+        BatchType::Migration];
 
     assert_eq!(batch_types.len(), 5);
     assert!(batch_types.contains(&BatchType::FileCheck));
@@ -76,13 +74,11 @@ fn test_batch_type_variants() {
 
 #[test]
 fn test_batch_status_lifecycle() {
-    let statuses = vec![
-        BatchStatus::Pending,
+    let statuses = [BatchStatus::Pending,
         BatchStatus::Running,
         BatchStatus::Completed,
         BatchStatus::Failed,
-        BatchStatus::Cancelled,
-    ];
+        BatchStatus::Cancelled];
 
     assert_eq!(statuses.len(), 5);
     assert!(statuses.contains(&BatchStatus::Pending));

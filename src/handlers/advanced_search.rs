@@ -1,15 +1,14 @@
-use crate::error::SearchError;
 use crate::models::{
-    AdvancedEmployeeSearchInput, EmployeeAutocompleteInput, EmployeeSearchResult,
-    AutocompleteResult, EmployeeSearchField, EmployeeSortField, SortOrder, PaginationInput
+    AdvancedEmployeeSearchInput, AutocompleteResult, EmployeeAutocompleteInput,
+    EmployeeSearchField, EmployeeSearchResult, EmployeeSortField, PaginationInput, SortOrder,
 };
 use crate::services::{AdvancedSearchService, UserPermissions};
 use axum::{
+    Router,
     extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
     routing::{get, post},
-    Router,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -19,7 +18,10 @@ pub fn advanced_search_routes() -> Router<Arc<AdvancedSearchService>> {
     Router::new()
         .route("/search/employees/advanced", post(advanced_employee_search))
         .route("/search/employees/autocomplete", get(employee_autocomplete))
-        .route("/search/employees/:employee_id/businesses", get(employee_business_history))
+        .route(
+            "/search/employees/:employee_id/businesses",
+            get(employee_business_history),
+        )
 }
 
 // ハンドラー関数
@@ -30,14 +32,17 @@ async fn advanced_employee_search(
     Json(filters): Json<AdvancedEmployeeSearchInput>,
 ) -> Result<Json<EmployeeSearchResult>, (StatusCode, String)> {
     let user_permissions = get_user_permissions(); // 仮実装
-    
-    match service.search_employees_advanced(filters, &user_permissions).await {
+
+    match service
+        .search_employees_advanced(filters, &user_permissions)
+        .await
+    {
         Ok(result) => Ok(Json(result)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
         }
     }
@@ -49,24 +54,28 @@ async fn employee_autocomplete(
     State(service): State<Arc<AdvancedSearchService>>,
 ) -> Result<Json<AutocompleteResult>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     // クエリパラメータから入力を構築
     let input = EmployeeAutocompleteInput {
         query: params.get("query").cloned().unwrap_or_default(),
-        field: params.get("field")
+        field: params
+            .get("field")
             .map(|s| EmployeeSearchField::from(s.clone()))
             .unwrap_or(EmployeeSearchField::Name),
         limit: params.get("limit").and_then(|s| s.parse().ok()),
         include_inactive: params.get("include_inactive").and_then(|s| s.parse().ok()),
     };
-    
-    match service.employee_autocomplete(input, &user_permissions).await {
+
+    match service
+        .employee_autocomplete(input, &user_permissions)
+        .await
+    {
         Ok(result) => Ok(Json(result)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
         }
     }
@@ -78,14 +87,17 @@ async fn employee_business_history(
     State(service): State<Arc<AdvancedSearchService>>,
 ) -> Result<Json<Vec<crate::models::BusinessMember>>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
-    match service.get_employee_business_history(employee_id, &user_permissions).await {
+
+    match service
+        .get_employee_business_history(employee_id, &user_permissions)
+        .await
+    {
         Ok(history) => Ok(Json(history)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
         }
     }
@@ -121,7 +133,9 @@ fn get_user_permissions() -> UserPermissions {
 }
 
 /// クエリパラメータを検索フィルターに変換
-pub fn query_params_to_search_filters(params: &HashMap<String, String>) -> AdvancedEmployeeSearchInput {
+pub fn query_params_to_search_filters(
+    params: &HashMap<String, String>,
+) -> AdvancedEmployeeSearchInput {
     AdvancedEmployeeSearchInput {
         name: params.get("name").cloned(),
         employee_number: params.get("employee_number").cloned(),
@@ -131,23 +145,28 @@ pub fn query_params_to_search_filters(params: &HashMap<String, String>) -> Advan
         has_business_experience: params.get("has_business_experience").cloned(),
         // joining_date fields removed - not available in Employee model
         is_active: params.get("is_active").and_then(|s| s.parse().ok()),
-        skill_keywords: params.get("skill_keywords")
+        skill_keywords: params
+            .get("skill_keywords")
             .map(|s| s.split(',').map(|item| item.trim().to_string()).collect()),
-        sort_by: params.get("sort_by")
+        sort_by: params
+            .get("sort_by")
             .map(|s| EmployeeSortField::from(s.clone())),
-        sort_order: params.get("sort_order")
-            .map(|s| SortOrder::from(s.clone())),
+        sort_order: params.get("sort_order").map(|s| SortOrder::from(s.clone())),
         pagination: PaginationInput {
-            limit: params.get("limit").and_then(|s| s.parse().ok()).unwrap_or(20),
-            offset: params.get("offset").and_then(|s| s.parse().ok()).unwrap_or(0),
+            limit: params
+                .get("limit")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(20),
+            offset: params
+                .get("offset")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(0),
         },
     }
 }
 
 /// 検索結果のフォーマット（統計情報付き）
-pub fn format_search_results_with_stats(
-    result: EmployeeSearchResult,
-) -> serde_json::Value {
+pub fn format_search_results_with_stats(result: EmployeeSearchResult) -> serde_json::Value {
     serde_json::json!({
         "employees": result.employees,
         "total_count": result.total_count,
@@ -164,16 +183,16 @@ pub fn format_search_results_with_stats(
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_query_params_to_search_filters() {
         let mut params = HashMap::new();
         params.insert("name".to_string(), "田中".to_string());
         params.insert("limit".to_string(), "50".to_string());
         params.insert("is_active".to_string(), "true".to_string());
-        
+
         let filters = query_params_to_search_filters(&params);
-        
+
         assert_eq!(filters.name, Some("田中".to_string()));
         assert_eq!(filters.pagination.limit, 50);
         assert_eq!(filters.is_active, Some(true));

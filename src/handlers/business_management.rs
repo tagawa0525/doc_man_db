@@ -1,29 +1,50 @@
-use crate::error::BusinessError;
 use crate::models::{
-    CreateBusinessMemberRequest, CreateBusinessRequest, UpdateBusinessMemberRequest,
-    UpdateBusinessRequest, BusinessSearchFilters, PaginationInput,
+    BusinessSearchFilters, CreateBusinessMemberRequest, CreateBusinessRequest, PaginationInput,
+    UpdateBusinessMemberRequest, UpdateBusinessRequest,
 };
-use crate::services::{BusinessService, UserPermissions, BusinessResponse, BusinessMemberResponse, DeleteResponse};
+use crate::services::{
+    BusinessMemberResponse, BusinessResponse, BusinessService, DeleteResponse, UserPermissions,
+};
 use axum::{
+    Router,
     extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
-    routing::{delete, get, post, put},
-    Router,
+    routing::{get, post, put},
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn business_routes() -> Router<Arc<BusinessService>> {
     Router::new()
         .route("/businesses", get(search_businesses).post(create_business))
-        .route("/businesses/:id", get(get_business).put(update_business).delete(delete_business))
-        .route("/businesses/:id/members", get(get_business_members).post(add_business_member))
-        .route("/businesses/:id/members/:member_id", put(update_business_member).delete(remove_business_member))
-        .route("/businesses/:id/circulation-candidates", get(get_circulation_candidates))
-        .route("/employees/:employee_id/businesses", get(get_employee_business_history))
-        .route("/businesses/generate-number", post(generate_business_number))
+        .route(
+            "/businesses/:id",
+            get(get_business)
+                .put(update_business)
+                .delete(delete_business),
+        )
+        .route(
+            "/businesses/:id/members",
+            get(get_business_members).post(add_business_member),
+        )
+        .route(
+            "/businesses/:id/members/:member_id",
+            put(update_business_member).delete(remove_business_member),
+        )
+        .route(
+            "/businesses/:id/circulation-candidates",
+            get(get_circulation_candidates),
+        )
+        .route(
+            "/employees/:employee_id/businesses",
+            get(get_employee_business_history),
+        )
+        .route(
+            "/businesses/generate-number",
+            post(generate_business_number),
+        )
 }
 
 // ハンドラー関数
@@ -35,13 +56,16 @@ async fn create_business(
 ) -> Result<Json<BusinessResponse>, (StatusCode, String)> {
     // TODO: 認証からユーザー権限を取得
     let user_permissions = get_user_permissions(); // 仮実装
-    
+
     match service.create_business(request, &user_permissions).await {
         Ok(business) => Ok(Json(BusinessResponse::from(business))),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -51,13 +75,16 @@ async fn get_business(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<Option<crate::models::Business>>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     match service.get_business(id, &user_permissions).await {
         Ok(business) => Ok(Json(business)),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -67,21 +94,29 @@ async fn search_businesses(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<BusinessSearchResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     // クエリパラメータから検索フィルターを構築
     let filters = BusinessSearchFilters {
         business_number: params.get("business_number").cloned(),
         name: params.get("name").cloned(),
         customer_name: params.get("customer_name").cloned(),
         status: params.get("status").cloned(),
-        member_employee_id: params.get("member_employee_id").and_then(|s| s.parse().ok()),
+        member_employee_id: params
+            .get("member_employee_id")
+            .and_then(|s| s.parse().ok()),
         date_range: None, // TODO: 日付範囲の解析実装
         pagination: PaginationInput {
-            limit: params.get("limit").and_then(|s| s.parse().ok()).unwrap_or(20),
-            offset: params.get("offset").and_then(|s| s.parse().ok()).unwrap_or(0),
+            limit: params
+                .get("limit")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(20),
+            offset: params
+                .get("offset")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(0),
         },
     };
-    
+
     match service.search_businesses(filters, &user_permissions).await {
         Ok((businesses, total)) => {
             let businesses_len = businesses.len();
@@ -90,11 +125,14 @@ async fn search_businesses(
                 total_count: total,
                 has_next_page: businesses_len as i64 == 20 && total > (businesses_len as i64),
             }))
-        },
+        }
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -105,13 +143,19 @@ async fn update_business(
     Json(request): Json<UpdateBusinessRequest>,
 ) -> Result<Json<BusinessResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
-    match service.update_business(id, request, &user_permissions).await {
+
+    match service
+        .update_business(id, request, &user_permissions)
+        .await
+    {
         Ok(business) => Ok(Json(BusinessResponse::from(business))),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -121,7 +165,7 @@ async fn delete_business(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<DeleteResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     match service.delete_business(id, &user_permissions).await {
         Ok(_) => Ok(Json(DeleteResponse {
             success: true,
@@ -129,8 +173,11 @@ async fn delete_business(
         })),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -140,13 +187,16 @@ async fn get_business_members(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<Vec<crate::models::BusinessMember>>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     match service.get_business_members(id, &user_permissions).await {
         Ok(members) => Ok(Json(members)),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -158,13 +208,19 @@ async fn add_business_member(
 ) -> Result<Json<BusinessMemberResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
     request.business_id = id; // パスから業務IDを設定
-    
-    match service.add_business_member(request, &user_permissions).await {
+
+    match service
+        .add_business_member(request, &user_permissions)
+        .await
+    {
         Ok(member) => Ok(Json(BusinessMemberResponse::from(member))),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -175,13 +231,19 @@ async fn update_business_member(
     Json(request): Json<UpdateBusinessMemberRequest>,
 ) -> Result<Json<BusinessMemberResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
-    match service.update_business_member(member_id, request, &user_permissions).await {
+
+    match service
+        .update_business_member(member_id, request, &user_permissions)
+        .await
+    {
         Ok(member) => Ok(Json(BusinessMemberResponse::from(member))),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -191,16 +253,22 @@ async fn remove_business_member(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<DeleteResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
-    match service.remove_business_member(member_id, &user_permissions).await {
+
+    match service
+        .remove_business_member(member_id, &user_permissions)
+        .await
+    {
         Ok(_) => Ok(Json(DeleteResponse {
             success: true,
             message: Some("業務従事者が正常に削除されました".to_string()),
         })),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -210,13 +278,19 @@ async fn get_employee_business_history(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<Vec<crate::models::BusinessMember>>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
-    match service.get_employee_business_history(employee_id, &user_permissions).await {
+
+    match service
+        .get_employee_business_history(employee_id, &user_permissions)
+        .await
+    {
         Ok(history) => Ok(Json(history)),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -226,13 +300,19 @@ async fn get_circulation_candidates(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<crate::models::CirculationCandidates>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
-    match service.suggest_circulation_candidates(id, &user_permissions).await {
+
+    match service
+        .suggest_circulation_candidates(id, &user_permissions)
+        .await
+    {
         Ok(candidates) => Ok(Json(candidates)),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 
@@ -241,11 +321,16 @@ async fn generate_business_number(
     State(service): State<Arc<BusinessService>>,
 ) -> Result<Json<BusinessNumberResponse>, (StatusCode, String)> {
     match service.generate_business_number().await {
-        Ok(number) => Ok(Json(BusinessNumberResponse { business_number: number })),
+        Ok(number) => Ok(Json(BusinessNumberResponse {
+            business_number: number,
+        })),
         Err(err) => {
             let error_msg = err.to_string();
-            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
-        },
+            Err((
+                StatusCode::from(crate::error::AppError::Business(err)),
+                error_msg,
+            ))
+        }
     }
 }
 

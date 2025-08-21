@@ -3,13 +3,12 @@ use doc_man_db::services::{
     ReportService, ReportServiceImpl, ValidationService, ValidationServiceImpl,
 };
 use std::collections::HashMap;
-use tokio;
 use uuid::Uuid;
 
 #[tokio::test]
 async fn test_validation_service_creation() {
     let validation_service = ValidationServiceImpl::new();
-    assert!(validation_service.builtin_rules.len() > 0);
+    assert!(!validation_service.builtin_rules.is_empty());
 }
 
 #[tokio::test]
@@ -18,7 +17,7 @@ async fn test_get_active_rules() {
 
     let rules = validation_service.get_active_rules().await.unwrap();
 
-    assert!(rules.len() > 0);
+    assert!(!rules.is_empty());
     assert!(
         rules
             .iter()

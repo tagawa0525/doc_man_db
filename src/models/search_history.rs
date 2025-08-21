@@ -164,7 +164,7 @@ impl From<SearchType> for String {
 impl SearchHistory {
     pub fn from_row(row: &sqlx::sqlite::SqliteRow) -> Result<Self, sqlx::Error> {
         use sqlx::Row;
-        
+
         Ok(SearchHistory {
             id: row.try_get("id")?,
             employee_id: row.try_get("employee_id")?,
@@ -180,7 +180,7 @@ impl SearchHistory {
 impl FavoriteSearch {
     pub fn from_row(row: &sqlx::sqlite::SqliteRow) -> Result<Self, sqlx::Error> {
         use sqlx::Row;
-        
+
         Ok(FavoriteSearch {
             id: row.try_get("id")?,
             employee_id: row.try_get("employee_id")?,
@@ -197,7 +197,7 @@ impl FavoriteSearch {
 impl SearchSuggestion {
     pub fn from_row(row: &sqlx::sqlite::SqliteRow) -> Result<Self, sqlx::Error> {
         use sqlx::Row;
-        
+
         Ok(SearchSuggestion {
             id: row.try_get("id")?,
             search_type: SearchType::from(row.try_get::<String, _>("search_type")?),

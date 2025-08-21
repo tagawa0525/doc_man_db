@@ -118,7 +118,7 @@ fn test_generated_document_number_conversion() {
     };
 
     let graphql_generated: doc_man_db::graphql::types::GeneratedDocumentNumber =
-        model_generated.into();
+        model_generated;
 
     assert_eq!(graphql_generated.rule_id, 1);
     assert_eq!(graphql_generated.sequence_number, 25001);
@@ -158,7 +158,7 @@ fn test_created_document_with_number_conversion() {
     };
 
     let graphql_created: doc_man_db::graphql::types::CreatedDocumentWithNumber =
-        model_created.into();
+        model_created;
 
     assert_eq!(graphql_created.document.id, 1);
     assert_eq!(graphql_created.document.title, "技術文書");

@@ -219,7 +219,7 @@ async fn test_validation_service_large_target_set() {
     let file_request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::FileExistence,
-        target_ids: target_ids,
+        target_ids,
         parameters: HashMap::new(),
     };
 
@@ -286,7 +286,7 @@ async fn test_validation_service_mixed_results() {
     let file_request = ValidationExecutionRequest {
         request_id: Uuid::new_v4(),
         rule_type: ValidationRuleType::FileExistence,
-        target_ids: target_ids,
+        target_ids,
         parameters: HashMap::new(),
     };
 

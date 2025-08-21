@@ -43,7 +43,7 @@ async fn test_graphql_introspection() {
 
     // When: GraphQLイントロスペクションクエリを実行
     let response = client
-        .post(&format!("http://{}/graphql", addr))
+        .post(format!("http://{addr}/graphql"))
         .header("Content-Type", "application/json")
         .json(&introspection_query)
         .send()
@@ -103,7 +103,7 @@ async fn test_graphql_create_document_mutation() {
 
     // When: GraphQL文書作成ミューテーションを実行
     let response = client
-        .post(&format!("http://{}/graphql", addr))
+        .post(format!("http://{addr}/graphql"))
         .header("Content-Type", "application/json")
         .json(&mutation)
         .send()
@@ -159,7 +159,7 @@ async fn test_graphql_query_document_by_id() {
     });
 
     let create_response = client
-        .post(&format!("http://{}/graphql", addr))
+        .post(format!("http://{addr}/graphql"))
         .json(&create_mutation)
         .send()
         .await
@@ -191,7 +191,7 @@ async fn test_graphql_query_document_by_id() {
 
     // When: GraphQL文書取得クエリを実行
     let response = client
-        .post(&format!("http://{}/graphql", addr))
+        .post(format!("http://{addr}/graphql"))
         .header("Content-Type", "application/json")
         .json(&query)
         .send()
@@ -239,7 +239,7 @@ async fn test_graphql_search_documents() {
         });
 
         client
-            .post(&format!("http://{}/graphql", addr))
+            .post(format!("http://{addr}/graphql"))
             .json(&create_mutation)
             .send()
             .await
@@ -270,7 +270,7 @@ async fn test_graphql_search_documents() {
 
     // When: GraphQL文書検索クエリを実行
     let response = client
-        .post(&format!("http://{}/graphql", addr))
+        .post(format!("http://{addr}/graphql"))
         .header("Content-Type", "application/json")
         .json(&search_query)
         .send()
@@ -321,7 +321,7 @@ async fn test_graphql_validation_error() {
 
     // When: 無効なデータでGraphQLミューテーションを実行
     let response = client
-        .post(&format!("http://{}/graphql", addr))
+        .post(format!("http://{addr}/graphql"))
         .header("Content-Type", "application/json")
         .json(&invalid_mutation)
         .send()
@@ -347,7 +347,7 @@ async fn test_graphql_playground_endpoint() {
 
     // When: GraphQL Playgroundエンドポイントにアクセス
     let response = client
-        .get(&format!("http://{}/graphql", addr))
+        .get(format!("http://{addr}/graphql"))
         .header("Accept", "text/html")
         .send()
         .await

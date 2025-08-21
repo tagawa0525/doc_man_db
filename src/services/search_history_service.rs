@@ -1,15 +1,12 @@
 use crate::error::SearchError;
 use crate::models::{
-    SearchHistory, FavoriteSearch, SearchSuggestion, CreateSearchHistoryRequest,
-    CreateFavoriteSearchRequest, UpdateFavoriteSearchRequest, CreateSearchSuggestionRequest,
-    SearchHistoryFilters, FavoriteSearchFilters, SearchSuggestionFilters,
-    SearchHistoryResponse, FavoriteSearchResponse, SearchSuggestionResponse,
-    SearchStatistics, SearchType
+    CreateFavoriteSearchRequest, CreateSearchHistoryRequest, CreateSearchSuggestionRequest,
+    FavoriteSearch, FavoriteSearchFilters, FavoriteSearchResponse, SearchHistory,
+    SearchHistoryFilters, SearchHistoryResponse, SearchSuggestion,
+    SearchSuggestionFilters, SearchSuggestionResponse,
 };
 use crate::services::UserPermissions;
 use sqlx::{Row, SqlitePool};
-use std::sync::Arc;
-
 pub struct SearchHistoryService {
     pool: SqlitePool,
 }
@@ -40,8 +37,11 @@ impl SearchHistoryService {
         .await?
         .last_insert_rowid();
 
-        self.get_search_history_by_id(search_id as i32).await?
-            .ok_or(SearchError::InvalidParameters("検索履歴の保存に失敗しました".to_string()))
+        self.get_search_history_by_id(search_id as i32)
+            .await?
+            .ok_or(SearchError::InvalidParameters(
+                "検索履歴の保存に失敗しました".to_string(),
+            ))
     }
 
     /// 検索履歴を取得
@@ -84,17 +84,21 @@ impl SearchHistoryService {
         };
 
         // 総件数取得
-        let count_query = format!("SELECT COUNT(*) as count FROM search_history {}", where_clause);
+        let count_query = format!(
+            "SELECT COUNT(*) as count FROM search_history {where_clause}"
+        );
         let mut count_query_builder = sqlx::query(&count_query);
         for value in &bind_values {
             count_query_builder = count_query_builder.bind(value);
         }
-        let total: i64 = count_query_builder.fetch_one(&self.pool).await?.get("count");
+        let total: i64 = count_query_builder
+            .fetch_one(&self.pool)
+            .await?
+            .get("count");
 
         // データ取得
         let data_query = format!(
-            "SELECT * FROM search_history {} ORDER BY created_at DESC LIMIT ? OFFSET ?",
-            where_clause
+            "SELECT * FROM search_history {where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?"
         );
         let mut data_query_builder = sqlx::query(&data_query);
         for value in &bind_values {
@@ -105,13 +109,15 @@ impl SearchHistoryService {
             .bind(filters.offset.unwrap_or(0));
 
         let rows = data_query_builder.fetch_all(&self.pool).await?;
-        let history = rows.into_iter()
+        let history = rows
+            .into_iter()
             .map(|row| SearchHistory::from_row(&row))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(SearchHistoryResponse {
             total_count: total,
-            has_next_page: history.len() as i64 == filters.limit.unwrap_or(20) as i64 && total > (filters.offset.unwrap_or(0) + history.len() as i32) as i64,
+            has_next_page: history.len() as i64 == filters.limit.unwrap_or(20) as i64
+                && total > (filters.offset.unwrap_or(0) + history.len() as i32) as i64,
             history,
         })
     }
@@ -123,15 +129,19 @@ impl SearchHistoryService {
         user_permissions: &UserPermissions,
     ) -> Result<FavoriteSearch, SearchError> {
         // 権限チェック: 自分のお気に入りのみ作成可能
-        if request.employee_id != user_permissions.employee_id && !user_permissions.can_view_all_businesses {
-            return Err(SearchError::InvalidParameters("他のユーザーのお気に入りは作成できません".to_string()));
+        if request.employee_id != user_permissions.employee_id
+            && !user_permissions.can_view_all_businesses
+        {
+            return Err(SearchError::InvalidParameters(
+                "他のユーザーのお気に入りは作成できません".to_string(),
+            ));
         }
 
         let favorite_id = sqlx::query(
             r#"
             INSERT INTO favorite_searches (employee_id, name, search_type, search_query)
             VALUES (?, ?, ?, ?)
-            "#
+            "#,
         )
         .bind(request.employee_id)
         .bind(&request.name)
@@ -141,8 +151,11 @@ impl SearchHistoryService {
         .await?
         .last_insert_rowid();
 
-        self.get_favorite_search_by_id(favorite_id as i32).await?
-            .ok_or(SearchError::InvalidParameters("お気に入り検索の作成に失敗しました".to_string()))
+        self.get_favorite_search_by_id(favorite_id as i32)
+            .await?
+            .ok_or(SearchError::InvalidParameters(
+                "お気に入り検索の作成に失敗しました".to_string(),
+            ))
     }
 
     /// お気に入り検索を取得
@@ -180,16 +193,20 @@ impl SearchHistoryService {
         };
 
         // 総件数とデータを取得
-        let count_query = format!("SELECT COUNT(*) as count FROM favorite_searches {}", where_clause);
+        let count_query = format!(
+            "SELECT COUNT(*) as count FROM favorite_searches {where_clause}"
+        );
         let mut count_query_builder = sqlx::query(&count_query);
         for value in &bind_values {
             count_query_builder = count_query_builder.bind(value);
         }
-        let total: i64 = count_query_builder.fetch_one(&self.pool).await?.get("count");
+        let total: i64 = count_query_builder
+            .fetch_one(&self.pool)
+            .await?
+            .get("count");
 
         let data_query = format!(
-            "SELECT * FROM favorite_searches {} ORDER BY created_at DESC LIMIT ? OFFSET ?",
-            where_clause
+            "SELECT * FROM favorite_searches {where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?"
         );
         let mut data_query_builder = sqlx::query(&data_query);
         for value in &bind_values {
@@ -200,13 +217,15 @@ impl SearchHistoryService {
             .bind(filters.offset.unwrap_or(0));
 
         let rows = data_query_builder.fetch_all(&self.pool).await?;
-        let favorites = rows.into_iter()
+        let favorites = rows
+            .into_iter()
             .map(|row| FavoriteSearch::from_row(&row))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(FavoriteSearchResponse {
             total_count: total,
-            has_next_page: favorites.len() as i64 == filters.limit.unwrap_or(50) as i64 && total > (filters.offset.unwrap_or(0) + favorites.len() as i32) as i64,
+            has_next_page: favorites.len() as i64 == filters.limit.unwrap_or(50) as i64
+                && total > (filters.offset.unwrap_or(0) + favorites.len() as i32) as i64,
             favorites,
         })
     }
@@ -230,7 +249,7 @@ impl SearchHistoryService {
             // 既存の候補の頻度を更新
             let id: i32 = row.get("id");
             let frequency: i32 = row.get("frequency");
-            
+
             sqlx::query(
                 "UPDATE search_suggestions SET frequency = ?, last_used = CURRENT_TIMESTAMP WHERE id = ?"
             )
@@ -273,7 +292,7 @@ impl SearchHistoryService {
 
         if let Some(query) = &filters.query {
             conditions.push("suggestion LIKE ?");
-            bind_values.push(format!("%{}%", query));
+            bind_values.push(format!("%{query}%"));
         }
 
         let where_clause = if conditions.is_empty() {
@@ -283,8 +302,7 @@ impl SearchHistoryService {
         };
 
         let query = format!(
-            "SELECT * FROM search_suggestions {} ORDER BY frequency DESC, last_used DESC LIMIT ?",
-            where_clause
+            "SELECT * FROM search_suggestions {where_clause} ORDER BY frequency DESC, last_used DESC LIMIT ?"
         );
         let mut query_builder = sqlx::query(&query);
         for value in &bind_values {
@@ -293,7 +311,8 @@ impl SearchHistoryService {
         query_builder = query_builder.bind(filters.limit.unwrap_or(10));
 
         let rows = query_builder.fetch_all(&self.pool).await?;
-        let suggestions = rows.into_iter()
+        let suggestions = rows
+            .into_iter()
             .map(|row| SearchSuggestion::from_row(&row))
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -304,7 +323,10 @@ impl SearchHistoryService {
     }
 
     // プライベートメソッド
-    async fn get_search_history_by_id(&self, id: i32) -> Result<Option<SearchHistory>, SearchError> {
+    async fn get_search_history_by_id(
+        &self,
+        id: i32,
+    ) -> Result<Option<SearchHistory>, SearchError> {
         let row = sqlx::query("SELECT * FROM search_history WHERE id = ?")
             .bind(id)
             .fetch_optional(&self.pool)
@@ -317,7 +339,10 @@ impl SearchHistoryService {
         }
     }
 
-    async fn get_favorite_search_by_id(&self, id: i32) -> Result<Option<FavoriteSearch>, SearchError> {
+    async fn get_favorite_search_by_id(
+        &self,
+        id: i32,
+    ) -> Result<Option<FavoriteSearch>, SearchError> {
         let row = sqlx::query("SELECT * FROM favorite_searches WHERE id = ?")
             .bind(id)
             .fetch_optional(&self.pool)

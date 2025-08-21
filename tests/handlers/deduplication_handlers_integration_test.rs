@@ -11,7 +11,6 @@ use doc_man_db::services::{
     MergeResult,
 };
 use std::sync::Arc;
-use tokio;
 use uuid::Uuid;
 
 // モック重複除去サービス

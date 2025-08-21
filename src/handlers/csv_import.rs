@@ -274,22 +274,6 @@ pub async fn validate_csv(
     })))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_download_csv_template() {
-        let result = download_csv_template().await;
-        assert!(result.is_ok());
-
-        let (headers, content) = result.unwrap();
-        assert!(headers.contains_key(axum::http::header::CONTENT_TYPE));
-        assert!(headers.contains_key(axum::http::header::CONTENT_DISPOSITION));
-        assert!(content.contains("title,document_type_code"));
-    }
-}
-
 // モック関数の実装
 fn create_mock_import_result(_file_name: &str) -> ImportResult {
     use chrono::Utc;
@@ -334,4 +318,20 @@ fn get_mock_import_execution(import_id: Uuid) -> Option<serde_json::Value> {
         "status": "completed",
         "errors": []
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_download_csv_template() {
+        let result = download_csv_template().await;
+        assert!(result.is_ok());
+
+        let (headers, content) = result.unwrap();
+        assert!(headers.contains_key(axum::http::header::CONTENT_TYPE));
+        assert!(headers.contains_key(axum::http::header::CONTENT_DISPOSITION));
+        assert!(content.contains("title,document_type_code"));
+    }
 }

@@ -1,25 +1,36 @@
-use crate::error::SearchError;
 use crate::models::{
-    AdvancedBusinessSearchInput, BusinessAutocompleteInput, BusinessSearchResult,
-    AutocompleteResult, EmployeeBusinesses, BusinessSearchField, BusinessSortField, SortOrder, PaginationInput
+    AdvancedBusinessSearchInput, AutocompleteResult, BusinessAutocompleteInput,
+    BusinessSearchField, BusinessSearchResult, BusinessSortField, EmployeeBusinesses,
+    PaginationInput, SortOrder,
 };
-use crate::services::{BusinessSearchService, UserPermissions, BusinessStatistics, BusinessSearchSuggestions};
+use crate::services::{
+    BusinessSearchService, BusinessSearchSuggestions, BusinessStatistics, UserPermissions,
+};
 use axum::{
+    Router,
     extract::{Path, Query, State},
     http::StatusCode,
     response::Json,
     routing::{get, post},
-    Router,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn business_search_routes() -> Router<Arc<BusinessSearchService>> {
     Router::new()
-        .route("/search/businesses/advanced", post(advanced_business_search))
-        .route("/search/businesses/autocomplete", get(business_autocomplete))
-        .route("/search/businesses/employees/:employee_id", get(employee_businesses))
+        .route(
+            "/search/businesses/advanced",
+            post(advanced_business_search),
+        )
+        .route(
+            "/search/businesses/autocomplete",
+            get(business_autocomplete),
+        )
+        .route(
+            "/search/businesses/employees/:employee_id",
+            get(employee_businesses),
+        )
         .route("/search/businesses/statistics", get(business_statistics))
         .route("/search/businesses/suggestions", get(search_suggestions))
 }
@@ -32,16 +43,19 @@ async fn advanced_business_search(
     Json(filters): Json<AdvancedBusinessSearchInput>,
 ) -> Result<Json<BusinessSearchResult>, (StatusCode, String)> {
     let user_permissions = get_user_permissions(); // 仮実装
-    
-    match service.search_businesses_advanced(filters, &user_permissions).await {
+
+    match service
+        .search_businesses_advanced(filters, &user_permissions)
+        .await
+    {
         Ok(result) => Ok(Json(result)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
-        },
+        }
     }
 }
 
@@ -51,26 +65,30 @@ async fn business_autocomplete(
     State(service): State<Arc<BusinessSearchService>>,
 ) -> Result<Json<AutocompleteResult>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     // クエリパラメータから入力を構築
     let input = BusinessAutocompleteInput {
         query: params.get("query").cloned().unwrap_or_default(),
-        field: params.get("field")
+        field: params
+            .get("field")
             .map(|s| BusinessSearchField::from(s.clone()))
             .unwrap_or(BusinessSearchField::Name),
         limit: params.get("limit").and_then(|s| s.parse().ok()),
         include_completed: params.get("include_completed").and_then(|s| s.parse().ok()),
     };
-    
-    match service.business_autocomplete(input, &user_permissions).await {
+
+    match service
+        .business_autocomplete(input, &user_permissions)
+        .await
+    {
         Ok(result) => Ok(Json(result)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
-        },
+        }
     }
 }
 
@@ -81,19 +99,23 @@ async fn employee_businesses(
     State(service): State<Arc<BusinessSearchService>>,
 ) -> Result<Json<EmployeeBusinesses>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    let include_completed = params.get("include_completed")
+    let include_completed = params
+        .get("include_completed")
         .and_then(|s| s.parse().ok())
         .unwrap_or(false);
-    
-    match service.get_employee_businesses(employee_id, include_completed, &user_permissions).await {
+
+    match service
+        .get_employee_businesses(employee_id, include_completed, &user_permissions)
+        .await
+    {
         Ok(result) => Ok(Json(result)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
-        },
+        }
     }
 }
 
@@ -102,16 +124,16 @@ async fn business_statistics(
     State(service): State<Arc<BusinessSearchService>>,
 ) -> Result<Json<BusinessStatisticsResponse>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     match service.get_business_statistics(&user_permissions).await {
         Ok(stats) => Ok(Json(BusinessStatisticsResponse::from(stats))),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
-        },
+        }
     }
 }
 
@@ -120,16 +142,16 @@ async fn search_suggestions(
     State(service): State<Arc<BusinessSearchService>>,
 ) -> Result<Json<BusinessSearchSuggestions>, (StatusCode, String)> {
     let user_permissions = get_user_permissions();
-    
+
     match service.get_search_suggestions(&user_permissions).await {
         Ok(suggestions) => Ok(Json(suggestions)),
         Err(err) => {
             let error_msg = err.to_string();
             Err((
                 StatusCode::from(crate::error::AppError::Search(err)),
-                error_msg
+                error_msg,
             ))
-        },
+        }
     }
 }
 
@@ -152,7 +174,7 @@ impl From<BusinessStatistics> for BusinessStatisticsResponse {
         } else {
             0.0
         };
-        
+
         Self {
             total_businesses: stats.total_businesses,
             active_businesses: stats.active_businesses,
@@ -179,42 +201,48 @@ fn get_user_permissions() -> UserPermissions {
 }
 
 /// クエリパラメータを業務検索フィルターに変換
-pub fn query_params_to_business_search_filters(params: &HashMap<String, String>) -> AdvancedBusinessSearchInput {
+pub fn query_params_to_business_search_filters(
+    params: &HashMap<String, String>,
+) -> AdvancedBusinessSearchInput {
     AdvancedBusinessSearchInput {
         business_number: params.get("business_number").cloned(),
         name: params.get("name").cloned(),
         customer_name: params.get("customer_name").cloned(),
         description: params.get("description").cloned(),
-        member_employee_id: params.get("member_employee_id").and_then(|s| s.parse().ok()),
-        member_role: params.get("member_role")
+        member_employee_id: params
+            .get("member_employee_id")
+            .and_then(|s| s.parse().ok()),
+        member_role: params
+            .get("member_role")
             .map(|s| crate::models::BusinessRole::from(s.clone())),
-        status: params.get("status")
+        status: params
+            .get("status")
             .map(|s| crate::models::BusinessStatus::from(s.clone())),
-        start_date_from: params.get("start_date_from")
-            .and_then(|s| s.parse().ok()),
-        start_date_to: params.get("start_date_to")
-            .and_then(|s| s.parse().ok()),
-        end_date_from: params.get("end_date_from")
-            .and_then(|s| s.parse().ok()),
-        end_date_to: params.get("end_date_to")
-            .and_then(|s| s.parse().ok()),
+        start_date_from: params.get("start_date_from").and_then(|s| s.parse().ok()),
+        start_date_to: params.get("start_date_to").and_then(|s| s.parse().ok()),
+        end_date_from: params.get("end_date_from").and_then(|s| s.parse().ok()),
+        end_date_to: params.get("end_date_to").and_then(|s| s.parse().ok()),
         has_documents: params.get("has_documents").and_then(|s| s.parse().ok()),
         created_by: params.get("created_by").and_then(|s| s.parse().ok()),
-        sort_by: params.get("sort_by")
+        sort_by: params
+            .get("sort_by")
             .map(|s| BusinessSortField::from(s.clone())),
-        sort_order: params.get("sort_order")
-            .map(|s| SortOrder::from(s.clone())),
+        sort_order: params.get("sort_order").map(|s| SortOrder::from(s.clone())),
         pagination: PaginationInput {
-            limit: params.get("limit").and_then(|s| s.parse().ok()).unwrap_or(20),
-            offset: params.get("offset").and_then(|s| s.parse().ok()).unwrap_or(0),
+            limit: params
+                .get("limit")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(20),
+            offset: params
+                .get("offset")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(0),
         },
     }
 }
 
 /// 検索結果のフォーマット（メタデータ付き）
-pub fn format_business_search_results(
-    result: BusinessSearchResult,
-) -> serde_json::Value {
+pub fn format_business_search_results(result: BusinessSearchResult) -> serde_json::Value {
     serde_json::json!({
         "businesses": result.businesses,
         "total_count": result.total_count,
@@ -231,8 +259,8 @@ pub fn format_business_search_results(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{BusinessStatus, BusinessRole};
-    
+    use crate::models::BusinessStatus;
+
     #[test]
     fn test_query_params_to_business_search_filters() {
         let mut params = HashMap::new();
@@ -240,9 +268,9 @@ mod tests {
         params.insert("name".to_string(), "テスト業務".to_string());
         params.insert("status".to_string(), "active".to_string());
         params.insert("limit".to_string(), "50".to_string());
-        
+
         let filters = query_params_to_business_search_filters(&params);
-        
+
         assert_eq!(filters.business_number, Some("BUS-25001".to_string()));
         assert_eq!(filters.name, Some("テスト業務".to_string()));
         assert_eq!(filters.status, Some(BusinessStatus::Active));

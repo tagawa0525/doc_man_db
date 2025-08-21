@@ -31,7 +31,7 @@ async fn test_health_check_endpoint() {
 
     // When: ヘルスチェックエンドポイントにリクエスト
     let response = client
-        .get(&format!("http://{}/health", addr))
+        .get(format!("http://{addr}/health"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -59,7 +59,7 @@ async fn test_create_document_with_number_api() {
 
     // When: 文書作成APIにリクエスト
     let response = client
-        .post(&format!("http://{}/api/documents", addr))
+        .post(format!("http://{addr}/api/documents"))
         .header("Content-Type", "application/json")
         .json(&request_body)
         .send()
@@ -91,7 +91,7 @@ async fn test_get_document_by_id_api() {
     });
 
     let create_response = client
-        .post(&format!("http://{}/api/documents", addr))
+        .post(format!("http://{addr}/api/documents"))
         .json(&request_body)
         .send()
         .await
@@ -101,7 +101,7 @@ async fn test_get_document_by_id_api() {
     println!("Create response status: {}", create_response.status());
     if !create_response.status().is_success() {
         let error_text = create_response.text().await.unwrap();
-        panic!("Document creation failed: {}", error_text);
+        panic!("Document creation failed: {error_text}");
     }
 
     let created: CreatedDocumentWithNumber = create_response.json().await.unwrap();
@@ -109,7 +109,7 @@ async fn test_get_document_by_id_api() {
 
     // When: 文書取得APIにリクエスト
     let response = client
-        .get(&format!("http://{}/api/documents/{}", addr, document_id))
+        .get(format!("http://{addr}/api/documents/{document_id}"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -139,7 +139,7 @@ async fn test_search_documents_api() {
         });
 
         client
-            .post(&format!("http://{}/api/documents", addr))
+            .post(format!("http://{addr}/api/documents"))
             .json(&request_body)
             .send()
             .await
@@ -148,7 +148,7 @@ async fn test_search_documents_api() {
 
     // When: 文書検索APIにリクエスト
     let response = client
-        .get(&format!("http://{}/api/documents?title=検索テスト", addr))
+        .get(format!("http://{addr}/api/documents?title=検索テスト"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -180,7 +180,7 @@ async fn test_create_document_validation_error() {
 
     // When: 無効なリクエストで文書作成APIにリクエスト
     let response = client
-        .post(&format!("http://{}/api/documents", addr))
+        .post(format!("http://{addr}/api/documents"))
         .json(&invalid_request)
         .send()
         .await
@@ -201,7 +201,7 @@ async fn test_get_nonexistent_document() {
 
     // When: 存在しない文書IDで取得APIにリクエスト
     let response = client
-        .get(&format!("http://{}/api/documents/999999", addr))
+        .get(format!("http://{addr}/api/documents/999999"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -220,7 +220,7 @@ async fn test_cors_headers() {
     let response = client
         .request(
             reqwest::Method::OPTIONS,
-            &format!("http://{}/api/documents", addr),
+            format!("http://{addr}/api/documents"),
         )
         .header("Origin", "http://localhost:3000")
         .header("Access-Control-Request-Method", "POST")

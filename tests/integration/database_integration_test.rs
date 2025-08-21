@@ -136,7 +136,7 @@ async fn test_repository_create_document() {
             assert_eq!(document.created_by, 1);
         }
         Err(e) => {
-            panic!("Repository create failed: {:?}", e);
+            panic!("Repository create failed: {e:?}");
         }
     }
 }

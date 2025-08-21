@@ -1,6 +1,6 @@
+use crate::models::{Business, BusinessRole, BusinessStatus, PaginationInput};
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
-use crate::models::{Business, PaginationInput, BusinessStatus, BusinessRole};
 
 // 高度業務検索用の入力型
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -178,7 +178,6 @@ impl From<BusinessSortField> for String {
         }
     }
 }
-
 
 // デフォルト実装
 impl Default for AdvancedBusinessSearchInput {

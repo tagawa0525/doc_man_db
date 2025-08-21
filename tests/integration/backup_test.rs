@@ -1,7 +1,6 @@
 use doc_man_db::models::backup::*;
 use doc_man_db::services::{BackupService, BackupServiceImpl};
 
-use tokio;
 use uuid::Uuid;
 
 #[tokio::test]

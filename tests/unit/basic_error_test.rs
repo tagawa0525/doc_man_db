@@ -192,7 +192,7 @@ fn test_resource_exhaustion_prevention() {
     let max_items = 100; // 制限値
 
     for i in 0..max_items {
-        items.push(format!("Item {}", i));
+        items.push(format!("Item {i}"));
 
         // リソース使用量が閾値を超えた場合の処理
         if items.len() > 50 {

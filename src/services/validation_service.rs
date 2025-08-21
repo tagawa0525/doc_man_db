@@ -326,14 +326,14 @@ mod tests {
     #[tokio::test]
     async fn test_validation_service_creation() {
         let service = ValidationServiceImpl::new();
-        assert!(service.builtin_rules.len() > 0);
+        assert!(!service.builtin_rules.is_empty());
     }
 
     #[tokio::test]
     async fn test_get_active_rules() {
         let service = ValidationServiceImpl::new();
         let rules = service.get_active_rules().await.unwrap();
-        assert!(rules.len() > 0);
+        assert!(!rules.is_empty());
         assert!(rules.iter().all(|r| r.is_active));
     }
 
@@ -349,7 +349,7 @@ mod tests {
 
         let result = service.execute_validation(request).await.unwrap();
         assert_eq!(result.rule_type, ValidationRuleType::ReferentialIntegrity);
-        assert!(result.errors.len() > 0); // 1001が無効なのでエラーが発生
+        assert!(!result.errors.is_empty()); // 1001が無効なのでエラーが発生
     }
 
     #[tokio::test]

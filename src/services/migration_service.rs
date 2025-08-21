@@ -707,7 +707,7 @@ mod tests {
         match &result {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Migration failed: {}", e);
+                eprintln!("Migration failed: {e}");
                 panic!("Expected migration to succeed in dry run mode");
             }
         }

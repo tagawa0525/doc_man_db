@@ -2,14 +2,14 @@ use doc_man_db::graphql::resolvers::{MutationRoot, QueryRoot};
 
 #[test]
 fn test_query_root_creation() {
-    let query_root = QueryRoot::default();
+    let query_root = QueryRoot;
     let _ = query_root;
     assert!(true);
 }
 
 #[test]
 fn test_mutation_root_creation() {
-    let mutation_root = MutationRoot::default();
+    let mutation_root = MutationRoot;
     let _ = mutation_root;
     assert!(true);
 }
@@ -44,10 +44,10 @@ fn test_resolver_structs_can_be_stored() {
     let mut query_roots = Vec::new();
     let mut mutation_roots = Vec::new();
 
-    query_roots.push(QueryRoot::default());
-    query_roots.push(QueryRoot::default());
-    mutation_roots.push(MutationRoot::default());
-    mutation_roots.push(MutationRoot::default());
+    query_roots.push(QueryRoot);
+    query_roots.push(QueryRoot);
+    mutation_roots.push(MutationRoot);
+    mutation_roots.push(MutationRoot);
 
     assert_eq!(query_roots.len(), 2);
     assert_eq!(mutation_roots.len(), 2);
@@ -55,8 +55,8 @@ fn test_resolver_structs_can_be_stored() {
 
 #[test]
 fn test_resolver_structs_pattern_matching() {
-    let query_root = QueryRoot::default();
-    let mutation_root = MutationRoot::default();
+    let query_root = QueryRoot;
+    let mutation_root = MutationRoot;
 
     match query_root {
         QueryRoot => assert!(true),
@@ -77,8 +77,8 @@ fn test_resolver_structs_as_function_parameters() {
         true
     }
 
-    let query_root = QueryRoot::default();
-    let mutation_root = MutationRoot::default();
+    let query_root = QueryRoot;
+    let mutation_root = MutationRoot;
 
     assert!(accept_query_root(query_root));
     assert!(accept_mutation_root(mutation_root));
@@ -86,8 +86,8 @@ fn test_resolver_structs_as_function_parameters() {
 
 #[test]
 fn test_resolver_structs_in_option() {
-    let query_option: Option<QueryRoot> = Some(QueryRoot::default());
-    let mutation_option: Option<MutationRoot> = Some(MutationRoot::default());
+    let query_option: Option<QueryRoot> = Some(QueryRoot);
+    let mutation_option: Option<MutationRoot> = Some(MutationRoot);
 
     assert!(query_option.is_some());
     assert!(mutation_option.is_some());
@@ -128,10 +128,10 @@ fn test_resolver_structs_unpin() {
 
 #[test]
 fn test_multiple_resolver_instances() {
-    let query_root1 = QueryRoot::default();
-    let query_root2 = QueryRoot::default();
-    let mutation_root1 = MutationRoot::default();
-    let mutation_root2 = MutationRoot::default();
+    let query_root1 = QueryRoot;
+    let query_root2 = QueryRoot;
+    let mutation_root1 = MutationRoot;
+    let mutation_root2 = MutationRoot;
 
     let _ = (query_root1, query_root2, mutation_root1, mutation_root2);
     assert!(true);
@@ -139,10 +139,10 @@ fn test_multiple_resolver_instances() {
 
 #[test]
 fn test_resolver_struct_equality_concept() {
-    let query_root1 = QueryRoot::default();
-    let query_root2 = QueryRoot::default();
-    let mutation_root1 = MutationRoot::default();
-    let mutation_root2 = MutationRoot::default();
+    let query_root1 = QueryRoot;
+    let query_root2 = QueryRoot;
+    let mutation_root1 = MutationRoot;
+    let mutation_root2 = MutationRoot;
 
     let _ = (query_root1, query_root2, mutation_root1, mutation_root2);
     assert!(true);
