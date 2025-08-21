@@ -263,6 +263,8 @@ pub struct BusinessNumberResponse {
     pub business_number: String,
 }
 
+// 型定義はservicesモジュールから再利用
+
 // ヘルパー関数
 
 /// 現在のユーザー権限を取得する（仮実装）

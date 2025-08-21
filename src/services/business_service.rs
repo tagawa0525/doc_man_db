@@ -278,21 +278,21 @@ impl BusinessService {
 }
 
 // 業務関連のレスポンス型
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct BusinessResponse {
     pub business: Business,
     pub success: bool,
     pub message: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct BusinessMemberResponse {
     pub member: BusinessMember,
     pub success: bool,
     pub message: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct DeleteResponse {
     pub success: bool,
     pub message: Option<String>,

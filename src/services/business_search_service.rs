@@ -209,7 +209,7 @@ impl BusinessSearchService {
 
 // レスポンス型定義
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct BusinessStatistics {
     pub total_businesses: i32,
     pub active_businesses: i32,
@@ -218,7 +218,7 @@ pub struct BusinessStatistics {
     pub completed_this_month: i32,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize)]
 pub struct BusinessSearchSuggestions {
     pub recent_customers: Vec<String>,
     pub popular_searches: Vec<String>,
