@@ -38,7 +38,10 @@ async fn create_business(
     
     match service.create_business(request, &user_permissions).await {
         Ok(business) => Ok(Json(BusinessResponse::from(business))),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -51,7 +54,10 @@ async fn get_business(
     
     match service.get_business(id, &user_permissions).await {
         Ok(business) => Ok(Json(business)),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -77,12 +83,18 @@ async fn search_businesses(
     };
     
     match service.search_businesses(filters, &user_permissions).await {
-        Ok((businesses, total)) => Ok(Json(BusinessSearchResponse {
-            businesses,
-            total_count: total,
-            has_next_page: businesses.len() as i64 == 20 && total > (businesses.len() as i64),
-        })),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Ok((businesses, total)) => {
+            let businesses_len = businesses.len();
+            Ok(Json(BusinessSearchResponse {
+                businesses,
+                total_count: total,
+                has_next_page: businesses_len as i64 == 20 && total > (businesses_len as i64),
+            }))
+        },
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -96,7 +108,10 @@ async fn update_business(
     
     match service.update_business(id, request, &user_permissions).await {
         Ok(business) => Ok(Json(BusinessResponse::from(business))),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -112,7 +127,10 @@ async fn delete_business(
             success: true,
             message: Some("業務が正常に削除されました".to_string()),
         })),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -125,7 +143,10 @@ async fn get_business_members(
     
     match service.get_business_members(id, &user_permissions).await {
         Ok(members) => Ok(Json(members)),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -140,7 +161,10 @@ async fn add_business_member(
     
     match service.add_business_member(request, &user_permissions).await {
         Ok(member) => Ok(Json(BusinessMemberResponse::from(member))),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -154,7 +178,10 @@ async fn update_business_member(
     
     match service.update_business_member(member_id, request, &user_permissions).await {
         Ok(member) => Ok(Json(BusinessMemberResponse::from(member))),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -170,7 +197,10 @@ async fn remove_business_member(
             success: true,
             message: Some("業務従事者が正常に削除されました".to_string()),
         })),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -183,7 +213,10 @@ async fn get_employee_business_history(
     
     match service.get_employee_business_history(employee_id, &user_permissions).await {
         Ok(history) => Ok(Json(history)),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -196,7 +229,10 @@ async fn get_circulation_candidates(
     
     match service.suggest_circulation_candidates(id, &user_permissions).await {
         Ok(candidates) => Ok(Json(candidates)),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 
@@ -206,7 +242,10 @@ async fn generate_business_number(
 ) -> Result<Json<BusinessNumberResponse>, (StatusCode, String)> {
     match service.generate_business_number().await {
         Ok(number) => Ok(Json(BusinessNumberResponse { business_number: number })),
-        Err(err) => Err((StatusCode::from(crate::error::AppError::Business(err)), err.to_string())),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((StatusCode::from(crate::error::AppError::Business(err)), error_msg))
+        },
     }
 }
 

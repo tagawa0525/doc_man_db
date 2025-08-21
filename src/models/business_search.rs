@@ -63,12 +63,8 @@ pub enum BusinessSortField {
     CreatedAt,
 }
 
-// ソート順列挙型（再利用）
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum SortOrder {
-    Asc,
-    Desc,
-}
+// ソート順列挙型はadvanced_searchから使用
+pub use crate::models::advanced_search::SortOrder;
 
 // 業務検索結果型
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -82,14 +78,14 @@ pub struct BusinessSearchResult {
 // 業務検索集計情報
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BusinessSearchAggregations {
-    pub status_counts: Vec<StatusCount>,
+    pub status_counts: Vec<BusinessStatusCount>,
     pub customer_counts: Vec<CustomerCount>,
     pub member_counts: Vec<MemberCount>,
     pub year_counts: Vec<YearCount>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StatusCount {
+pub struct BusinessStatusCount {
     pub status: String,
     pub count: i32,
 }
@@ -183,24 +179,6 @@ impl From<BusinessSortField> for String {
     }
 }
 
-impl From<String> for SortOrder {
-    fn from(s: String) -> Self {
-        match s.to_lowercase().as_str() {
-            "asc" => SortOrder::Asc,
-            "desc" => SortOrder::Desc,
-            _ => SortOrder::Asc,
-        }
-    }
-}
-
-impl From<SortOrder> for String {
-    fn from(order: SortOrder) -> Self {
-        match order {
-            SortOrder::Asc => "asc".to_string(),
-            SortOrder::Desc => "desc".to_string(),
-        }
-    }
-}
 
 // デフォルト実装
 impl Default for AdvancedBusinessSearchInput {

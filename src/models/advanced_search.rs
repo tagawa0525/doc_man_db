@@ -6,13 +6,12 @@ use crate::models::{Employee, PaginationInput};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdvancedEmployeeSearchInput {
     pub name: Option<String>,
-    pub employee_id: Option<String>,
+    pub employee_number: Option<String>,
     pub email: Option<String>,
     pub department_id: Option<i32>,
-    pub current_position: Option<String>,
+    // current_position removed - not available in Employee model
     pub has_business_experience: Option<String>, // 業務番号
-    pub joining_date_from: Option<NaiveDate>,
-    pub joining_date_to: Option<NaiveDate>,
+    // joining_date fields removed - not available in Employee model
     pub is_active: Option<bool>,
     pub skill_keywords: Option<Vec<String>>,
     pub sort_by: Option<EmployeeSortField>,
@@ -44,7 +43,7 @@ impl Default for EmployeeAutocompleteInput {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum EmployeeSearchField {
     Name,
-    EmployeeId,
+    EmployeeNumber,
     Email,
     Department,
 }
@@ -53,8 +52,8 @@ pub enum EmployeeSearchField {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum EmployeeSortField {
     Name,
-    EmployeeId,
-    JoiningDate,
+    EmployeeNumber,
+    CreatedAt,
     Department,
     LastUpdated,
 }
@@ -121,7 +120,7 @@ impl From<String> for EmployeeSearchField {
     fn from(s: String) -> Self {
         match s.to_lowercase().as_str() {
             "name" => EmployeeSearchField::Name,
-            "employee_id" => EmployeeSearchField::EmployeeId,
+            "employee_number" => EmployeeSearchField::EmployeeNumber,
             "email" => EmployeeSearchField::Email,
             "department" => EmployeeSearchField::Department,
             _ => EmployeeSearchField::Name,
@@ -133,7 +132,7 @@ impl From<EmployeeSearchField> for String {
     fn from(field: EmployeeSearchField) -> Self {
         match field {
             EmployeeSearchField::Name => "name".to_string(),
-            EmployeeSearchField::EmployeeId => "employee_id".to_string(),
+            EmployeeSearchField::EmployeeNumber => "employee_number".to_string(),
             EmployeeSearchField::Email => "email".to_string(),
             EmployeeSearchField::Department => "department".to_string(),
         }
@@ -144,8 +143,8 @@ impl From<String> for EmployeeSortField {
     fn from(s: String) -> Self {
         match s.to_lowercase().as_str() {
             "name" => EmployeeSortField::Name,
-            "employee_id" => EmployeeSortField::EmployeeId,
-            "joining_date" => EmployeeSortField::JoiningDate,
+            "employee_number" => EmployeeSortField::EmployeeNumber,
+            "created_at" => EmployeeSortField::CreatedAt,
             "department" => EmployeeSortField::Department,
             "last_updated" => EmployeeSortField::LastUpdated,
             _ => EmployeeSortField::Name,
@@ -157,8 +156,8 @@ impl From<EmployeeSortField> for String {
     fn from(field: EmployeeSortField) -> Self {
         match field {
             EmployeeSortField::Name => "name".to_string(),
-            EmployeeSortField::EmployeeId => "employee_id".to_string(),
-            EmployeeSortField::JoiningDate => "joining_date".to_string(),
+            EmployeeSortField::EmployeeNumber => "employee_number".to_string(),
+            EmployeeSortField::CreatedAt => "created_at".to_string(),
             EmployeeSortField::Department => "department".to_string(),
             EmployeeSortField::LastUpdated => "last_updated".to_string(),
         }

@@ -33,10 +33,13 @@ async fn advanced_employee_search(
     
     match service.search_employees_advanced(filters, &user_permissions).await {
         Ok(result) => Ok(Json(result)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        }
     }
 }
 
@@ -59,10 +62,13 @@ async fn employee_autocomplete(
     
     match service.employee_autocomplete(input, &user_permissions).await {
         Ok(result) => Ok(Json(result)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        }
     }
 }
 
@@ -75,10 +81,13 @@ async fn employee_business_history(
     
     match service.get_employee_business_history(employee_id, &user_permissions).await {
         Ok(history) => Ok(Json(history)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        }
     }
 }
 
@@ -115,15 +124,12 @@ fn get_user_permissions() -> UserPermissions {
 pub fn query_params_to_search_filters(params: &HashMap<String, String>) -> AdvancedEmployeeSearchInput {
     AdvancedEmployeeSearchInput {
         name: params.get("name").cloned(),
-        employee_id: params.get("employee_id").cloned(),
+        employee_number: params.get("employee_number").cloned(),
         email: params.get("email").cloned(),
         department_id: params.get("department_id").and_then(|s| s.parse().ok()),
-        current_position: params.get("current_position").cloned(),
+        // current_position removed - not available in Employee model
         has_business_experience: params.get("has_business_experience").cloned(),
-        joining_date_from: params.get("joining_date_from")
-            .and_then(|s| s.parse().ok()),
-        joining_date_to: params.get("joining_date_to")
-            .and_then(|s| s.parse().ok()),
+        // joining_date fields removed - not available in Employee model
         is_active: params.get("is_active").and_then(|s| s.parse().ok()),
         skill_keywords: params.get("skill_keywords")
             .map(|s| s.split(',').map(|item| item.trim().to_string()).collect()),

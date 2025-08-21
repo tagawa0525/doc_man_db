@@ -35,10 +35,13 @@ async fn advanced_business_search(
     
     match service.search_businesses_advanced(filters, &user_permissions).await {
         Ok(result) => Ok(Json(result)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        },
     }
 }
 
@@ -61,10 +64,13 @@ async fn business_autocomplete(
     
     match service.business_autocomplete(input, &user_permissions).await {
         Ok(result) => Ok(Json(result)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        },
     }
 }
 
@@ -81,10 +87,13 @@ async fn employee_businesses(
     
     match service.get_employee_businesses(employee_id, include_completed, &user_permissions).await {
         Ok(result) => Ok(Json(result)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        },
     }
 }
 
@@ -96,10 +105,13 @@ async fn business_statistics(
     
     match service.get_business_statistics(&user_permissions).await {
         Ok(stats) => Ok(Json(BusinessStatisticsResponse::from(stats))),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        },
     }
 }
 
@@ -111,10 +123,13 @@ async fn search_suggestions(
     
     match service.get_search_suggestions(&user_permissions).await {
         Ok(suggestions) => Ok(Json(suggestions)),
-        Err(err) => Err((
-            StatusCode::from(crate::error::AppError::Search(err)),
-            err.to_string()
-        )),
+        Err(err) => {
+            let error_msg = err.to_string();
+            Err((
+                StatusCode::from(crate::error::AppError::Search(err)),
+                error_msg
+            ))
+        },
     }
 }
 

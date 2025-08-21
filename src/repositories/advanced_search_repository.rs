@@ -46,23 +46,23 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
         filters: AdvancedEmployeeSearchInput,
         user_permissions: &UserPermissions,
     ) -> Result<EmployeeSearchResult, SearchError> {
-        let mut conditions = Vec::new();
+        let mut conditions = Vec::<String>::new();
         let mut joins = Vec::new();
         let mut bind_values = Vec::new();
         
         // 基本的な検索条件
         if let Some(name) = &filters.name {
-            conditions.push("e.name LIKE ?");
+            conditions.push("e.name LIKE ?".to_string());
             bind_values.push(format!("%{}%", name));
         }
         
-        if let Some(employee_id) = &filters.employee_id {
-            conditions.push("e.employee_id LIKE ?");
-            bind_values.push(format!("%{}%", employee_id));
+        if let Some(employee_number) = &filters.employee_number {
+            conditions.push("e.employee_number LIKE ?".to_string());
+            bind_values.push(format!("%{}%", employee_number));
         }
         
         if let Some(email) = &filters.email {
-            conditions.push("e.email LIKE ?");
+            conditions.push("e.email LIKE ?".to_string());
             bind_values.push(format!("%{}%", email));
         }
         
@@ -71,14 +71,12 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
                 "LEFT JOIN department_assignments da ON e.id = da.employee_id 
                  AND (da.end_date IS NULL OR da.end_date >= DATE('now'))"
             );
-            conditions.push("da.department_id = ?");
+            conditions.push("da.department_id = ?".to_string());
             bind_values.push(department_id.to_string());
         }
         
-        if let Some(current_position) = &filters.current_position {
-            conditions.push("e.position LIKE ?");
-            bind_values.push(format!("%{}%", current_position));
-        }
+        // Position field not available in current Employee model
+        // Removed current_position filter
         
         // 業務従事経験フィルター
         if let Some(business_number) = &filters.has_business_experience {
@@ -86,24 +84,16 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
                 "LEFT JOIN business_members bm ON e.id = bm.employee_id
                  LEFT JOIN businesses b ON bm.business_id = b.id"
             );
-            conditions.push("b.business_number LIKE ?");
+            conditions.push("b.business_number LIKE ?".to_string());
             bind_values.push(format!("%{}%", business_number));
         }
         
-        // 入社日範囲
-        if let Some(joining_date_from) = &filters.joining_date_from {
-            conditions.push("e.joining_date >= ?");
-            bind_values.push(joining_date_from.to_string());
-        }
-        
-        if let Some(joining_date_to) = &filters.joining_date_to {
-            conditions.push("e.joining_date <= ?");
-            bind_values.push(joining_date_to.to_string());
-        }
+        // Joining date fields not available in current Employee model
+        // Removed joining_date filters
         
         // アクティブ状態
         if let Some(is_active) = filters.is_active {
-            conditions.push("e.is_active = ?");
+            conditions.push("e.is_active = ?".to_string());
             bind_values.push(is_active.to_string());
         }
         
@@ -122,7 +112,7 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
                 );
             }
             
-            conditions.push(&format!("da.department_id IN ({})", dept_placeholders));
+            conditions.push(format!("da.department_id IN ({})", dept_placeholders));
             for dept_id in &user_permissions.accessible_departments {
                 bind_values.push(dept_id.to_string());
             }
@@ -136,15 +126,15 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
         };
         
         // ソート順設定
-        let order_by = match filters.sort_by.unwrap_or(EmployeeSortField::Name) {
+        let order_by = match filters.sort_by.as_ref().unwrap_or(&EmployeeSortField::Name) {
             EmployeeSortField::Name => "e.name",
-            EmployeeSortField::EmployeeId => "e.employee_id",
-            EmployeeSortField::JoiningDate => "e.joining_date",
+            EmployeeSortField::EmployeeNumber => "e.employee_number",
+            EmployeeSortField::CreatedAt => "e.created_at",
             EmployeeSortField::Department => "d.name",
             EmployeeSortField::LastUpdated => "e.updated_at",
         };
         
-        let sort_order = match filters.sort_order.unwrap_or(SortOrder::Asc) {
+        let sort_order = match filters.sort_order.as_ref().unwrap_or(&SortOrder::Asc) {
             SortOrder::Asc => "ASC",
             SortOrder::Desc => "DESC",
         };
@@ -178,12 +168,11 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
         let employees = rows.into_iter()
             .map(|row| Employee {
                 id: row.get("id"),
-                employee_id: row.get("employee_id"),
+                employee_number: row.get("employee_number"),
                 name: row.get("name"),
                 email: row.get("email"),
-                phone: row.get::<Option<String>, _>("phone"),
-                position: row.get::<Option<String>, _>("position"),
-                joining_date: row.get("joining_date"),
+                ad_username: row.get("ad_username"),
+                department_id: row.get("department_id"),
                 is_active: row.get("is_active"),
                 created_at: row.get("created_at"),
                 updated_at: row.get("updated_at"),
@@ -213,10 +202,11 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
             None
         };
         
+        let employees_count = employees.len();
         Ok(EmployeeSearchResult {
             employees,
             total_count: total,
-            has_next_page: employees.len() as i64 == filters.pagination.limit as i64 && total > (filters.pagination.offset + employees.len() as i32) as i64,
+            has_next_page: employees_count as i64 == filters.pagination.limit as i64 && total > (filters.pagination.offset + employees_count as i32) as i64,
             aggregations,
         })
     }
@@ -266,7 +256,7 @@ impl AdvancedSearchRepository for SqliteAdvancedSearchRepository {
                 }
             },
             
-            EmployeeSearchField::EmployeeId => {
+            EmployeeSearchField::EmployeeNumber => {
                 let query_text = r#"
                     SELECT DISTINCT e.employee_id, e.name, d.name as department_name
                     FROM employees e

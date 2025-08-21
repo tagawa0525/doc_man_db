@@ -7,7 +7,7 @@ use crate::models::{
     SearchStatistics, SearchType
 };
 use crate::services::UserPermissions;
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use std::sync::Arc;
 
 pub struct SearchHistoryService {

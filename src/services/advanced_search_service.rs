@@ -86,24 +86,14 @@ impl AdvancedSearchService {
             ));
         }
         
-        // 日付範囲検証
-        if let (Some(from), Some(to)) = (&filters.joining_date_from, &filters.joining_date_to) {
-            if from > to {
-                return Err(SearchError::InvalidParameters(
-                    "開始日は終了日以前である必要があります".to_string()
-                ));
-            }
-        }
+        // Joining date validation removed - fields not available in current model
         
         // 検索条件が最低一つはあることを確認
         if filters.name.is_none() && 
-           filters.employee_id.is_none() && 
+           filters.employee_number.is_none() && 
            filters.email.is_none() &&
            filters.department_id.is_none() &&
-           filters.current_position.is_none() &&
            filters.has_business_experience.is_none() &&
-           filters.joining_date_from.is_none() &&
-           filters.joining_date_to.is_none() &&
            filters.is_active.is_none() &&
            filters.skill_keywords.as_ref().map_or(true, |v| v.is_empty()) {
             

@@ -2,7 +2,7 @@ use crate::error::SearchError;
 use crate::models::{
     AdvancedBusinessSearchInput, BusinessAutocompleteInput, BusinessSearchResult, 
     BusinessSearchAggregations, EmployeeBusinesses, BusinessWithRole,
-    BusinessSearchField, BusinessSortField, SortOrder, StatusCount, CustomerCount, 
+    BusinessSearchField, BusinessSortField, SortOrder, BusinessStatusCount, CustomerCount, 
     MemberCount, YearCount, AutocompleteResult, AutocompleteSuggestion,
     Business, BusinessRole
 };
@@ -153,7 +153,7 @@ impl BusinessSearchRepository for SqliteBusinessSearchRepository {
         };
         
         // ソート順設定
-        let order_by = match filters.sort_by.unwrap_or(BusinessSortField::CreatedAt) {
+        let order_by = match filters.sort_by.as_ref().unwrap_or(&BusinessSortField::CreatedAt) {
             BusinessSortField::BusinessNumber => "b.business_number",
             BusinessSortField::Name => "b.name",
             BusinessSortField::CustomerName => "b.customer_name",
@@ -162,7 +162,7 @@ impl BusinessSearchRepository for SqliteBusinessSearchRepository {
             BusinessSortField::CreatedAt => "b.created_at",
         };
         
-        let sort_order = match filters.sort_order.unwrap_or(SortOrder::Desc) {
+        let sort_order = match filters.sort_order.as_ref().unwrap_or(&SortOrder::Desc) {
             SortOrder::Asc => "ASC",
             SortOrder::Desc => "DESC",
         };
@@ -226,10 +226,11 @@ impl BusinessSearchRepository for SqliteBusinessSearchRepository {
         // 集計情報取得
         let aggregations = self.get_business_search_aggregations(&filters, user_permissions).await?;
         
+        let businesses_count = businesses.len();
         Ok(BusinessSearchResult {
             businesses,
             total_count: total,
-            has_next_page: businesses.len() as i64 == filters.pagination.limit as i64 && total > (filters.pagination.offset + businesses.len() as i32) as i64,
+            has_next_page: businesses_count as i64 == filters.pagination.limit as i64 && total > (filters.pagination.offset + businesses_count as i32) as i64,
             aggregations,
         })
     }
@@ -471,7 +472,7 @@ impl BusinessSearchRepository for SqliteBusinessSearchRepository {
         
         let status_rows = sqlx::query(status_query).fetch_all(&self.pool).await?;
         let status_counts = status_rows.into_iter()
-            .map(|row| StatusCount {
+            .map(|row| BusinessStatusCount {
                 status: row.get("status"),
                 count: row.get("count"),
             })

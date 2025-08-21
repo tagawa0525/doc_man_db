@@ -88,31 +88,31 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn get_by_id(&self, id: i32) -> Result<Option<Business>, BusinessError> {
-        let row = sqlx::query!(
+        let row = sqlx::query(
             r#"
             SELECT b.*, e.name as creator_name
             FROM businesses b
             JOIN employees e ON b.created_by = e.id
             WHERE b.id = ?
-            "#,
-            id
+            "#
         )
+        .bind(id)
         .fetch_optional(&self.pool)
         .await?;
         
         if let Some(row) = row {
             Ok(Some(Business {
-                id: row.id,
-                business_number: row.business_number,
-                name: row.name,
-                description: row.description,
-                customer_name: row.customer_name,
-                start_date: row.start_date,
-                end_date: row.end_date,
-                status: row.status.into(),
-                created_by: row.created_by,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
+                id: row.get("id"),
+                business_number: row.get("business_number"),
+                name: row.get("name"),
+                description: row.get("description"),
+                customer_name: row.get("customer_name"),
+                start_date: row.get("start_date"),
+                end_date: row.get("end_date"),
+                status: row.get::<String, _>("status").into(),
+                created_by: row.get("created_by"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
             }))
         } else {
             Ok(None)
@@ -120,31 +120,31 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
 
     async fn get_by_business_number(&self, business_number: &str) -> Result<Option<Business>, BusinessError> {
-        let row = sqlx::query!(
+        let row = sqlx::query(
             r#"
             SELECT b.*, e.name as creator_name
             FROM businesses b
             JOIN employees e ON b.created_by = e.id
             WHERE b.business_number = ?
-            "#,
-            business_number
+            "#
         )
+        .bind(business_number)
         .fetch_optional(&self.pool)
         .await?;
         
         if let Some(row) = row {
             Ok(Some(Business {
-                id: row.id,
-                business_number: row.business_number,
-                name: row.name,
-                description: row.description,
-                customer_name: row.customer_name,
-                start_date: row.start_date,
-                end_date: row.end_date,
-                status: row.status.into(),
-                created_by: row.created_by,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
+                id: row.get("id"),
+                business_number: row.get("business_number"),
+                name: row.get("name"),
+                description: row.get("description"),
+                customer_name: row.get("customer_name"),
+                start_date: row.get("start_date"),
+                end_date: row.get("end_date"),
+                status: row.get::<String, _>("status").into(),
+                created_by: row.get("created_by"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
             }))
         } else {
             Ok(None)
@@ -314,7 +314,8 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn delete(&self, id: i32) -> Result<(), BusinessError> {
-        let result = sqlx::query!("DELETE FROM businesses WHERE id = ?", id)
+        let result = sqlx::query("DELETE FROM businesses WHERE id = ?")
+            .bind(id)
             .execute(&self.pool)
             .await?;
         
@@ -326,39 +327,39 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn get_members(&self, business_id: i32) -> Result<Vec<BusinessMember>, BusinessError> {
-        let rows = sqlx::query!(
+        let rows = sqlx::query(
             r#"
             SELECT 
                 bm.*,
                 b.business_number,
                 b.name as business_name,
                 e.name as employee_name,
-                e.employee_id,
+                e.employee_number,
                 e.email as employee_email
             FROM business_members bm
             JOIN businesses b ON bm.business_id = b.id
             JOIN employees e ON bm.employee_id = e.id
             WHERE bm.business_id = ?
             ORDER BY bm.start_date DESC
-            "#,
-            business_id
+            "#
         )
+        .bind(business_id)
         .fetch_all(&self.pool)
         .await?;
         
         let members = rows.into_iter()
             .map(|row| BusinessMember {
-                id: row.id,
-                business_id: row.business_id,
-                employee_id: row.employee_id,
-                role: row.role.into(),
-                participation_level: row.participation_level.into(),
-                start_date: row.start_date,
-                end_date: row.end_date,
-                notes: row.notes,
-                created_by: row.created_by,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
+                id: row.get("id"),
+                business_id: row.get("business_id"),
+                employee_id: row.get("employee_id"),
+                role: row.get::<String, _>("role").into(),
+                participation_level: row.get::<String, _>("participation_level").into(),
+                start_date: row.get("start_date"),
+                end_date: row.get("end_date"),
+                notes: row.get("notes"),
+                created_by: row.get("created_by"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
             })
             .collect();
         
@@ -366,7 +367,7 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn get_member_by_id(&self, member_id: i32) -> Result<Option<BusinessMember>, BusinessError> {
-        let row = sqlx::query!(
+        let row = sqlx::query(
             r#"
             SELECT 
                 bm.*,
@@ -377,25 +378,25 @@ impl BusinessRepository for SqliteBusinessRepository {
             JOIN businesses b ON bm.business_id = b.id
             JOIN employees e ON bm.employee_id = e.id
             WHERE bm.id = ?
-            "#,
-            member_id
+            "#
         )
+        .bind(member_id)
         .fetch_optional(&self.pool)
         .await?;
         
         if let Some(row) = row {
             Ok(Some(BusinessMember {
-                id: row.id,
-                business_id: row.business_id,
-                employee_id: row.employee_id,
-                role: row.role.into(),
-                participation_level: row.participation_level.into(),
-                start_date: row.start_date,
-                end_date: row.end_date,
-                notes: row.notes,
-                created_by: row.created_by,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
+                id: row.get("id"),
+                business_id: row.get("business_id"),
+                employee_id: row.get("employee_id"),
+                role: row.get::<String, _>("role").into(),
+                participation_level: row.get::<String, _>("participation_level").into(),
+                start_date: row.get("start_date"),
+                end_date: row.get("end_date"),
+                notes: row.get("notes"),
+                created_by: row.get("created_by"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
             }))
         } else {
             Ok(None)
@@ -404,16 +405,16 @@ impl BusinessRepository for SqliteBusinessRepository {
     
     async fn add_member(&self, request: CreateBusinessMemberRequest) -> Result<BusinessMember, BusinessError> {
         // 重複チェック
-        let existing = sqlx::query!(
+        let existing = sqlx::query(
             r#"
             SELECT id FROM business_members
             WHERE business_id = ? AND employee_id = ? 
             AND (end_date IS NULL OR end_date >= ?)
-            "#,
-            request.business_id,
-            request.employee_id,
-            request.start_date
+            "#
         )
+        .bind(request.business_id)
+        .bind(request.employee_id)
+        .bind(request.start_date)
         .fetch_optional(&self.pool)
         .await?;
         
@@ -421,22 +422,22 @@ impl BusinessRepository for SqliteBusinessRepository {
             return Err(BusinessError::MemberAlreadyExists);
         }
         
-        let member_id = sqlx::query!(
+        let member_id = sqlx::query(
             r#"
             INSERT INTO business_members (
                 business_id, employee_id, role, participation_level,
                 start_date, end_date, notes, created_by
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            "#,
-            request.business_id,
-            request.employee_id,
-            request.role,
-            request.participation_level,
-            request.start_date,
-            request.end_date,
-            request.notes,
-            request.created_by
+            "#
         )
+        .bind(request.business_id)
+        .bind(request.employee_id)
+        .bind(&request.role)
+        .bind(&request.participation_level)
+        .bind(request.start_date)
+        .bind(request.end_date)
+        .bind(&request.notes)
+        .bind(request.created_by)
         .execute(&self.pool)
         .await?
         .last_insert_rowid();
@@ -503,7 +504,8 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn remove_member(&self, member_id: i32) -> Result<(), BusinessError> {
-        let result = sqlx::query!("DELETE FROM business_members WHERE id = ?", member_id)
+        let result = sqlx::query("DELETE FROM business_members WHERE id = ?")
+            .bind(member_id)
             .execute(&self.pool)
             .await?;
         
@@ -515,7 +517,7 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn get_member_history(&self, employee_id: i32) -> Result<Vec<BusinessMember>, BusinessError> {
-        let rows = sqlx::query!(
+        let rows = sqlx::query(
             r#"
             SELECT 
                 bm.*,
@@ -527,25 +529,25 @@ impl BusinessRepository for SqliteBusinessRepository {
             JOIN employees e ON bm.employee_id = e.id
             WHERE bm.employee_id = ?
             ORDER BY bm.start_date DESC
-            "#,
-            employee_id
+            "#
         )
+        .bind(employee_id)
         .fetch_all(&self.pool)
         .await?;
         
         let members = rows.into_iter()
             .map(|row| BusinessMember {
-                id: row.id,
-                business_id: row.business_id,
-                employee_id: row.employee_id,
-                role: row.role.into(),
-                participation_level: row.participation_level.into(),
-                start_date: row.start_date,
-                end_date: row.end_date,
-                notes: row.notes,
-                created_by: row.created_by,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
+                id: row.get("id"),
+                business_id: row.get("business_id"),
+                employee_id: row.get("employee_id"),
+                role: row.get::<String, _>("role").into(),
+                participation_level: row.get::<String, _>("participation_level").into(),
+                start_date: row.get("start_date"),
+                end_date: row.get("end_date"),
+                notes: row.get("notes"),
+                created_by: row.get("created_by"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
             })
             .collect();
         
@@ -553,32 +555,32 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn get_external_contacts(&self, business_id: i32) -> Result<Vec<ExternalContact>, BusinessError> {
-        let rows = sqlx::query!(
+        let rows = sqlx::query(
             r#"
             SELECT ec.*
             FROM external_contacts ec
             JOIN business_external_contacts bec ON ec.id = bec.external_contact_id
             WHERE bec.business_id = ? AND ec.is_active = 1
             ORDER BY ec.name
-            "#,
-            business_id
+            "#
         )
+        .bind(business_id)
         .fetch_all(&self.pool)
         .await?;
         
         let contacts = rows.into_iter()
             .map(|row| ExternalContact {
-                id: row.id,
-                name: row.name,
-                company_name: row.company_name,
-                email: row.email,
-                phone: row.phone,
-                address: row.address,
-                contact_type: row.contact_type.into(),
-                is_active: row.is_active,
-                created_by: row.created_by,
-                created_at: row.created_at,
-                updated_at: row.updated_at,
+                id: row.get("id"),
+                name: row.get("name"),
+                company_name: row.get("company_name"),
+                email: row.get("email"),
+                phone: row.get("phone"),
+                address: row.get("address"),
+                contact_type: row.get::<String, _>("contact_type").into(),
+                is_active: row.get("is_active"),
+                created_by: row.get("created_by"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
             })
             .collect();
         
@@ -586,14 +588,14 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn add_external_contact(&self, business_id: i32, external_contact_id: i32) -> Result<(), BusinessError> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             INSERT INTO business_external_contacts (business_id, external_contact_id)
             VALUES (?, ?)
-            "#,
-            business_id,
-            external_contact_id
+            "#
         )
+        .bind(business_id)
+        .bind(external_contact_id)
         .execute(&self.pool)
         .await?;
         
@@ -601,14 +603,14 @@ impl BusinessRepository for SqliteBusinessRepository {
     }
     
     async fn remove_external_contact(&self, business_id: i32, external_contact_id: i32) -> Result<(), BusinessError> {
-        sqlx::query!(
+        sqlx::query(
             r#"
             DELETE FROM business_external_contacts 
             WHERE business_id = ? AND external_contact_id = ?
-            "#,
-            business_id,
-            external_contact_id
+            "#
         )
+        .bind(business_id)
+        .bind(external_contact_id)
         .execute(&self.pool)
         .await?;
         
@@ -619,21 +621,21 @@ impl BusinessRepository for SqliteBusinessRepository {
         let current_year = chrono::Utc::now().format("%y").to_string();
         
         // 今年度の最大番号を取得
-        let max_number = sqlx::query!(
+        let max_number = sqlx::query(
             r#"
             SELECT business_number 
             FROM businesses 
             WHERE business_number LIKE ?
             ORDER BY business_number DESC 
             LIMIT 1
-            "#,
-            format!("BUS-{}%", current_year)
+            "#
         )
+        .bind(format!("BUS-{}%", current_year))
         .fetch_optional(&self.pool)
         .await?;
         
         let next_number = if let Some(row) = max_number {
-            let current_number = row.business_number;
+            let current_number: String = row.get("business_number");
             let number_part: i32 = current_number
                 .split('-')
                 .nth(1)
