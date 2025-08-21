@@ -1,5 +1,6 @@
 // Document Management System Models
 
+pub mod advanced_search;
 pub mod backup;
 pub mod business;
 pub mod csv_import;
@@ -11,6 +12,7 @@ pub mod migration;
 pub mod validation;
 
 // Re-export all models
+pub use advanced_search::*;
 pub use backup::*;
 pub use business::*;
 pub use csv_import::*;
