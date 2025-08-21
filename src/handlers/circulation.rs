@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::models::circulation::*;
-use crate::models::employee::UserPermissions;
 use crate::services::circulation_service::CirculationService;
 
 #[derive(Debug, Deserialize)]

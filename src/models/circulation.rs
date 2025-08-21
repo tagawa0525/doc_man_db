@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
@@ -194,7 +194,7 @@ pub enum CirculationError {
     #[error("Document not found")]
     DocumentNotFound,
     #[error("Database error: {0}")]
-    Database(#[from] sqlx::Error),
+    Database(#[from] crate::error::AppError),
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("Notification error: {0}")]
@@ -202,6 +202,14 @@ pub enum CirculationError {
 }
 
 pub type CirculationResult<T> = Result<T, CirculationError>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPermissions {
+    pub user_id: i32,
+    pub is_admin: bool,
+    pub department_id: Option<i32>,
+    pub business_id: Option<i32>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CirculationResponse {

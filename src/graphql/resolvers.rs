@@ -44,48 +44,22 @@ impl QueryRoot {
         }
     }
 
-    /// Get circulation workflows
+    /// Get circulation workflows (placeholder implementation)
     async fn circulation_workflows(&self, ctx: &Context<'_>) -> Result<Vec<CirculationWorkflow>> {
-        let state = ctx.data::<AppState>()?;
-
-        match state.circulation_service.get_workflows().await {
-            Ok(workflows) => {
-                let graphql_workflows: Vec<CirculationWorkflow> =
-                    workflows.into_iter().map(|w| w.into()).collect();
-                Ok(graphql_workflows)
-            }
-            Err(e) => Err(async_graphql::Error::new(format!("Workflow error: {e}"))),
-        }
+        // TODO: Implement when AppState includes circulation_service
+        Ok(vec![])
     }
 
-    /// Get pending circulations for current user
+    /// Get pending circulations for current user (placeholder implementation)
     async fn my_pending_circulations(&self, ctx: &Context<'_>) -> Result<Vec<CirculationStep>> {
-        let state = ctx.data::<AppState>()?;
-        // In a real implementation, you would get the user ID from the authentication context
-        let user_id = 1; // Placeholder
-
-        match state.circulation_service.get_pending_circulations_for_user(user_id).await {
-            Ok(steps) => {
-                let graphql_steps: Vec<CirculationStep> =
-                    steps.into_iter().map(|s| s.into()).collect();
-                Ok(graphql_steps)
-            }
-            Err(e) => Err(async_graphql::Error::new(format!("Circulation error: {e}"))),
-        }
+        // TODO: Implement when AppState includes circulation_service
+        Ok(vec![])
     }
 
-    /// Get circulations for a document
+    /// Get circulations for a document (placeholder implementation)
     async fn document_circulations(&self, ctx: &Context<'_>, document_id: i32) -> Result<Vec<DocumentCirculation>> {
-        let state = ctx.data::<AppState>()?;
-
-        match state.circulation_service.get_document_circulations(document_id).await {
-            Ok(circulations) => {
-                let graphql_circulations: Vec<DocumentCirculation> =
-                    circulations.into_iter().map(|c| c.into()).collect();
-                Ok(graphql_circulations)
-            }
-            Err(e) => Err(async_graphql::Error::new(format!("Circulation error: {e}"))),
-        }
+        // TODO: Implement when AppState includes circulation_service
+        Ok(vec![])
     }
 }
 
@@ -109,96 +83,46 @@ impl MutationRoot {
         }
     }
 
-    /// Create a new circulation
+    /// Create a new circulation (placeholder implementation)
     async fn create_circulation(
         &self,
         ctx: &Context<'_>,
         input: CreateCirculationInput,
     ) -> Result<CirculationResponse> {
-        let state = ctx.data::<AppState>()?;
-        let circulation_input = input.into();
-        
-        // In a real implementation, you would get user permissions from the authentication context
-        let user_permissions = crate::models::UserPermissions {
-            user_id: 1,
-            is_admin: false,
-            department_id: Some(1),
-            business_id: Some(1),
-        };
-
-        match state.circulation_service.create_circulation(circulation_input, &user_permissions).await {
-            Ok(circulation) => Ok(CirculationResponse {
-                success: true,
-                circulation: Some(circulation.into()),
-                message: "回覧が正常に開始されました".to_string(),
-            }),
-            Err(e) => Ok(CirculationResponse {
-                success: false,
-                circulation: None,
-                message: format!("回覧の開始に失敗しました: {e}"),
-            }),
-        }
+        // TODO: Implement when AppState includes circulation_service
+        Ok(CirculationResponse {
+            success: false,
+            circulation: None,
+            message: "Not implemented yet".to_string(),
+        })
     }
 
-    /// Complete a circulation step
+    /// Complete a circulation step (placeholder implementation)
     async fn complete_circulation_step(
         &self,
         ctx: &Context<'_>,
         input: CompleteStepInput,
     ) -> Result<StepResponse> {
-        let state = ctx.data::<AppState>()?;
-        let step_input = input.into();
-        
-        // In a real implementation, you would get user permissions from the authentication context
-        let user_permissions = crate::models::UserPermissions {
-            user_id: 1,
-            is_admin: false,
-            department_id: Some(1),
-            business_id: Some(1),
-        };
-
-        match state.circulation_service.complete_step(step_input, &user_permissions).await {
-            Ok(step) => Ok(StepResponse {
-                success: true,
-                step: Some(step.into()),
-                message: "ステップが正常に完了しました".to_string(),
-            }),
-            Err(e) => Ok(StepResponse {
-                success: false,
-                step: None,
-                message: format!("ステップの完了に失敗しました: {e}"),
-            }),
-        }
+        // TODO: Implement when AppState includes circulation_service
+        Ok(StepResponse {
+            success: false,
+            step: None,
+            message: "Not implemented yet".to_string(),
+        })
     }
 
-    /// Cancel a circulation
+    /// Cancel a circulation (placeholder implementation)
     async fn cancel_circulation(
         &self,
         ctx: &Context<'_>,
         id: i32,
         reason: Option<String>,
     ) -> Result<CirculationResponse> {
-        let state = ctx.data::<AppState>()?;
-        
-        // In a real implementation, you would get user permissions from the authentication context
-        let user_permissions = crate::models::UserPermissions {
-            user_id: 1,
-            is_admin: false,
-            department_id: Some(1),
-            business_id: Some(1),
-        };
-
-        match state.circulation_service.cancel_circulation(id, reason, &user_permissions).await {
-            Ok(_) => Ok(CirculationResponse {
-                success: true,
-                circulation: None,
-                message: "回覧が正常にキャンセルされました".to_string(),
-            }),
-            Err(e) => Ok(CirculationResponse {
-                success: false,
-                circulation: None,
-                message: format!("回覧のキャンセルに失敗しました: {e}"),
-            }),
-        }
+        // TODO: Implement when AppState includes circulation_service
+        Ok(CirculationResponse {
+            success: false,
+            circulation: None,
+            message: "Not implemented yet".to_string(),
+        })
     }
 }
