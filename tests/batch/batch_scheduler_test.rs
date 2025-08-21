@@ -61,7 +61,7 @@ fn test_batch_execution_creation() {
 
 #[test]
 fn test_batch_type_variants() {
-    let batch_types = vec![
+    let batch_types = [
         BatchType::FileCheck,
         BatchType::AdSync,
         BatchType::DataCleanup,
@@ -76,7 +76,7 @@ fn test_batch_type_variants() {
 
 #[test]
 fn test_batch_status_lifecycle() {
-    let statuses = vec![
+    let statuses = [
         BatchStatus::Pending,
         BatchStatus::Running,
         BatchStatus::Completed,

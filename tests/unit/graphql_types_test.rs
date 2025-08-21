@@ -456,7 +456,7 @@ fn test_document_conversion_with_long_strings() {
 #[test]
 fn test_generated_document_number_template_variations() {
     // 異なるテンプレートパターンのテスト
-    let templates = vec![
+    let templates = [
         "{部署コード}-{年下2桁}{連番:3桁}",
         "{年4桁}-{部署コード}-{連番:5桁}",
         "CTA-{年下2桁}{月:2桁}{連番:3桁}",

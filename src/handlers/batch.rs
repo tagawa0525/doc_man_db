@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn test_batch_types_enum() {
-        let batch_types = vec![
+        let batch_types = [
             BatchType::FileCheck,
             BatchType::AdSync,
             BatchType::DataCleanup,

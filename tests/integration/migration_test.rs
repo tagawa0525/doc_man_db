@@ -1,7 +1,6 @@
 use doc_man_db::models::migration::*;
 use doc_man_db::services::{MigrationService, MigrationServiceImpl};
 
-use tokio;
 use uuid::Uuid;
 
 #[tokio::test]

@@ -95,7 +95,7 @@ async fn test_is_document_number_exists() {
     let result = repository.is_document_number_exists("T-25001").await;
 
     assert!(result.is_ok());
-    assert_eq!(result.unwrap(), false);
+    assert!(!result.unwrap());
 }
 
 #[tokio::test]
@@ -151,7 +151,7 @@ async fn test_repository_error_handling() {
 
     assert!(matches!(validation_error, RepositoryError::Validation(_)));
     assert_eq!(
-        format!("{}", validation_error),
+        format!("{validation_error}"),
         format!("Validation failed: {}", error_message)
     );
 }
@@ -164,7 +164,7 @@ async fn test_repository_not_found_error() {
 
     assert!(matches!(error, RepositoryError::NotFound { .. }));
     assert_eq!(
-        format!("{}", error),
+        format!("{error}"),
         "Resource not found with id: test_id_123"
     );
 }

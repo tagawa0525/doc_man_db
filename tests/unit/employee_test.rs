@@ -2,7 +2,6 @@ use chrono::Utc;
 use doc_man_db::models::{
     CreateEmployeeRequest, Employee, EmployeeSearchQuery, UpdateEmployeeRequest,
 };
-use serde_json;
 
 #[test]
 fn test_employee_creation() {
@@ -25,7 +24,7 @@ fn test_employee_creation() {
     assert_eq!(employee.email, Some("tanaka@example.com".to_string()));
     assert_eq!(employee.ad_username, Some("tanaka.taro".to_string()));
     assert_eq!(employee.department_id, Some(10));
-    assert_eq!(employee.is_active, true);
+    assert!(employee.is_active);
     assert_eq!(employee.created_at, now);
     assert_eq!(employee.updated_at, now);
 }
@@ -51,7 +50,7 @@ fn test_employee_minimal_creation() {
     assert_eq!(employee.email, None);
     assert_eq!(employee.ad_username, None);
     assert_eq!(employee.department_id, None);
-    assert_eq!(employee.is_active, false);
+    assert!(!employee.is_active);
 }
 
 #[test]
@@ -97,7 +96,7 @@ fn test_employee_deserialization() {
     assert_eq!(employee.email, Some("tanaka@example.com".to_string()));
     assert_eq!(employee.ad_username, Some("tanaka.taro".to_string()));
     assert_eq!(employee.department_id, Some(10));
-    assert_eq!(employee.is_active, true);
+    assert!(employee.is_active);
 }
 
 #[test]
@@ -308,7 +307,7 @@ fn test_employee_debug_format() {
         updated_at: now,
     };
 
-    let debug_str = format!("{:?}", employee);
+    let debug_str = format!("{employee:?}");
     assert!(debug_str.contains("Employee"));
     assert!(debug_str.contains("田中太郎"));
     assert!(debug_str.contains("E2025001"));

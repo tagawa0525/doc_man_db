@@ -1,6 +1,5 @@
 // Document Number Generation の基本テスト
 
-use chrono;
 use doc_man_db::models::document_number_generation::*;
 
 #[test]
@@ -82,7 +81,7 @@ fn test_template_pattern_concepts() {
 fn test_year_format_concepts() {
     // 年フォーマットの概念テスト
     let current_year = 2024;
-    let full_year = format!("{}", current_year);
+    let full_year = format!("{current_year}");
     let short_year = format!("{:02}", current_year % 100);
 
     assert_eq!(full_year, "2024");
@@ -105,7 +104,7 @@ fn test_sequential_number_concepts() {
     assert_eq!(current_seq, 2);
 
     // 桁数指定のフォーマット
-    let formatted_seq = format!("{:03}", current_seq);
+    let formatted_seq = format!("{current_seq:03}");
     assert_eq!(formatted_seq, "002");
 
     // オーバーフロー検証
@@ -145,11 +144,10 @@ fn test_document_number_uniqueness_concept() {
 
     // 異なる文書番号の生成シミュレーション
     for i in 1..=10 {
-        let number = format!("TECH-24{:03}", i);
+        let number = format!("TECH-24{i:03}");
         assert!(
             generated_numbers.insert(number.clone()),
-            "Duplicate number generated: {}",
-            number
+            "Duplicate number generated: {number}"
         );
     }
 

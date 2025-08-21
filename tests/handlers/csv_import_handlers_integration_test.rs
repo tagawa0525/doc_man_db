@@ -6,7 +6,6 @@ use doc_man_db::handlers::csv_import::{
 use doc_man_db::handlers::{DocumentHandlers, HealthHandler};
 use doc_man_db::repositories::{SqliteDocumentNumberRuleRepository, SqliteDocumentRepository};
 use doc_man_db::services::DocumentService;
-use tokio;
 use uuid::Uuid;
 
 // テスト用のAppState作成ヘルパー
@@ -179,8 +178,7 @@ async fn test_import_execution_response_structure() {
     for field in required_fields {
         assert!(
             execution[field].is_string() || execution[field].is_number(),
-            "Field '{}' should exist and have correct type",
-            field
+            "Field '{field}' should exist and have correct type"
         );
     }
 }
@@ -210,15 +208,13 @@ async fn test_import_progress_response_structure() {
         match expected_type {
             "string" => assert!(
                 response.0[field].is_string(),
-                "Field '{}' should be a string",
-                field
+                "Field '{field}' should be a string"
             ),
             "number" => assert!(
                 response.0[field].is_number(),
-                "Field '{}' should be a number",
-                field
+                "Field '{field}' should be a number"
             ),
-            _ => panic!("Unexpected type: {}", expected_type),
+            _ => panic!("Unexpected type: {expected_type}"),
         }
     }
 }

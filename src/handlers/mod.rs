@@ -1,6 +1,9 @@
+pub mod advanced_search;
 pub mod backup;
 pub mod batch;
 pub mod business;
+pub mod business_management;
+pub mod business_search;
 pub mod csv_import;
 pub mod deduplication;
 pub mod graphql;
@@ -9,9 +12,12 @@ pub mod migration;
 pub mod validation;
 
 // Re-export business handlers for compatibility
+pub use advanced_search::*;
 pub use backup::*;
 pub use batch::*;
 pub use business::{DocumentHandlers, HealthHandler};
+pub use business_management::*;
+pub use business_search::*;
 pub use csv_import::*;
 pub use deduplication::*;
 pub use migration::*;

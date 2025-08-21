@@ -128,7 +128,7 @@ fn test_batch_error_from_io_error() {
 
 #[test]
 fn test_batch_error_from_serde_error() {
-    let serde_error = serde_json::Error::from(serde_json::from_str::<i32>("invalid").unwrap_err());
+    let serde_error = serde_json::from_str::<i32>("invalid").unwrap_err();
     let batch_error: BatchError = serde_error.into();
 
     match batch_error {
@@ -140,7 +140,7 @@ fn test_batch_error_from_serde_error() {
 #[test]
 fn test_error_debug_format() {
     let error = AppError::ValidationError("test validation".to_string());
-    let debug_str = format!("{:?}", error);
+    let debug_str = format!("{error:?}");
     assert!(debug_str.contains("ValidationError"));
     assert!(debug_str.contains("test validation"));
 }
