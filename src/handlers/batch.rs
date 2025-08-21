@@ -277,11 +277,13 @@ mod tests {
 
     #[test]
     fn test_batch_types_enum() {
-        let batch_types = [BatchType::FileCheck,
+        let batch_types = [
+            BatchType::FileCheck,
             BatchType::AdSync,
             BatchType::DataCleanup,
             BatchType::DocumentBackup,
-            BatchType::SystemMaintenance];
+            BatchType::SystemMaintenance,
+        ];
         assert_eq!(batch_types.len(), 5);
         assert!(batch_types.contains(&BatchType::FileCheck));
     }

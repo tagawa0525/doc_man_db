@@ -1,8 +1,7 @@
 use crate::error::BusinessError;
 use crate::models::{
-    Business, BusinessMember, BusinessSearchFilters,
-    CreateBusinessMemberRequest, CreateBusinessRequest, ExternalContact,
-    UpdateBusinessMemberRequest, UpdateBusinessRequest,
+    Business, BusinessMember, BusinessSearchFilters, CreateBusinessMemberRequest,
+    CreateBusinessRequest, ExternalContact, UpdateBusinessMemberRequest, UpdateBusinessRequest,
 };
 use async_trait::async_trait;
 use sqlx::{Row, SqlitePool};
@@ -233,9 +232,7 @@ impl BusinessRepository for SqliteBusinessRepository {
         };
 
         // 総件数取得
-        let count_query = format!(
-            "SELECT COUNT(*) as count FROM businesses b {where_clause}"
-        );
+        let count_query = format!("SELECT COUNT(*) as count FROM businesses b {where_clause}");
 
         let mut count_query_builder = sqlx::query(&count_query);
         for value in &bind_values {

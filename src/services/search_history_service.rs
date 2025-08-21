@@ -2,8 +2,8 @@ use crate::error::SearchError;
 use crate::models::{
     CreateFavoriteSearchRequest, CreateSearchHistoryRequest, CreateSearchSuggestionRequest,
     FavoriteSearch, FavoriteSearchFilters, FavoriteSearchResponse, SearchHistory,
-    SearchHistoryFilters, SearchHistoryResponse, SearchSuggestion,
-    SearchSuggestionFilters, SearchSuggestionResponse,
+    SearchHistoryFilters, SearchHistoryResponse, SearchSuggestion, SearchSuggestionFilters,
+    SearchSuggestionResponse,
 };
 use crate::services::UserPermissions;
 use sqlx::{Row, SqlitePool};
@@ -84,9 +84,7 @@ impl SearchHistoryService {
         };
 
         // 総件数取得
-        let count_query = format!(
-            "SELECT COUNT(*) as count FROM search_history {where_clause}"
-        );
+        let count_query = format!("SELECT COUNT(*) as count FROM search_history {where_clause}");
         let mut count_query_builder = sqlx::query(&count_query);
         for value in &bind_values {
             count_query_builder = count_query_builder.bind(value);
@@ -193,9 +191,7 @@ impl SearchHistoryService {
         };
 
         // 総件数とデータを取得
-        let count_query = format!(
-            "SELECT COUNT(*) as count FROM favorite_searches {where_clause}"
-        );
+        let count_query = format!("SELECT COUNT(*) as count FROM favorite_searches {where_clause}");
         let mut count_query_builder = sqlx::query(&count_query);
         for value in &bind_values {
             count_query_builder = count_query_builder.bind(value);

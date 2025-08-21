@@ -105,10 +105,7 @@ impl AdvancedSearchService {
             && filters.department_id.is_none()
             && filters.has_business_experience.is_none()
             && filters.is_active.is_none()
-            && filters
-                .skill_keywords
-                .as_ref()
-                .is_none_or(|v| v.is_empty())
+            && filters.skill_keywords.as_ref().is_none_or(|v| v.is_empty())
         {
             return Err(SearchError::InvalidParameters(
                 "最低一つの検索条件を指定してください".to_string(),
@@ -127,7 +124,8 @@ pub fn normalize_search_query(query: &str) -> String {
         .trim()
         .to_lowercase()
         .chars()
-        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || "ー－・".contains(*c))
+        .map(|c| if c == '・' || c == '－' { ' ' } else { c })
+        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || "ー".contains(*c))
         .collect::<String>()
         .split_whitespace()
         .collect::<Vec<_>>()

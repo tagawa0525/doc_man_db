@@ -268,7 +268,7 @@ pub fn normalize_business_name(name: &str) -> String {
     name.trim()
         .to_lowercase()
         .chars()
-        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || "ー－・".contains(*c))
+        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || "ー－・-_".contains(*c))
         .collect::<String>()
         .split_whitespace()
         .collect::<Vec<_>>()

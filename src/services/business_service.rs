@@ -17,7 +17,6 @@ pub struct UserPermissions {
     pub accessible_departments: Vec<i32>,
 }
 
-
 pub struct BusinessService {
     repository: Arc<dyn BusinessRepository>,
 }
