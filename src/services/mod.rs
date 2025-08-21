@@ -2,6 +2,7 @@
 
 pub mod advanced_search_service;
 pub mod backup_service;
+pub mod business_search_service;
 pub mod business_service;
 pub mod csv_import_service;
 pub mod deduplication_service;
@@ -15,6 +16,7 @@ pub mod validation_service;
 // Re-export all services
 pub use advanced_search_service::*;
 pub use backup_service::*;
+pub use business_search_service::*;
 pub use business_service::*;
 pub use csv_import_service::*;
 pub use deduplication_service::*;

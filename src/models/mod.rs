@@ -3,6 +3,7 @@
 pub mod advanced_search;
 pub mod backup;
 pub mod business;
+pub mod business_search;
 pub mod csv_import;
 pub mod document;
 pub mod document_number_generation;
@@ -15,6 +16,7 @@ pub mod validation;
 pub use advanced_search::*;
 pub use backup::*;
 pub use business::*;
+pub use business_search::*;
 pub use csv_import::*;
 pub use document::*;
 pub use document_number_generation::*;
