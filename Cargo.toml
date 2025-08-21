@@ -52,6 +52,9 @@ tokio-cron-scheduler = "0.14.0"
 # For backup compression
 flate2 = "1.0"
 
+# Configuration management
+config = "0.14.1"
+
 [dev-dependencies]
 # Testing
 tokio-test = "0.4.4"

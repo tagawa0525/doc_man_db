@@ -37,7 +37,8 @@
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(npm run check:*)"
     ],
     "deny": [],
     "ask": [

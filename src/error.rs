@@ -15,6 +15,12 @@ pub enum AppError {
     #[error("Internal error: {0}")]
     InternalError(String),
 
+    #[error("Bad request: {0}")]
+    BadRequest(String),
+
+    #[error("Database error: {0}")]
+    Database(#[from] sqlx::Error),
+
     #[error("CSV import error: {0}")]
     CsvImport(#[from] CsvImportError),
 
@@ -169,6 +175,8 @@ impl From<AppError> for axum::http::StatusCode {
             AppError::ValidationError(_) => axum::http::StatusCode::BAD_REQUEST,
             AppError::NotFound(_) => axum::http::StatusCode::NOT_FOUND,
             AppError::InternalError(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::BadRequest(_) => axum::http::StatusCode::BAD_REQUEST,
+            AppError::Database(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::CsvImport(_) => axum::http::StatusCode::BAD_REQUEST,
             AppError::Deduplication(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Batch(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,

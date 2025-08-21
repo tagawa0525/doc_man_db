@@ -10,6 +10,7 @@ pub mod deduplication;
 pub mod graphql;
 pub mod http;
 pub mod migration;
+pub mod monitoring;
 pub mod validation;
 
 // Re-export business handlers for compatibility
@@ -23,4 +24,5 @@ pub use circulation::*;
 pub use csv_import::*;
 pub use deduplication::*;
 pub use migration::*;
+pub use monitoring::*;
 pub use validation::*;
