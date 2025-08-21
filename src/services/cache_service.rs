@@ -49,17 +49,19 @@ impl CacheService {
     where
         T: for<'de> Deserialize<'de>,
     {
-        let cache = self.cache.read().unwrap();
-        
-        if let Some(entry) = cache.get(key) {
+        let entry = {
+            let cache = self.cache.read().unwrap();
+            cache.get(key).cloned()
+        };
+
+        if let Some(entry) = entry {
             if entry.is_expired() {
                 // Entry is expired, treat as cache miss
-                drop(cache);
                 // Remove expired entry asynchronously
                 self.remove_expired_entry(key).await;
                 return Ok(None);
             }
-            
+
             let deserialized: T = serde_json::from_str(&entry.data)?;
             Ok(Some(deserialized))
         } else {
@@ -67,21 +69,16 @@ impl CacheService {
         }
     }
 
-    pub async fn set<T>(
-        &self,
-        key: &str,
-        value: &T,
-        ttl_seconds: u64,
-    ) -> Result<(), CacheError>
+    pub async fn set<T>(&self, key: &str, value: &T, ttl_seconds: u64) -> Result<(), CacheError>
     where
         T: Serialize,
     {
         let serialized = serde_json::to_string(value)?;
         let entry = CacheEntry::new(serialized, Duration::from_secs(ttl_seconds));
-        
+
         let mut cache = self.cache.write().unwrap();
         cache.insert(key.to_string(), entry);
-        
+
         Ok(())
     }
 
@@ -98,11 +95,11 @@ impl CacheService {
             .filter(|key| key.contains(pattern))
             .cloned()
             .collect();
-        
+
         for key in keys_to_remove {
             cache.remove(&key);
         }
-        
+
         Ok(())
     }
 
@@ -124,12 +121,12 @@ impl CacheService {
             .filter(|(_, entry)| entry.is_expired())
             .map(|(key, _)| key.clone())
             .collect();
-        
+
         let count = expired_keys.len();
         for key in expired_keys {
             cache.remove(&key);
         }
-        
+
         count
     }
 
@@ -154,27 +151,27 @@ pub struct CacheKeys;
 
 impl CacheKeys {
     pub fn document(id: i32) -> String {
-        format!("document:{}", id)
+        format!("document:{id}")
     }
 
     pub fn document_search(hash: &str) -> String {
-        format!("search:documents:{}", hash)
+        format!("search:documents:{hash}")
     }
 
     pub fn user_permissions(user_id: i32) -> String {
-        format!("permissions:user:{}", user_id)
+        format!("permissions:user:{user_id}")
     }
 
     pub fn workflow(id: i32) -> String {
-        format!("workflow:{}", id)
+        format!("workflow:{id}")
     }
 
     pub fn circulation(id: i32) -> String {
-        format!("circulation:{}", id)
+        format!("circulation:{id}")
     }
 
     pub fn department(id: i32) -> String {
-        format!("department:{}", id)
+        format!("department:{id}")
     }
 
     pub fn document_types() -> String {
@@ -188,7 +185,7 @@ impl CacheKeys {
     pub fn generate_search_hash(query: &str, filters: &str) -> String {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
-        
+
         let mut hasher = DefaultHasher::new();
         query.hash(&mut hasher);
         filters.hash(&mut hasher);
@@ -218,13 +215,13 @@ mod tests {
         // Test set and get
         cache.set("test_key", &test_data, 60).await.unwrap();
         let retrieved: Option<TestData> = cache.get("test_key").await.unwrap();
-        
+
         assert_eq!(retrieved, Some(test_data));
 
         // Test delete
         cache.delete("test_key").await.unwrap();
         let retrieved: Option<TestData> = cache.get("test_key").await.unwrap();
-        
+
         assert_eq!(retrieved, None);
     }
 
@@ -238,10 +235,10 @@ mod tests {
 
         // Set with 0 second TTL (should expire immediately)
         cache.set("test_key", &test_data, 0).await.unwrap();
-        
+
         // Wait a bit to ensure expiration
         tokio::time::sleep(Duration::from_millis(1)).await;
-        
+
         let retrieved: Option<TestData> = cache.get("test_key").await.unwrap();
         assert_eq!(retrieved, None);
     }
@@ -274,11 +271,11 @@ mod tests {
         assert_eq!(CacheKeys::document(123), "document:123");
         assert_eq!(CacheKeys::user_permissions(456), "permissions:user:456");
         assert_eq!(CacheKeys::workflow(789), "workflow:789");
-        
+
         let hash1 = CacheKeys::generate_search_hash("title", "filters");
         let hash2 = CacheKeys::generate_search_hash("title", "filters");
         let hash3 = CacheKeys::generate_search_hash("different", "filters");
-        
+
         assert_eq!(hash1, hash2);
         assert_ne!(hash1, hash3);
     }

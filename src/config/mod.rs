@@ -186,7 +186,7 @@ impl AppConfig {
 
         // Add environment-specific configuration
         if let Ok(env) = std::env::var("APP_ENV") {
-            config = config.add_source(File::with_name(&format!("config/{}", env)).required(false));
+            config = config.add_source(File::with_name(&format!("config/{env}")).required(false));
         }
 
         // Add environment variables with APP_ prefix
@@ -216,7 +216,9 @@ impl AppConfig {
 
         // Validate server configuration
         if self.server.port == 0 {
-            return Err(ConfigError::Message("Server port must be greater than 0".to_string()));
+            return Err(ConfigError::Message(
+                "Server port must be greater than 0".to_string(),
+            ));
         }
 
         // Validate JWT secret
@@ -225,21 +227,30 @@ impl AppConfig {
         }
 
         if self.auth.jwt_secret.len() < 32 {
-            return Err(ConfigError::Message("JWT secret must be at least 32 characters".to_string()));
+            return Err(ConfigError::Message(
+                "JWT secret must be at least 32 characters".to_string(),
+            ));
         }
 
         // Validate file system path
         if !self.file_system.base_path.exists() {
-            tracing::warn!("File system base path does not exist: {:?}", self.file_system.base_path);
+            tracing::warn!(
+                "File system base path does not exist: {:?}",
+                self.file_system.base_path
+            );
         }
 
         // Validate notification configuration
         if self.notification.email.enabled && self.notification.email.smtp_server.is_empty() {
-            return Err(ConfigError::Message("SMTP server is required when email is enabled".to_string()));
+            return Err(ConfigError::Message(
+                "SMTP server is required when email is enabled".to_string(),
+            ));
         }
 
         if self.notification.teams.enabled && self.notification.teams.webhook_url.is_empty() {
-            return Err(ConfigError::Message("Teams webhook URL is required when Teams is enabled".to_string()));
+            return Err(ConfigError::Message(
+                "Teams webhook URL is required when Teams is enabled".to_string(),
+            ));
         }
 
         Ok(())
@@ -298,8 +309,8 @@ impl ConfigManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_default_config() {
@@ -312,14 +323,14 @@ mod tests {
     #[test]
     fn test_config_validation() {
         let mut config = AppConfig::default();
-        
+
         // Valid config should pass
         assert!(config.validate().is_ok());
-        
+
         // Invalid port should fail
         config.server.port = 0;
         assert!(config.validate().is_err());
-        
+
         // Reset and test JWT secret
         config = AppConfig::default();
         config.auth.jwt_secret = "short".to_string();
@@ -343,7 +354,8 @@ max_connections = 5
 [cache]
 enabled = false
 "#
-        ).unwrap();
+        )
+        .unwrap();
 
         let config = AppConfig::load_from_file(file.path().to_str().unwrap()).unwrap();
         assert_eq!(config.server.host, "127.0.0.1");
@@ -355,13 +367,13 @@ enabled = false
     #[test]
     fn test_config_manager() {
         let mut manager = ConfigManager::new(AppConfig::default());
-        
+
         assert!(manager.get().cache.enabled);
-        
+
         let mut new_cache_config = manager.get().cache.clone();
         new_cache_config.enabled = false;
         manager.update_cache_config(new_cache_config);
-        
+
         assert!(!manager.get().cache.enabled);
     }
 }

@@ -1,8 +1,8 @@
-use sqlx::{Pool, Sqlite, Row};
+use crate::error::AppError;
+use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Row, Sqlite};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
-use serde::{Deserialize, Serialize};
-use crate::error::AppError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryPerformance {
@@ -96,12 +96,15 @@ impl DatabaseOptimizer {
             });
     }
 
-    pub async fn generate_optimization_report(&self) -> Result<DatabaseOptimizationReport, AppError> {
+    pub async fn generate_optimization_report(
+        &self,
+    ) -> Result<DatabaseOptimizationReport, AppError> {
         let slow_queries = self.identify_slow_queries();
         let index_recommendations = self.generate_index_recommendations().await?;
         let table_statistics = self.collect_table_statistics().await?;
         let connection_pool_stats = self.get_connection_pool_stats();
-        let optimization_suggestions = self.generate_optimization_suggestions(&slow_queries, &table_statistics);
+        let optimization_suggestions =
+            self.generate_optimization_suggestions(&slow_queries, &table_statistics);
 
         Ok(DatabaseOptimizationReport {
             slow_queries,
@@ -123,7 +126,7 @@ impl DatabaseOptimizer {
 
                 let total_time: Duration = metrics.executions.iter().sum();
                 let average_duration = total_time / metrics.executions.len() as u32;
-                
+
                 // Consider queries slow if they take more than 100ms on average
                 if average_duration > Duration::from_millis(100) {
                     let min_duration = metrics.executions.iter().min().unwrap_or(&Duration::ZERO);
@@ -146,7 +149,11 @@ impl DatabaseOptimizer {
             .collect();
 
         // Sort by total time (impact)
-        slow_queries.sort_by(|a, b| b.total_time_ms.partial_cmp(&a.total_time_ms).unwrap_or(std::cmp::Ordering::Equal));
+        slow_queries.sort_by(|a, b| {
+            b.total_time_ms
+                .partial_cmp(&a.total_time_ms)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         slow_queries.truncate(20); // Return top 20 slow queries
         slow_queries
     }
@@ -155,7 +162,12 @@ impl DatabaseOptimizer {
         let mut recommendations = Vec::new();
 
         // Check for missing indexes on frequently queried columns
-        let tables_to_analyze = vec!["documents", "document_types", "circulations", "circulation_steps"];
+        let tables_to_analyze = vec![
+            "documents",
+            "document_types",
+            "circulations",
+            "circulation_steps",
+        ];
 
         for table in tables_to_analyze {
             let indexes = self.analyze_table_indexes(table).await?;
@@ -165,7 +177,10 @@ impl DatabaseOptimizer {
         Ok(recommendations)
     }
 
-    async fn analyze_table_indexes(&self, table_name: &str) -> Result<Vec<IndexRecommendation>, AppError> {
+    async fn analyze_table_indexes(
+        &self,
+        table_name: &str,
+    ) -> Result<Vec<IndexRecommendation>, AppError> {
         let mut recommendations = Vec::new();
 
         match table_name {
@@ -177,20 +192,25 @@ impl DatabaseOptimizer {
                         table_name: table_name.to_string(),
                         column_names: vec!["title".to_string()],
                         reason: "Frequent text searches on title column".to_string(),
-                        estimated_impact: "High - will improve search performance by 50-80%".to_string(),
-                        create_statement: format!("CREATE INDEX idx_{}_title ON {} (title)", table_name, table_name),
+                        estimated_impact: "High - will improve search performance by 50-80%"
+                            .to_string(),
+                        create_statement: format!(
+                            "CREATE INDEX idx_{table_name}_title ON {table_name} (title)"
+                        ),
                     });
                 }
 
                 // Check for compound index on document_type_id + created_date
-                let has_compound_index = self.check_index_exists(table_name, &["document_type_id", "created_date"]).await?;
+                let has_compound_index = self
+                    .check_index_exists(table_name, &["document_type_id", "created_date"])
+                    .await?;
                 if !has_compound_index {
                     recommendations.push(IndexRecommendation {
                         table_name: table_name.to_string(),
                         column_names: vec!["document_type_id".to_string(), "created_date".to_string()],
                         reason: "Frequent filtering by document type and date range".to_string(),
                         estimated_impact: "Medium - will improve filtered searches by 30-50%".to_string(),
-                        create_statement: format!("CREATE INDEX idx_{}_type_date ON {} (document_type_id, created_date)", table_name, table_name),
+                        create_statement: format!("CREATE INDEX idx_{table_name}_type_date ON {table_name} (document_type_id, created_date)"),
                     });
                 }
             }
@@ -201,20 +221,25 @@ impl DatabaseOptimizer {
                         table_name: table_name.to_string(),
                         column_names: vec!["status".to_string()],
                         reason: "Frequent filtering by circulation status".to_string(),
-                        estimated_impact: "Medium - will improve status-based queries by 40-60%".to_string(),
-                        create_statement: format!("CREATE INDEX idx_{}_status ON {} (status)", table_name, table_name),
+                        estimated_impact: "Medium - will improve status-based queries by 40-60%"
+                            .to_string(),
+                        create_statement: format!(
+                            "CREATE INDEX idx_{table_name}_status ON {table_name} (status)"
+                        ),
                     });
                 }
             }
             "circulation_steps" => {
-                let has_assignee_status_index = self.check_index_exists(table_name, &["assignee_id", "status"]).await?;
+                let has_assignee_status_index = self
+                    .check_index_exists(table_name, &["assignee_id", "status"])
+                    .await?;
                 if !has_assignee_status_index {
                     recommendations.push(IndexRecommendation {
                         table_name: table_name.to_string(),
                         column_names: vec!["assignee_id".to_string(), "status".to_string()],
                         reason: "Frequent queries for pending steps by user".to_string(),
                         estimated_impact: "High - will improve user task lists by 60-80%".to_string(),
-                        create_statement: format!("CREATE INDEX idx_{}_assignee_status ON {} (assignee_id, status)", table_name, table_name),
+                        create_statement: format!("CREATE INDEX idx_{table_name}_assignee_status ON {table_name} (assignee_id, status)"),
                     });
                 }
             }
@@ -224,10 +249,15 @@ impl DatabaseOptimizer {
         Ok(recommendations)
     }
 
-    async fn check_index_exists(&self, table_name: &str, columns: &[&str]) -> Result<bool, AppError> {
-        let query = "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql LIKE ?";
+    async fn check_index_exists(
+        &self,
+        table_name: &str,
+        columns: &[&str],
+    ) -> Result<bool, AppError> {
+        let query =
+            "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql LIKE ?";
         let column_pattern = format!("%{}%", columns.join("%"));
-        
+
         let row = sqlx::query(query)
             .bind(table_name)
             .bind(column_pattern)
@@ -240,14 +270,15 @@ impl DatabaseOptimizer {
     async fn collect_table_statistics(&self) -> Result<Vec<TableStatistic>, AppError> {
         let mut statistics = Vec::new();
 
-        let tables_query = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+        let tables_query =
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
         let rows = sqlx::query(tables_query).fetch_all(&self.pool).await?;
 
         for row in rows {
             let table_name: String = row.try_get("name")?;
-            
+
             // Get row count
-            let count_query = format!("SELECT COUNT(*) as count FROM {}", table_name);
+            let count_query = format!("SELECT COUNT(*) as count FROM {table_name}");
             let count_row = sqlx::query(&count_query).fetch_one(&self.pool).await?;
             let row_count: i64 = count_row.try_get("count")?;
 
@@ -258,7 +289,7 @@ impl DatabaseOptimizer {
                 table_name,
                 row_count,
                 size_mb,
-                last_updated: None, // SQLite doesn't track this easily
+                last_updated: None,       // SQLite doesn't track this easily
                 fragmentation_level: 0.0, // Would need VACUUM analysis
             });
         }
@@ -305,9 +336,14 @@ impl DatabaseOptimizer {
         }
 
         // Generic optimizations
-        suggestions.push("Consider running VACUUM periodically to reclaim space and improve performance.".to_string());
-        suggestions.push("Use prepared statements to improve query compilation performance.".to_string());
-        suggestions.push("Consider implementing read replicas for heavy read workloads.".to_string());
+        suggestions.push(
+            "Consider running VACUUM periodically to reclaim space and improve performance."
+                .to_string(),
+        );
+        suggestions
+            .push("Use prepared statements to improve query compilation performance.".to_string());
+        suggestions
+            .push("Consider implementing read replicas for heavy read workloads.".to_string());
 
         suggestions
     }
@@ -330,7 +366,7 @@ impl DatabaseOptimizer {
 
     fn determine_query_type(&self, query: &str) -> String {
         let query_lower = query.to_lowercase();
-        
+
         if query_lower.starts_with("select") {
             "SELECT"
         } else if query_lower.starts_with("insert") {
@@ -345,7 +381,8 @@ impl DatabaseOptimizer {
             "DROP"
         } else {
             "OTHER"
-        }.to_string()
+        }
+        .to_string()
     }
 
     pub async fn apply_optimization(&self, optimization_type: &str) -> Result<String, AppError> {
@@ -362,7 +399,9 @@ impl DatabaseOptimizer {
                 sqlx::query("REINDEX").execute(&self.pool).await?;
                 Ok("Database indexes rebuilt successfully".to_string())
             }
-            _ => Err(AppError::BadRequest(format!("Unknown optimization type: {}", optimization_type))),
+            _ => Err(AppError::BadRequest(format!(
+                "Unknown optimization type: {optimization_type}"
+            ))),
         }
     }
 }
@@ -381,10 +420,22 @@ mod tests {
             .unwrap();
         let optimizer = DatabaseOptimizer::new(pool);
 
-        assert_eq!(optimizer.determine_query_type("SELECT * FROM users"), "SELECT");
-        assert_eq!(optimizer.determine_query_type("INSERT INTO users VALUES (1, 'test')"), "INSERT");
-        assert_eq!(optimizer.determine_query_type("UPDATE users SET name = 'test'"), "UPDATE");
-        assert_eq!(optimizer.determine_query_type("DELETE FROM users WHERE id = 1"), "DELETE");
+        assert_eq!(
+            optimizer.determine_query_type("SELECT * FROM users"),
+            "SELECT"
+        );
+        assert_eq!(
+            optimizer.determine_query_type("INSERT INTO users VALUES (1, 'test')"),
+            "INSERT"
+        );
+        assert_eq!(
+            optimizer.determine_query_type("UPDATE users SET name = 'test'"),
+            "UPDATE"
+        );
+        assert_eq!(
+            optimizer.determine_query_type("DELETE FROM users WHERE id = 1"),
+            "DELETE"
+        );
     }
 
     #[test]

@@ -56,7 +56,7 @@ impl SqliteCirculationRepository {
 
 #[async_trait]
 impl CirculationRepository for SqliteCirculationRepository {
-    async fn get_workflow(&self, id: i32) -> Result<Option<CirculationWorkflow>, AppError> {
+    async fn get_workflow(&self, _id: i32) -> Result<Option<CirculationWorkflow>, AppError> {
         // TODO: Implement with proper database connection
         Ok(None)
     }
@@ -68,20 +68,20 @@ impl CirculationRepository for SqliteCirculationRepository {
 
     async fn create_circulation(
         &self,
-        circulation: NewDocumentCirculation,
+        _circulation: NewDocumentCirculation,
     ) -> Result<DocumentCirculation, AppError> {
         // TODO: Implement with proper database connection
         Err(AppError::NotFound("Not implemented".to_string()))
     }
 
-    async fn get_circulation(&self, id: i32) -> Result<Option<DocumentCirculation>, AppError> {
+    async fn get_circulation(&self, _id: i32) -> Result<Option<DocumentCirculation>, AppError> {
         // TODO: Implement with proper database connection
         Ok(None)
     }
 
     async fn get_circulation_with_details(
         &self,
-        id: i32,
+        _id: i32,
     ) -> Result<Option<CirculationWithDetails>, AppError> {
         // TODO: Implement with proper database connection
         Ok(None)
@@ -89,28 +89,28 @@ impl CirculationRepository for SqliteCirculationRepository {
 
     async fn update_circulation_status(
         &self,
-        id: i32,
-        status: CirculationStatus,
+        _id: i32,
+        _status: CirculationStatus,
     ) -> Result<(), AppError> {
         // TODO: Implement with proper database connection
         Ok(())
     }
 
-    async fn create_step(&self, step: NewCirculationStep) -> Result<CirculationStep, AppError> {
+    async fn create_step(&self, _step: NewCirculationStep) -> Result<CirculationStep, AppError> {
         // TODO: Implement with proper database connection
         Err(AppError::NotFound("Not implemented".to_string()))
     }
 
-    async fn get_step(&self, id: i32) -> Result<Option<CirculationStep>, AppError> {
+    async fn get_step(&self, _id: i32) -> Result<Option<CirculationStep>, AppError> {
         // TODO: Implement with proper database connection
         Ok(None)
     }
 
     async fn complete_step(
         &self,
-        step_id: i32,
-        action: StepAction,
-        comments: Option<String>,
+        _step_id: i32,
+        _action: StepAction,
+        _comments: Option<String>,
     ) -> Result<CirculationStep, AppError> {
         // TODO: Implement with proper database connection
         Err(AppError::NotFound("Not implemented".to_string()))
@@ -118,7 +118,7 @@ impl CirculationRepository for SqliteCirculationRepository {
 
     async fn get_pending_steps_for_user(
         &self,
-        user_id: i32,
+        _user_id: i32,
     ) -> Result<Vec<CirculationStep>, AppError> {
         // TODO: Implement with proper database connection
         Ok(vec![])
@@ -126,7 +126,7 @@ impl CirculationRepository for SqliteCirculationRepository {
 
     async fn get_circulation_steps(
         &self,
-        circulation_id: i32,
+        _circulation_id: i32,
     ) -> Result<Vec<CirculationStep>, AppError> {
         // TODO: Implement with proper database connection
         Ok(vec![])
@@ -134,13 +134,13 @@ impl CirculationRepository for SqliteCirculationRepository {
 
     async fn get_document_circulations(
         &self,
-        document_id: i32,
+        _document_id: i32,
     ) -> Result<Vec<DocumentCirculation>, AppError> {
         // TODO: Implement with proper database connection
         Ok(vec![])
     }
 
-    async fn advance_circulation(&self, circulation_id: i32) -> Result<(), AppError> {
+    async fn advance_circulation(&self, _circulation_id: i32) -> Result<(), AppError> {
         // TODO: Implement with proper database connection
         Ok(())
     }

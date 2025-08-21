@@ -171,8 +171,8 @@ impl CirculationService {
 
     async fn validate_circulation_permission(
         &self,
-        input: &CreateCirculationInput,
-        user_permissions: &UserPermissions,
+        _input: &CreateCirculationInput,
+        _user_permissions: &UserPermissions,
     ) -> CirculationResult<()> {
         // TODO: Implement document validation
         // let document = self.document_service

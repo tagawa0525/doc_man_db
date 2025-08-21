@@ -112,10 +112,10 @@ impl MetricsService {
     pub async fn start_collection(&self) {
         let data = Arc::clone(&self.data);
         let interval_duration = self.collection_interval;
-        
+
         tokio::spawn(async move {
             let mut interval = interval(interval_duration);
-            
+
             loop {
                 interval.tick().await;
                 Self::cleanup_old_metrics(&data).await;
@@ -168,10 +168,7 @@ impl MetricsService {
             .filter(|q| now - q.duration > cutoff)
             .collect();
 
-        let recent_cache_ops: Vec<_> = data
-            .cache_operations
-            .iter()
-            .collect();
+        let recent_cache_ops: Vec<_> = data.cache_operations.iter().collect();
 
         // Calculate performance metrics
         let performance = self.calculate_performance_metrics(&recent_requests, window);
@@ -264,7 +261,7 @@ impl MetricsService {
             hits,
             misses,
             hit_rate,
-            size: 0,    // This should come from actual cache
+            size: 0,              // This should come from actual cache
             memory_usage_mb: 0.0, // This should come from actual cache
         }
     }
@@ -332,9 +329,9 @@ impl MetricsService {
         // In a real implementation, this would use system APIs
         // For now, return placeholder values
         MemoryUsage {
-            heap_used: 50 * 1024 * 1024,  // 50MB
+            heap_used: 50 * 1024 * 1024,   // 50MB
             heap_total: 100 * 1024 * 1024, // 100MB
-            rss: 120 * 1024 * 1024,       // 120MB
+            rss: 120 * 1024 * 1024,        // 120MB
         }
     }
 
@@ -355,7 +352,7 @@ impl MetricsService {
 
     pub fn get_health_status(&self) -> HealthStatus {
         let metrics = self.get_metrics();
-        
+
         let mut status = HealthStatus {
             overall: HealthState::Healthy,
             database: HealthState::Healthy,
@@ -369,7 +366,10 @@ impl MetricsService {
             status.api = HealthState::Degraded;
             status.details.insert(
                 "api".to_string(),
-                format!("High error rate: {:.1}%", metrics.performance.error_rate * 100.0),
+                format!(
+                    "High error rate: {:.1}%",
+                    metrics.performance.error_rate * 100.0
+                ),
             );
         }
 
@@ -377,7 +377,10 @@ impl MetricsService {
             status.api = HealthState::Unhealthy;
             status.details.insert(
                 "api".to_string(),
-                format!("High response time: {:.1}ms", metrics.performance.average_response_time_ms),
+                format!(
+                    "High response time: {:.1}ms",
+                    metrics.performance.average_response_time_ms
+                ),
             );
         }
 
@@ -386,7 +389,10 @@ impl MetricsService {
             status.database = HealthState::Degraded;
             status.details.insert(
                 "database".to_string(),
-                format!("Slow queries: {:.1}ms avg", metrics.database.average_query_time_ms),
+                format!(
+                    "Slow queries: {:.1}ms avg",
+                    metrics.database.average_query_time_ms
+                ),
             );
         }
 
@@ -402,9 +408,10 @@ impl MetricsService {
         // Determine overall health
         if status.api == HealthState::Unhealthy || status.database == HealthState::Unhealthy {
             status.overall = HealthState::Unhealthy;
-        } else if status.api == HealthState::Degraded 
-            || status.database == HealthState::Degraded 
-            || status.cache == HealthState::Degraded {
+        } else if status.api == HealthState::Degraded
+            || status.database == HealthState::Degraded
+            || status.cache == HealthState::Degraded
+        {
             status.overall = HealthState::Degraded;
         }
 
@@ -435,7 +442,7 @@ mod tests {
     #[tokio::test]
     async fn test_metrics_service() {
         let service = MetricsService::new(60);
-        
+
         // Record some metrics
         service.record_request("/api/documents", Instant::now(), true);
         service.record_request("/api/users", Instant::now(), false);
@@ -444,7 +451,7 @@ mod tests {
         service.record_cache_operation("get", false);
 
         let metrics = service.get_metrics();
-        
+
         assert!(metrics.api.total_requests >= 2);
         assert!(metrics.database.total_queries >= 1);
         assert!(metrics.cache.hits >= 1);
@@ -455,7 +462,7 @@ mod tests {
     fn test_health_status() {
         let service = MetricsService::new(60);
         let health = service.get_health_status();
-        
+
         assert_eq!(health.overall, HealthState::Healthy);
         assert_eq!(health.api, HealthState::Healthy);
         assert_eq!(health.database, HealthState::Healthy);

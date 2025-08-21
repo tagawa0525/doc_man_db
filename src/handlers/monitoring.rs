@@ -1,13 +1,9 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::Json,
-};
+use axum::{extract::State, http::StatusCode, response::Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::services::{MetricsService, DatabaseOptimizer, CacheService};
 use crate::error::AppError;
+use crate::services::{CacheService, DatabaseOptimizer, MetricsService};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HealthCheckResponse {
@@ -54,10 +50,10 @@ pub async fn health_check(
         .as_secs();
 
     let uptime_seconds = state.start_time.elapsed().as_secs();
-    
+
     // Check service health
     let health_status = state.metrics_service.get_health_status();
-    
+
     let services = ServiceHealthStatus {
         database: health_status.database.to_string(),
         cache: health_status.cache.to_string(),
@@ -85,7 +81,7 @@ pub async fn readiness_check(
     State(state): State<Arc<MonitoringState>>,
 ) -> Result<StatusCode, AppError> {
     let health_status = state.metrics_service.get_health_status();
-    
+
     match health_status.overall {
         crate::services::HealthState::Healthy => Ok(StatusCode::OK),
         crate::services::HealthState::Degraded => Ok(StatusCode::OK), // Still ready, but degraded
@@ -134,9 +130,11 @@ pub struct CacheStatsResponse {
 pub async fn clear_cache(
     State(state): State<Arc<MonitoringState>>,
 ) -> Result<Json<CacheOperationResponse>, AppError> {
-    state.cache_service.clear().await.map_err(|e| {
-        AppError::InternalError(format!("Failed to clear cache: {}", e))
-    })?;
+    state
+        .cache_service
+        .clear()
+        .await
+        .map_err(|e| AppError::InternalError(format!("Failed to clear cache: {e}")))?;
 
     Ok(Json(CacheOperationResponse {
         success: true,
@@ -149,16 +147,18 @@ pub async fn invalidate_cache_pattern(
     State(state): State<Arc<MonitoringState>>,
     Json(request): Json<InvalidateCacheRequest>,
 ) -> Result<Json<CacheOperationResponse>, AppError> {
-    state.cache_service
+    state
+        .cache_service
         .invalidate_pattern(&request.pattern)
         .await
-        .map_err(|e| {
-            AppError::InternalError(format!("Failed to invalidate cache pattern: {}", e))
-        })?;
+        .map_err(|e| AppError::InternalError(format!("Failed to invalidate cache pattern: {e}")))?;
 
     Ok(Json(CacheOperationResponse {
         success: true,
-        message: format!("Cache pattern '{}' invalidated successfully", request.pattern),
+        message: format!(
+            "Cache pattern '{}' invalidated successfully",
+            request.pattern
+        ),
     }))
 }
 
@@ -186,8 +186,10 @@ pub async fn apply_optimization(
     State(optimizer): State<Arc<DatabaseOptimizer>>,
     Json(request): Json<ApplyOptimizationRequest>,
 ) -> Result<Json<OptimizationApplyResponse>, AppError> {
-    let result = optimizer.apply_optimization(&request.optimization_type).await?;
-    
+    let result = optimizer
+        .apply_optimization(&request.optimization_type)
+        .await?;
+
     Ok(Json(OptimizationApplyResponse {
         success: true,
         message: result,

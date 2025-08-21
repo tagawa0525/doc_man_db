@@ -45,13 +45,13 @@ impl QueryRoot {
     }
 
     /// Get circulation workflows (placeholder implementation)
-    async fn circulation_workflows(&self, ctx: &Context<'_>) -> Result<Vec<CirculationWorkflow>> {
+    async fn circulation_workflows(&self, _ctx: &Context<'_>) -> Result<Vec<CirculationWorkflow>> {
         // TODO: Implement when AppState includes circulation_service
         Ok(vec![])
     }
 
     /// Get pending circulations for current user (placeholder implementation)
-    async fn my_pending_circulations(&self, ctx: &Context<'_>) -> Result<Vec<CirculationStep>> {
+    async fn my_pending_circulations(&self, _ctx: &Context<'_>) -> Result<Vec<CirculationStep>> {
         // TODO: Implement when AppState includes circulation_service
         Ok(vec![])
     }
@@ -59,8 +59,8 @@ impl QueryRoot {
     /// Get circulations for a document (placeholder implementation)
     async fn document_circulations(
         &self,
-        ctx: &Context<'_>,
-        document_id: i32,
+        _ctx: &Context<'_>,
+        _document_id: i32,
     ) -> Result<Vec<DocumentCirculation>> {
         // TODO: Implement when AppState includes circulation_service
         Ok(vec![])
@@ -90,8 +90,8 @@ impl MutationRoot {
     /// Create a new circulation (placeholder implementation)
     async fn create_circulation(
         &self,
-        ctx: &Context<'_>,
-        input: CreateCirculationInput,
+        _ctx: &Context<'_>,
+        _input: CreateCirculationInput,
     ) -> Result<CirculationResponse> {
         // TODO: Implement when AppState includes circulation_service
         Ok(CirculationResponse {
@@ -104,8 +104,8 @@ impl MutationRoot {
     /// Complete a circulation step (placeholder implementation)
     async fn complete_circulation_step(
         &self,
-        ctx: &Context<'_>,
-        input: CompleteStepInput,
+        _ctx: &Context<'_>,
+        _input: CompleteStepInput,
     ) -> Result<StepResponse> {
         // TODO: Implement when AppState includes circulation_service
         Ok(StepResponse {
@@ -118,9 +118,9 @@ impl MutationRoot {
     /// Cancel a circulation (placeholder implementation)
     async fn cancel_circulation(
         &self,
-        ctx: &Context<'_>,
-        id: i32,
-        reason: Option<String>,
+        _ctx: &Context<'_>,
+        _id: i32,
+        _reason: Option<String>,
     ) -> Result<CirculationResponse> {
         // TODO: Implement when AppState includes circulation_service
         Ok(CirculationResponse {
