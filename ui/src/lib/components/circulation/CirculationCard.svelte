@@ -107,7 +107,7 @@
             確認完了
           </Button>
           <Button 
-            variant="outline" 
+            variant="secondary" 
             on:click={() => handleAction('RequestChanges')}
           >
             修正依頼
@@ -120,7 +120,7 @@
             承認
           </Button>
           <Button 
-            variant="outline" 
+            variant="danger" 
             on:click={() => handleAction('Reject')}
           >
             却下
@@ -143,7 +143,7 @@
     {:else}
       <div class="border-t pt-4">
         <h4 class="text-md font-medium text-gray-900 mb-3">
-          {getActionButtonText(selectedAction)} - コメント入力
+          {selectedAction ? getActionButtonText(selectedAction) : ''} - コメント入力
         </h4>
         
         <div class="mb-4">
@@ -159,10 +159,10 @@
             variant="primary" 
             on:click={submitAction}
           >
-            {getActionButtonText(selectedAction)}実行
+            {selectedAction ? getActionButtonText(selectedAction) : ''}実行
           </Button>
           <Button 
-            variant="outline" 
+            variant="secondary" 
             on:click={cancelAction}
           >
             キャンセル

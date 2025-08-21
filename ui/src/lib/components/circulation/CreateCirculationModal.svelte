@@ -173,7 +173,7 @@
       <!-- Footer -->
       <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
         <Button
-          variant="outline"
+          variant="secondary"
           on:click={handleCancel}
         >
           キャンセル
