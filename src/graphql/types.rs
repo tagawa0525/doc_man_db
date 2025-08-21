@@ -138,9 +138,9 @@ pub struct CirculationWorkflow {
 
 impl From<crate::models::CirculationWorkflow> for CirculationWorkflow {
     fn from(workflow: crate::models::CirculationWorkflow) -> Self {
-        let steps: Vec<crate::models::WorkflowStep> = serde_json::from_str(&workflow.steps)
-            .unwrap_or_default();
-        
+        let steps: Vec<crate::models::WorkflowStep> =
+            serde_json::from_str(&workflow.steps).unwrap_or_default();
+
         Self {
             id: workflow.id,
             name: workflow.name,
@@ -198,8 +198,13 @@ impl From<crate::models::DocumentCirculation> for DocumentCirculation {
             initiated_by: circulation.initiated_by,
             current_step: circulation.current_step,
             status: circulation.status.into(),
-            started_at: circulation.started_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
-            completed_at: circulation.completed_at.map(|dt| dt.format("%Y-%m-%dT%H:%M:%S").to_string()),
+            started_at: circulation
+                .started_at
+                .format("%Y-%m-%dT%H:%M:%S")
+                .to_string(),
+            completed_at: circulation
+                .completed_at
+                .map(|dt| dt.format("%Y-%m-%dT%H:%M:%S").to_string()),
             notes: circulation.notes,
         }
     }
@@ -229,7 +234,9 @@ impl From<crate::models::CirculationStep> for CirculationStep {
             action_required: step.action_required.into(),
             status: step.status.into(),
             assigned_at: step.assigned_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
-            completed_at: step.completed_at.map(|dt| dt.format("%Y-%m-%dT%H:%M:%S").to_string()),
+            completed_at: step
+                .completed_at
+                .map(|dt| dt.format("%Y-%m-%dT%H:%M:%S").to_string()),
             comments: step.comments,
         }
     }

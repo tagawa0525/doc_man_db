@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use crate::models::circulation::*;
 use crate::repositories::circulation_repository::CirculationRepository;
 use crate::services::document_service::DocumentService;
 use crate::services::notification_service::NotificationService;
+use std::sync::Arc;
 
 pub struct CirculationService {
     circulation_repo: Arc<dyn CirculationRepository>,
@@ -27,7 +27,7 @@ impl CirculationService {
         self.circulation_repo
             .list_workflows()
             .await
-            .map_err(|e| CirculationError::Database(e))
+            .map_err(CirculationError::Database)
     }
 
     pub async fn create_circulation(
@@ -38,14 +38,15 @@ impl CirculationService {
         // 権限確認
         // TODO: Implement permission validation
         // self.validate_circulation_permission(&input, user_permissions).await?;
-        
+
         // ワークフロー取得
-        let workflow = self.circulation_repo
+        let workflow = self
+            .circulation_repo
             .get_workflow(input.workflow_id)
             .await
-            .map_err(|e| CirculationError::Database(e))?
+            .map_err(CirculationError::Database)?
             .ok_or(CirculationError::WorkflowNotFound)?;
-        
+
         // 回覧作成
         let circulation = NewDocumentCirculation {
             document_id: input.document_id,
@@ -53,18 +54,21 @@ impl CirculationService {
             initiated_by: user_permissions.user_id,
             notes: input.notes,
         };
-        
-        let created_circulation = self.circulation_repo
+
+        let created_circulation = self
+            .circulation_repo
             .create_circulation(circulation)
             .await
-            .map_err(|e| CirculationError::Database(e))?;
-        
+            .map_err(CirculationError::Database)?;
+
         // 最初のステップを作成
-        self.create_initial_steps(&created_circulation, &workflow).await?;
-        
+        self.create_initial_steps(&created_circulation, &workflow)
+            .await?;
+
         // 通知送信
-        self.send_circulation_notifications(&created_circulation).await?;
-        
+        self.send_circulation_notifications(&created_circulation)
+            .await?;
+
         Ok(created_circulation)
     }
 
@@ -74,28 +78,32 @@ impl CirculationService {
         user_permissions: &UserPermissions,
     ) -> CirculationResult<CirculationStep> {
         // ステップ取得・権限確認
-        let step = self.circulation_repo
+        let step = self
+            .circulation_repo
             .get_step(input.step_id)
             .await
-            .map_err(|e| CirculationError::Database(e))?
+            .map_err(CirculationError::Database)?
             .ok_or(CirculationError::StepNotFound)?;
-        
+
         if step.assignee_id != user_permissions.user_id {
             return Err(CirculationError::Unauthorized);
         }
-        
+
         // ステップ完了
-        let completed_step = self.circulation_repo
+        let completed_step = self
+            .circulation_repo
             .complete_step(input.step_id, input.action.clone(), input.comments)
             .await
-            .map_err(|e| CirculationError::Database(e))?;
-        
+            .map_err(CirculationError::Database)?;
+
         // 次のステップ処理
-        self.process_next_step(step.circulation_id, &input.action).await?;
-        
+        self.process_next_step(step.circulation_id, &input.action)
+            .await?;
+
         // 通知送信
-        self.send_step_completion_notifications(&completed_step).await?;
-        
+        self.send_step_completion_notifications(&completed_step)
+            .await?;
+
         Ok(completed_step)
     }
 
@@ -106,7 +114,7 @@ impl CirculationService {
         self.circulation_repo
             .get_pending_steps_for_user(user_id)
             .await
-            .map_err(|e| CirculationError::Database(e))
+            .map_err(CirculationError::Database)
     }
 
     pub async fn get_document_circulations(
@@ -116,7 +124,7 @@ impl CirculationService {
         self.circulation_repo
             .get_document_circulations(document_id)
             .await
-            .map_err(|e| CirculationError::Database(e))
+            .map_err(CirculationError::Database)
     }
 
     pub async fn get_circulation_with_details(
@@ -126,7 +134,7 @@ impl CirculationService {
         self.circulation_repo
             .get_circulation_with_details(circulation_id)
             .await
-            .map_err(|e| CirculationError::Database(e))
+            .map_err(CirculationError::Database)
     }
 
     pub async fn cancel_circulation(
@@ -136,10 +144,11 @@ impl CirculationService {
         user_permissions: &UserPermissions,
     ) -> CirculationResult<()> {
         // 回覧取得・権限確認
-        let circulation = self.circulation_repo
+        let circulation = self
+            .circulation_repo
             .get_circulation(circulation_id)
             .await
-            .map_err(|e| CirculationError::Database(e))?
+            .map_err(CirculationError::Database)?
             .ok_or(CirculationError::CirculationNotFound)?;
 
         // 開始者または管理者のみがキャンセル可能
@@ -151,10 +160,11 @@ impl CirculationService {
         self.circulation_repo
             .update_circulation_status(circulation_id, CirculationStatus::Cancelled)
             .await
-            .map_err(|e| CirculationError::Database(e))?;
+            .map_err(CirculationError::Database)?;
 
         // キャンセル通知
-        self.send_cancellation_notifications(&circulation, reason).await?;
+        self.send_cancellation_notifications(&circulation, reason)
+            .await?;
 
         Ok(())
     }
@@ -185,8 +195,8 @@ impl CirculationService {
         workflow: &CirculationWorkflow,
     ) -> CirculationResult<()> {
         // ワークフローステップをパース
-        let workflow_steps: Vec<WorkflowStep> = serde_json::from_str(&workflow.steps)
-            .map_err(CirculationError::Json)?;
+        let workflow_steps: Vec<WorkflowStep> =
+            serde_json::from_str(&workflow.steps).map_err(CirculationError::Json)?;
 
         // 最初のステップのみを作成
         if let Some(first_step) = workflow_steps.first() {
@@ -203,7 +213,7 @@ impl CirculationService {
             self.circulation_repo
                 .create_step(new_step)
                 .await
-                .map_err(|e| CirculationError::Database(e))?;
+                .map_err(CirculationError::Database)?;
         }
 
         Ok(())
@@ -218,47 +228,52 @@ impl CirculationService {
             StepAction::Approve => {
                 // 次のステップに進む
                 self.advance_to_next_step(circulation_id).await?;
-            },
+            }
             StepAction::Reject => {
                 // 回覧を終了
                 self.circulation_repo
                     .update_circulation_status(circulation_id, CirculationStatus::Completed)
                     .await
-                    .map_err(|e| CirculationError::Database(e))?;
-            },
+                    .map_err(CirculationError::Database)?;
+            }
             StepAction::RequestChanges => {
                 // 作成者に差し戻し（実装簡化のため、ここでは完了とする）
                 self.circulation_repo
                     .update_circulation_status(circulation_id, CirculationStatus::Completed)
                     .await
-                    .map_err(|e| CirculationError::Database(e))?;
+                    .map_err(CirculationError::Database)?;
             }
         }
-        
+
         Ok(())
     }
 
     async fn advance_to_next_step(&self, circulation_id: i32) -> CirculationResult<()> {
         // 現在の回覧情報を取得
-        let circulation = self.circulation_repo
+        let circulation = self
+            .circulation_repo
             .get_circulation(circulation_id)
             .await
-            .map_err(|e| CirculationError::Database(e))?
+            .map_err(CirculationError::Database)?
             .ok_or(CirculationError::CirculationNotFound)?;
 
         // ワークフロー情報を取得
-        let workflow = self.circulation_repo
+        let workflow = self
+            .circulation_repo
             .get_workflow(circulation.workflow_id)
             .await
-            .map_err(|e| CirculationError::Database(e))?
+            .map_err(CirculationError::Database)?
             .ok_or(CirculationError::WorkflowNotFound)?;
 
-        let workflow_steps: Vec<WorkflowStep> = serde_json::from_str(&workflow.steps)
-            .map_err(CirculationError::Json)?;
+        let workflow_steps: Vec<WorkflowStep> =
+            serde_json::from_str(&workflow.steps).map_err(CirculationError::Json)?;
 
         // 次のステップがあるかチェック
         let next_step_number = circulation.current_step + 1;
-        if let Some(next_step) = workflow_steps.iter().find(|s| s.step_number == next_step_number) {
+        if let Some(next_step) = workflow_steps
+            .iter()
+            .find(|s| s.step_number == next_step_number)
+        {
             // 次のステップを作成
             let assignee_id = self.resolve_assignee(&next_step.assignee_role).await?;
 
@@ -272,19 +287,19 @@ impl CirculationService {
             self.circulation_repo
                 .create_step(new_step)
                 .await
-                .map_err(|e| CirculationError::Database(e))?;
+                .map_err(CirculationError::Database)?;
 
             // 回覧の現在ステップを更新
             self.circulation_repo
                 .advance_circulation(circulation_id)
                 .await
-                .map_err(|e| CirculationError::Database(e))?;
+                .map_err(CirculationError::Database)?;
         } else {
             // 全ステップ完了
             self.circulation_repo
                 .update_circulation_status(circulation_id, CirculationStatus::Completed)
                 .await
-                .map_err(|e| CirculationError::Database(e))?;
+                .map_err(CirculationError::Database)?;
         }
 
         Ok(())
@@ -294,10 +309,10 @@ impl CirculationService {
         // 実際の実装では、ロールから適切な担当者を選出する
         // ここでは簡単化のため、固定値を返す
         match role {
-            "manager" => Ok(2), // 仮の管理者ID
-            "director" => Ok(3), // 仮の部長ID
+            "manager" => Ok(2),   // 仮の管理者ID
+            "director" => Ok(3),  // 仮の部長ID
             "executive" => Ok(4), // 仮の役員ID
-            _ => Ok(1), // デフォルト
+            _ => Ok(1),           // デフォルト
         }
     }
 
@@ -325,7 +340,11 @@ impl CirculationService {
         reason: Option<String>,
     ) -> CirculationResult<()> {
         // TODO: Implement cancellation notifications
-        tracing::info!("回覧キャンセル通知: circulation_id={}, reason={:?}", circulation.id, reason);
+        tracing::info!(
+            "回覧キャンセル通知: circulation_id={}, reason={:?}",
+            circulation.id,
+            reason
+        );
         Ok(())
     }
 }

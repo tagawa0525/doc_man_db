@@ -57,7 +57,11 @@ impl QueryRoot {
     }
 
     /// Get circulations for a document (placeholder implementation)
-    async fn document_circulations(&self, ctx: &Context<'_>, document_id: i32) -> Result<Vec<DocumentCirculation>> {
+    async fn document_circulations(
+        &self,
+        ctx: &Context<'_>,
+        document_id: i32,
+    ) -> Result<Vec<DocumentCirculation>> {
         // TODO: Implement when AppState includes circulation_service
         Ok(vec![])
     }
