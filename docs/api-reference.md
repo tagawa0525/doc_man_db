@@ -50,6 +50,7 @@ Content-Type: application/json
 ```
 
 **レスポンス**:
+
 ```json
 {
   "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
@@ -89,19 +90,19 @@ Content-Type: application/json
 
 ### HTTPステータスコード
 
-| コード | 意味 | 説明 |
-|--------|------|------|
-| 200 | OK | 正常処理 |
-| 201 | Created | リソース作成成功 |
-| 204 | No Content | 処理成功（レスポンスボディなし） |
-| 400 | Bad Request | リクエスト不正 |
-| 401 | Unauthorized | 認証失敗 |
-| 403 | Forbidden | 認可失敗 |
-| 404 | Not Found | リソース未発見 |
-| 409 | Conflict | リソース競合 |
-| 422 | Unprocessable Entity | 入力検証エラー |
-| 429 | Too Many Requests | レート制限超過 |
-| 500 | Internal Server Error | サーバー内部エラー |
+| コード | 意味                  | 説明                             |
+| ------ | --------------------- | -------------------------------- |
+| 200    | OK                    | 正常処理                         |
+| 201    | Created               | リソース作成成功                 |
+| 204    | No Content            | 処理成功（レスポンスボディなし） |
+| 400    | Bad Request           | リクエスト不正                   |
+| 401    | Unauthorized          | 認証失敗                         |
+| 403    | Forbidden             | 認可失敗                         |
+| 404    | Not Found             | リソース未発見                   |
+| 409    | Conflict              | リソース競合                     |
+| 422    | Unprocessable Entity  | 入力検証エラー                   |
+| 429    | Too Many Requests     | レート制限超過                   |
+| 500    | Internal Server Error | サーバー内部エラー               |
 
 ### レスポンス形式
 
@@ -179,6 +180,7 @@ POST /api/v1/auth/login
 ```
 
 **リクエスト**:
+
 ```json
 {
   "username": "string",
@@ -187,6 +189,7 @@ POST /api/v1/auth/login
 ```
 
 **レスポンス**:
+
 ```json
 {
   "success": true,
@@ -229,6 +232,7 @@ Authorization: Bearer <token>
 ```
 
 **クエリパラメータ**:
+
 - `title`: タイトル検索（部分一致）
 - `document_type_id`: 文書種別ID
 - `created_by`: 作成者ID
@@ -241,6 +245,7 @@ Authorization: Bearer <token>
 - `sort`: ソート条件（例: `created_at:desc`）
 
 **レスポンス**:
+
 ```json
 {
   "success": true,
@@ -299,6 +304,7 @@ Content-Type: application/json
 ```
 
 **リクエスト**:
+
 ```json
 {
   "title": "新規技術文書",
@@ -321,6 +327,7 @@ Content-Type: application/json
 ```
 
 **リクエスト**:
+
 ```json
 {
   "title": "更新されたタイトル",
@@ -345,12 +352,14 @@ Authorization: Bearer <token>
 ```
 
 **クエリパラメータ**:
+
 - `status`: 回覧状況（active, completed, cancelled）
 - `document_id`: 文書ID
 - `workflow_id`: ワークフローID
 - `assignee_id`: 担当者ID
 
 **レスポンス**:
+
 ```json
 {
   "success": true,
@@ -396,6 +405,7 @@ Content-Type: application/json
 ```
 
 **リクエスト**:
+
 ```json
 {
   "document_id": 1,
@@ -413,6 +423,7 @@ Content-Type: application/json
 ```
 
 **リクエスト**:
+
 ```json
 {
   "action": "approve",  // approve, reject, request_changes
@@ -431,6 +442,7 @@ Content-Type: application/json
 ```
 
 **リクエスト**:
+
 ```json
 {
   "query": "技術",
@@ -460,6 +472,7 @@ Authorization: Bearer <token>
 ```
 
 **レスポンス**:
+
 ```json
 {
   "success": true,
@@ -482,6 +495,7 @@ GET /api/v1/system/health
 ```
 
 **レスポンス**:
+
 ```json
 {
   "success": true,
@@ -509,6 +523,7 @@ Authorization: Bearer <admin_token>
 ```
 
 **レスポンス**:
+
 ```json
 {
   "success": true,
@@ -538,7 +553,7 @@ Authorization: Bearer <admin_token>
 
 ### エンドポイント
 
-```
+```curl
 POST /graphql
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -662,18 +677,18 @@ subscription CirculationUpdates($userId: ID!) {
 
 ### エラーコード一覧
 
-| コード | HTTPステータス | 説明 |
-|--------|----------------|------|
-| `AUTHENTICATION_REQUIRED` | 401 | 認証が必要 |
-| `INVALID_CREDENTIALS` | 401 | 認証情報が不正 |
-| `ACCESS_DENIED` | 403 | アクセス権限なし |
-| `RESOURCE_NOT_FOUND` | 404 | リソースが見つからない |
-| `VALIDATION_ERROR` | 422 | 入力検証エラー |
-| `DUPLICATE_RESOURCE` | 409 | リソースの重複 |
-| `RATE_LIMIT_EXCEEDED` | 429 | レート制限超過 |
-| `INTERNAL_ERROR` | 500 | サーバー内部エラー |
-| `DATABASE_ERROR` | 500 | データベースエラー |
-| `EXTERNAL_SERVICE_ERROR` | 502 | 外部サービスエラー |
+| コード                    | HTTPステータス | 説明                   |
+| ------------------------- | -------------- | ---------------------- |
+| `AUTHENTICATION_REQUIRED` | 401            | 認証が必要             |
+| `INVALID_CREDENTIALS`     | 401            | 認証情報が不正         |
+| `ACCESS_DENIED`           | 403            | アクセス権限なし       |
+| `RESOURCE_NOT_FOUND`      | 404            | リソースが見つからない |
+| `VALIDATION_ERROR`        | 422            | 入力検証エラー         |
+| `DUPLICATE_RESOURCE`      | 409            | リソースの重複         |
+| `RATE_LIMIT_EXCEEDED`     | 429            | レート制限超過         |
+| `INTERNAL_ERROR`          | 500            | サーバー内部エラー     |
+| `DATABASE_ERROR`          | 500            | データベースエラー     |
+| `EXTERNAL_SERVICE_ERROR`  | 502            | 外部サービスエラー     |
 
 ### エラー詳細例
 
@@ -709,12 +724,12 @@ subscription CirculationUpdates($userId: ID!) {
 
 ### 制限値
 
-| エンドポイント | 制限 | 時間枠 |
-|----------------|------|--------|
-| 認証API | 10回/分 | ユーザー単位 |
-| 文書検索API | 100回/分 | ユーザー単位 |
-| 文書操作API | 60回/分 | ユーザー単位 |
-| その他API | 200回/分 | ユーザー単位 |
+| エンドポイント | 制限     | 時間枠       |
+| -------------- | -------- | ------------ |
+| 認証API        | 10回/分  | ユーザー単位 |
+| 文書検索API    | 100回/分 | ユーザー単位 |
+| 文書操作API    | 60回/分  | ユーザー単位 |
+| その他API      | 200回/分 | ユーザー単位 |
 
 ### レスポンスヘッダー
 
@@ -878,6 +893,7 @@ Content-Type: application/json
 ```
 
 **リクエスト**:
+
 ```json
 {
   "url": "https://your-app.com/webhooks/docman",
@@ -920,13 +936,14 @@ Content-Type: application/json
 
 ## 変更履歴
 
-| バージョン | 日付 | 変更内容 |
-|-----------|------|----------|
-| v1.0.0 | 2024-12-21 | 初版リリース |
+| バージョン | 日付       | 変更内容     |
+| ---------- | ---------- | ------------ |
+| v1.0.0     | 2024-12-21 | 初版リリース |
 
 ---
 
 **APIに関するお問い合わせ**
+
 - 開発チーム: dev-team@company.com
 - API仕様: https://api-docs.company.com
 - サポート: api-support@company.com
