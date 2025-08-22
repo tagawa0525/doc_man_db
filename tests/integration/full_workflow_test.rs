@@ -85,10 +85,7 @@ async fn test_complete_document_lifecycle() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("統合テスト".to_string()),
-                pagination: Pagination {
-                    offset: 0,
-                    limit: 10,
-                },
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )
@@ -304,10 +301,7 @@ async fn test_document_search_functionality() {
         .search_documents(
             DocumentSearchInput {
                 title: None,
-                pagination: Pagination {
-                    offset: 0,
-                    limit: 2,
-                },
+                pagination: Pagination::new(1, 2),
             },
             &admin_token,
         )
@@ -452,10 +446,7 @@ async fn test_multiple_users_concurrent_operations() {
         .search_documents(
             DocumentSearchInput {
                 title: None,
-                pagination: Pagination {
-                    offset: 0,
-                    limit: 10,
-                },
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )

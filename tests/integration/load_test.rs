@@ -133,8 +133,7 @@ async fn test_concurrent_search_operations() {
                 DocumentSearchInput {
                     title: search_term,
                     pagination: Pagination {
-                        offset: 0,
-                        limit: 10,
+                        ..Pagination::new(1, 10)
                     },
                 },
                 &admin_token,
@@ -345,8 +344,7 @@ async fn test_memory_usage_under_load() {
                     DocumentSearchInput {
                         title: Some("メモリテスト".to_string()),
                         pagination: Pagination {
-                            offset: 0,
-                            limit: 5,
+                            ..Pagination::new(1, 5)
                         },
                     },
                     &admin_token,

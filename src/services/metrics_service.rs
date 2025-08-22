@@ -210,11 +210,20 @@ impl MetricsService {
         };
 
         let average_response_time_ms = if !requests.is_empty() {
+            let now = Instant::now();
             let total_time: Duration = requests
                 .iter()
-                .map(|r| Instant::now().duration_since(r.start_time))
+                .filter_map(|r| now.checked_duration_since(r.start_time))
                 .sum();
-            total_time.as_millis() as f64 / requests.len() as f64
+            let valid_requests = requests
+                .iter()
+                .filter(|r| now >= r.start_time)
+                .count();
+            if valid_requests > 0 {
+                total_time.as_millis() as f64 / valid_requests as f64
+            } else {
+                0.0
+            }
         } else {
             0.0
         };
@@ -295,11 +304,20 @@ impl MetricsService {
                 };
 
                 let avg_response_time = if !reqs.is_empty() {
+                    let now = Instant::now();
                     let total_time: Duration = reqs
                         .iter()
-                        .map(|r| Instant::now().duration_since(r.start_time))
+                        .filter_map(|r| now.checked_duration_since(r.start_time))
                         .sum();
-                    total_time.as_millis() as f64 / reqs.len() as f64
+                    let valid_requests = reqs
+                        .iter()
+                        .filter(|r| now >= r.start_time)
+                        .count();
+                    if valid_requests > 0 {
+                        total_time.as_millis() as f64 / valid_requests as f64
+                    } else {
+                        0.0
+                    }
                 } else {
                     0.0
                 };

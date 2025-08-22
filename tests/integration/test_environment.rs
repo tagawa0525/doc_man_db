@@ -337,7 +337,7 @@ impl TestEnvironment {
         })
     }
 
-    /// Search documents
+    /// Search documents with SQL injection protection
     pub async fn search_documents(
         &self,
         input: DocumentSearchInput,
@@ -345,16 +345,23 @@ impl TestEnvironment {
     ) -> anyhow::Result<DocumentSearchResult> {
         let mut query = "SELECT * FROM documents WHERE is_active = 1".to_string();
 
-        if let Some(title) = &input.title {
-            query.push_str(&format!(" AND title LIKE '%{}%'", title));
+        if let Some(_title) = &input.title {
+            query.push_str(" AND title LIKE ?");
         }
 
-        query.push_str(&format!(
-            " LIMIT {} OFFSET {}",
-            input.pagination.limit, input.pagination.offset
-        ));
+        query.push_str(" LIMIT ? OFFSET ?");
 
-        let rows = sqlx::query(&query).fetch_all(&self.db_pool).await?;
+        let mut sqlx_query = sqlx::query(&query);
+
+        if let Some(title) = &input.title {
+            sqlx_query = sqlx_query.bind(format!("%{}%", title));
+        }
+
+        sqlx_query = sqlx_query
+            .bind(input.pagination.limit)
+            .bind(input.pagination.offset);
+
+        let rows = sqlx_query.fetch_all(&self.db_pool).await?;
 
         let mut documents = vec![];
         for row in rows {
@@ -364,7 +371,11 @@ impl TestEnvironment {
                 document_type_id: row.get("document_type_id"),
                 created_by: row.get("created_by"),
                 created_date: row.get("created_date"),
-                confidentiality: TestConfidentiality::default(),
+                confidentiality: TestConfidentiality {
+                    internal_external: row.get("internal_external"),
+                    importance_class: row.get("importance_class"),
+                    personal_info: row.get("personal_info"),
+                },
                 notes: row.get("notes"),
                 is_active: row.get("is_active"),
             });
@@ -441,24 +452,35 @@ impl TestEnvironment {
         document_id: i32,
         token: &str,
     ) -> anyhow::Result<Option<TestDocument>> {
-        // Mock confidential document access control
-        if document_id == 999 && !token.contains("admin") {
-            return Ok(None); // Unauthorized access
-        }
-
         let row = sqlx::query("SELECT * FROM documents WHERE id = ? AND is_active = 1")
             .bind(document_id)
             .fetch_optional(&self.db_pool)
             .await?;
 
         if let Some(row) = row {
+            let importance_class: String = row.get("importance_class");
+            let personal_info: String = row.get("personal_info");
+
+            // Access control: Only admin can access Class1 (highly confidential) documents
+            // or documents with High personal info level
+            if (importance_class == "Class1" || personal_info == "High") && !token.contains("admin")
+            {
+                return Ok(None); // Unauthorized access
+            }
+
+            let confidentiality = TestConfidentiality {
+                internal_external: row.get("internal_external"),
+                importance_class: importance_class.clone(),
+                personal_info: personal_info.clone(),
+            };
+
             Ok(Some(TestDocument {
                 id: row.get("id"),
                 title: row.get("title"),
                 document_type_id: row.get("document_type_id"),
                 created_by: row.get("created_by"),
                 created_date: row.get("created_date"),
-                confidentiality: TestConfidentiality::default(),
+                confidentiality,
                 notes: row.get("notes"),
                 is_active: row.get("is_active"),
             }))
@@ -577,6 +599,34 @@ pub struct CreateDocumentRequest {
     pub notes: Option<String>,
 }
 
+#[derive(Debug, Default)]
+pub struct DocumentSearchInput {
+    pub title: Option<String>,
+    pub pagination: Pagination,
+}
+
+#[derive(Debug, Default, Clone)]
+#[allow(dead_code)]
+pub struct Pagination {
+    pub page: i32,
+    pub per_page: i32,
+    pub offset: i64,
+    pub limit: i64,
+}
+
+impl Pagination {
+    pub fn new(page: i32, per_page: i32) -> Self {
+        let limit = per_page as i64;
+        let offset = ((page - 1) * per_page) as i64;
+        Self {
+            page,
+            per_page,
+            offset,
+            limit,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct UpdateDocumentRequest {
     pub title: Option<String>,
@@ -597,27 +647,6 @@ pub struct ApproveStepRequest {
     pub step_id: i32,
     pub action: String, // Simplified for testing
     pub comments: Option<String>,
-}
-
-#[derive(Debug)]
-pub struct DocumentSearchInput {
-    pub title: Option<String>,
-    pub pagination: Pagination,
-}
-
-#[derive(Debug, Clone)]
-pub struct Pagination {
-    pub offset: i64,
-    pub limit: i64,
-}
-
-impl Default for Pagination {
-    fn default() -> Self {
-        Self {
-            offset: 0,
-            limit: 20,
-        }
-    }
 }
 
 // Test model structures
