@@ -69,3 +69,6 @@ tempfile = "3.20.0"
 reqwest = { version = "0.12.23", features = ["json"] }
 hyper = { version = "1.6.0", features = ["full"] }
 tower = { version = "0.5.2", features = ["util"] }
+
+# For integration testing
+anyhow = "1.0"
