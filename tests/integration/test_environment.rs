@@ -1,10 +1,10 @@
-use std::sync::Arc;
-use tokio::time::Duration;
+use chrono::NaiveDate;
 use doc_man_db::config::AppConfig;
 use doc_man_db::services::*;
-use sqlx::{Pool, Sqlite, Row};
 use serde_json::Value;
-use chrono::NaiveDate;
+use sqlx::{Pool, Row, Sqlite};
+use std::sync::Arc;
+use tokio::time::Duration;
 
 /// Test environment for integration tests
 pub struct TestEnvironment {
@@ -20,26 +20,26 @@ impl TestEnvironment {
     /// Create a new test environment with in-memory database
     pub async fn new() -> Self {
         let config = AppConfig::default();
-        
+
         // Create in-memory SQLite database for testing
         let db_pool = sqlx::sqlite::SqlitePoolOptions::new()
             .max_connections(10)
             .connect(":memory:")
             .await
             .expect("Failed to create test database pool");
-        
+
         // Create basic tables for testing
         Self::create_test_tables(&db_pool).await;
-        
+
         // Initialize services
         let metrics_service = Arc::new(MetricsService::new(60));
         let cache_service = Arc::new(CacheService::new());
-        
+
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(30))
             .build()
             .expect("Failed to create HTTP client");
-        
+
         Self {
             config,
             db_pool,
@@ -49,7 +49,7 @@ impl TestEnvironment {
             client,
         }
     }
-    
+
     async fn create_test_tables(pool: &Pool<Sqlite>) {
         // Create test tables using raw SQL to avoid SQLx compile-time checks
         sqlx::query(
@@ -61,12 +61,12 @@ impl TestEnvironment {
                 prefix TEXT NOT NULL,
                 is_active BOOLEAN DEFAULT TRUE
             )
-            "#
+            "#,
         )
         .execute(pool)
         .await
         .expect("Failed to create document_types table");
-        
+
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS users (
@@ -76,12 +76,12 @@ impl TestEnvironment {
                 is_admin BOOLEAN DEFAULT FALSE,
                 is_active BOOLEAN DEFAULT TRUE
             )
-            "#
+            "#,
         )
         .execute(pool)
         .await
         .expect("Failed to create users table");
-        
+
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS documents (
@@ -98,12 +98,12 @@ impl TestEnvironment {
                 FOREIGN KEY (document_type_id) REFERENCES document_types(id),
                 FOREIGN KEY (created_by) REFERENCES users(id)
             )
-            "#
+            "#,
         )
         .execute(pool)
         .await
         .expect("Failed to create documents table");
-        
+
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS circulation_workflows (
@@ -112,12 +112,12 @@ impl TestEnvironment {
                 description TEXT,
                 is_active BOOLEAN DEFAULT TRUE
             )
-            "#
+            "#,
         )
         .execute(pool)
         .await
         .expect("Failed to create circulation_workflows table");
-        
+
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS circulations (
@@ -130,12 +130,12 @@ impl TestEnvironment {
                 FOREIGN KEY (document_id) REFERENCES documents(id),
                 FOREIGN KEY (workflow_id) REFERENCES circulation_workflows(id)
             )
-            "#
+            "#,
         )
         .execute(pool)
         .await
         .expect("Failed to create circulations table");
-        
+
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS circulation_steps (
@@ -149,13 +149,13 @@ impl TestEnvironment {
                 FOREIGN KEY (circulation_id) REFERENCES circulations(id),
                 FOREIGN KEY (assignee_id) REFERENCES users(id)
             )
-            "#
+            "#,
         )
         .execute(pool)
         .await
         .expect("Failed to create circulation_steps table");
     }
-    
+
     /// Setup test data (users, document types, workflows, etc.)
     pub async fn setup_test_data(&self) -> anyhow::Result<()> {
         self.create_test_document_types().await?;
@@ -163,14 +163,14 @@ impl TestEnvironment {
         self.create_test_users().await?;
         Ok(())
     }
-    
+
     async fn create_test_document_types(&self) -> anyhow::Result<()> {
         let document_types = vec![
             ("技術文書", "technical"),
             ("管理文書", "management"),
             ("契約文書", "contract"),
         ];
-        
+
         for (name, code) in document_types {
             sqlx::query("INSERT INTO document_types (name, code, prefix) VALUES (?, ?, ?)")
                 .bind(name)
@@ -179,28 +179,30 @@ impl TestEnvironment {
                 .execute(&self.db_pool)
                 .await?;
         }
-        
+
         Ok(())
     }
-    
+
     async fn create_test_workflows(&self) -> anyhow::Result<()> {
-        sqlx::query("INSERT INTO circulation_workflows (name, description, is_active) VALUES (?, ?, ?)")
-            .bind("標準承認フロー")
-            .bind("一般的な文書承認フロー")
-            .bind(true)
+        sqlx::query(
+            "INSERT INTO circulation_workflows (name, description, is_active) VALUES (?, ?, ?)",
+        )
+        .bind("標準承認フロー")
+        .bind("一般的な文書承認フロー")
+        .bind(true)
         .execute(&self.db_pool)
         .await?;
-        
+
         Ok(())
     }
-    
+
     async fn create_test_users(&self) -> anyhow::Result<()> {
         let users = vec![
             ("admin", "管理者", true),
             ("user1", "一般ユーザー1", false),
             ("limited_user", "制限ユーザー", false),
         ];
-        
+
         for (username, display_name, is_admin) in users {
             sqlx::query("INSERT INTO users (username, display_name, is_admin, is_active) VALUES (?, ?, ?, ?)")
                 .bind(username)
@@ -210,17 +212,21 @@ impl TestEnvironment {
                 .execute(&self.db_pool)
                 .await?;
         }
-        
+
         Ok(())
     }
-    
+
     /// Authenticate user and return token
-    pub async fn authenticate_user(&self, username: &str, _password: &str) -> anyhow::Result<String> {
+    pub async fn authenticate_user(
+        &self,
+        username: &str,
+        _password: &str,
+    ) -> anyhow::Result<String> {
         // For testing, we'll just return a mock JWT token
         let token = format!("test_token_{}", username);
         Ok(token)
     }
-    
+
     /// Create a test document
     pub async fn create_document(
         &self,
@@ -234,7 +240,7 @@ impl TestEnvironment {
                 internal_external, importance_class, personal_info,
                 notes, is_active
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            "#
+            "#,
         )
         .bind(&request.title)
         .bind(request.document_type_id)
@@ -247,9 +253,9 @@ impl TestEnvironment {
         .bind(true)
         .execute(&self.db_pool)
         .await?;
-        
+
         let document_id = result.last_insert_rowid();
-        
+
         Ok(TestDocument {
             id: document_id as i32,
             title: request.title,
@@ -261,9 +267,12 @@ impl TestEnvironment {
             is_active: true,
         })
     }
-    
+
     /// Check file existence for a document
-    pub async fn check_file_existence(&self, _document: &TestDocument) -> anyhow::Result<FileExistenceResult> {
+    pub async fn check_file_existence(
+        &self,
+        _document: &TestDocument,
+    ) -> anyhow::Result<FileExistenceResult> {
         // Mock implementation for testing
         Ok(FileExistenceResult {
             folder_exists: false,
@@ -271,7 +280,7 @@ impl TestEnvironment {
             approval_file_exists: false,
         })
     }
-    
+
     /// Start a circulation workflow
     pub async fn start_circulation(
         &self,
@@ -285,9 +294,9 @@ impl TestEnvironment {
             .bind(&request.notes)
             .execute(&self.db_pool)
             .await?;
-            
+
         let circulation_id = circulation_result.last_insert_rowid();
-        
+
         // Create first step
         let step_result = sqlx::query("INSERT INTO circulation_steps (circulation_id, step_order, assignee_id, status) VALUES (?, ?, ?, ?)")
             .bind(circulation_id)
@@ -296,9 +305,9 @@ impl TestEnvironment {
             .bind("pending")
             .execute(&self.db_pool)
             .await?;
-            
+
         let step_id = step_result.last_insert_rowid();
-        
+
         Ok(CirculationResponse {
             id: circulation_id as i32,
             document_id: request.document_id,
@@ -307,7 +316,7 @@ impl TestEnvironment {
             status: "active".to_string(),
         })
     }
-    
+
     /// Approve a circulation step
     pub async fn approve_circulation_step(
         &self,
@@ -320,13 +329,13 @@ impl TestEnvironment {
             .bind(request.step_id)
             .execute(&self.db_pool)
             .await?;
-        
+
         Ok(ApprovalResult {
             success: true,
             message: "Approval processed successfully".to_string(),
         })
     }
-    
+
     /// Search documents
     pub async fn search_documents(
         &self,
@@ -334,17 +343,18 @@ impl TestEnvironment {
         _token: &str,
     ) -> anyhow::Result<DocumentSearchResult> {
         let mut query = "SELECT * FROM documents WHERE is_active = 1".to_string();
-        
+
         if let Some(title) = &input.title {
             query.push_str(&format!(" AND title LIKE '%{}%'", title));
         }
-        
-        query.push_str(&format!(" LIMIT {} OFFSET {}", input.pagination.limit, input.pagination.offset));
-        
-        let rows = sqlx::query(&query)
-            .fetch_all(&self.db_pool)
-            .await?;
-        
+
+        query.push_str(&format!(
+            " LIMIT {} OFFSET {}",
+            input.pagination.limit, input.pagination.offset
+        ));
+
+        let rows = sqlx::query(&query).fetch_all(&self.db_pool).await?;
+
         let mut documents = vec![];
         for row in rows {
             documents.push(TestDocument {
@@ -358,7 +368,7 @@ impl TestEnvironment {
                 is_active: row.get("is_active"),
             });
         }
-        
+
         let total_count = documents.len() as i64;
         Ok(DocumentSearchResult {
             documents,
@@ -366,7 +376,7 @@ impl TestEnvironment {
             pagination: input.pagination,
         })
     }
-    
+
     /// Update a document
     pub async fn update_document(
         &self,
@@ -381,7 +391,7 @@ impl TestEnvironment {
                 .execute(&self.db_pool)
                 .await?;
         }
-        
+
         if let Some(notes) = &request.notes {
             sqlx::query("UPDATE documents SET notes = ? WHERE id = ?")
                 .bind(notes)
@@ -389,7 +399,7 @@ impl TestEnvironment {
                 .execute(&self.db_pool)
                 .await?;
         }
-        
+
         // Return updated document
         Ok(TestDocument {
             id: document_id,
@@ -402,7 +412,7 @@ impl TestEnvironment {
             is_active: true,
         })
     }
-    
+
     /// Get all employees (admin function)
     pub async fn get_all_employees(&self, token: &str) -> anyhow::Result<Vec<Employee>> {
         // Check if user is admin based on token
@@ -423,19 +433,23 @@ impl TestEnvironment {
             Err(anyhow::anyhow!("Access denied"))
         }
     }
-    
+
     /// Get a specific document
-    pub async fn get_document(&self, document_id: i32, token: &str) -> anyhow::Result<Option<TestDocument>> {
+    pub async fn get_document(
+        &self,
+        document_id: i32,
+        token: &str,
+    ) -> anyhow::Result<Option<TestDocument>> {
         // Mock confidential document access control
         if document_id == 999 && !token.contains("admin") {
             return Ok(None); // Unauthorized access
         }
-        
+
         let row = sqlx::query("SELECT * FROM documents WHERE id = ? AND is_active = 1")
             .bind(document_id)
             .fetch_optional(&self.db_pool)
             .await?;
-        
+
         if let Some(row) = row {
             Ok(Some(TestDocument {
                 id: row.get("id"),
@@ -451,7 +465,7 @@ impl TestEnvironment {
             Ok(None)
         }
     }
-    
+
     /// Create a confidential document for testing
     pub async fn create_confidential_document(&self) -> TestDocument {
         let result = sqlx::query(
@@ -461,7 +475,7 @@ impl TestEnvironment {
                 internal_external, importance_class, personal_info,
                 notes, is_active
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            "#
+            "#,
         )
         .bind("機密文書")
         .bind(1)
@@ -475,9 +489,9 @@ impl TestEnvironment {
         .execute(&self.db_pool)
         .await
         .expect("Failed to create confidential document");
-        
+
         let document_id = result.last_insert_rowid();
-        
+
         TestDocument {
             id: document_id as i32,
             title: "機密文書".to_string(),
@@ -493,11 +507,16 @@ impl TestEnvironment {
             is_active: true,
         }
     }
-    
+
     /// Make HTTP request to running server
-    pub async fn make_request(&self, method: &str, path: &str, body: Option<Value>) -> anyhow::Result<reqwest::Response> {
+    pub async fn make_request(
+        &self,
+        method: &str,
+        path: &str,
+        body: Option<Value>,
+    ) -> anyhow::Result<reqwest::Response> {
         let url = format!("{}{}", self.base_url, path);
-        
+
         let mut request = match method {
             "GET" => self.client.get(&url),
             "POST" => self.client.post(&url),
@@ -505,37 +524,41 @@ impl TestEnvironment {
             "DELETE" => self.client.delete(&url),
             _ => return Err(anyhow::anyhow!("Unsupported HTTP method: {}", method)),
         };
-        
+
         if let Some(body) = body {
             request = request.json(&body);
         }
-        
+
         let response = request.send().await?;
         Ok(response)
     }
-    
+
     /// Load test helper - generate concurrent requests
-    pub async fn concurrent_requests(&self, count: usize, path: &str) -> anyhow::Result<Vec<Duration>> {
+    pub async fn concurrent_requests(
+        &self,
+        count: usize,
+        path: &str,
+    ) -> anyhow::Result<Vec<Duration>> {
         let mut handles = vec![];
-        
+
         for _ in 0..count {
             let client = self.client.clone();
             let url = format!("{}{}", self.base_url, path);
-            
+
             let handle = tokio::spawn(async move {
                 let start = std::time::Instant::now();
                 let _response = client.get(&url).send().await;
                 start.elapsed()
             });
-            
+
             handles.push(handle);
         }
-        
+
         let mut durations = vec![];
         for handle in handles {
             durations.push(handle.await?);
         }
-        
+
         Ok(durations)
     }
 }
@@ -586,7 +609,10 @@ pub struct Pagination {
 
 impl Default for Pagination {
     fn default() -> Self {
-        Self { offset: 0, limit: 20 }
+        Self {
+            offset: 0,
+            limit: 20,
+        }
     }
 }
 
