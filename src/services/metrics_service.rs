@@ -215,10 +215,7 @@ impl MetricsService {
                 .iter()
                 .filter_map(|r| now.checked_duration_since(r.start_time))
                 .sum();
-            let valid_requests = requests
-                .iter()
-                .filter(|r| now >= r.start_time)
-                .count();
+            let valid_requests = requests.iter().filter(|r| now >= r.start_time).count();
             if valid_requests > 0 {
                 total_time.as_millis() as f64 / valid_requests as f64
             } else {
@@ -309,10 +306,7 @@ impl MetricsService {
                         .iter()
                         .filter_map(|r| now.checked_duration_since(r.start_time))
                         .sum();
-                    let valid_requests = reqs
-                        .iter()
-                        .filter(|r| now >= r.start_time)
-                        .count();
+                    let valid_requests = reqs.iter().filter(|r| now >= r.start_time).count();
                     if valid_requests > 0 {
                         total_time.as_millis() as f64 / valid_requests as f64
                     } else {

@@ -173,7 +173,7 @@ async fn test_input_validation_security() {
             .search_documents(
                 DocumentSearchInput {
                     title: Some(injection_attempt.to_string()),
-                    pagination: Pagination::default(),
+                    pagination: Pagination::new(1, 10),
                 },
                 &admin_token,
             )
@@ -191,7 +191,7 @@ async fn test_input_validation_security() {
             .search_documents(
                 DocumentSearchInput {
                     title: Some("テスト".to_string()),
-                    pagination: Pagination::default(),
+                    pagination: Pagination::new(1, 10),
                 },
                 &admin_token,
             )
@@ -238,7 +238,7 @@ async fn test_input_validation_security() {
                 .search_documents(
                     DocumentSearchInput {
                         title: Some(xss_attempt.to_string()),
-                        pagination: Pagination::default(),
+                        pagination: Pagination::new(1, 10),
                     },
                     &admin_token,
                 )
@@ -365,7 +365,7 @@ async fn test_data_confidentiality() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("機密".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )
@@ -376,7 +376,7 @@ async fn test_data_confidentiality() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("機密".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &user_token,
         )
@@ -714,7 +714,7 @@ async fn test_rate_limiting_security() {
             .search_documents(
                 DocumentSearchInput {
                     title: Some(format!("レート制限テスト {}", i)),
-                    pagination: Pagination::default(),
+                    pagination: Pagination::new(1, 10),
                 },
                 &admin_token,
             )

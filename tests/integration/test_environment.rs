@@ -412,16 +412,25 @@ impl TestEnvironment {
                 .await?;
         }
 
-        // Return updated document
+        // Return updated document by fetching from database
+        let row = sqlx::query("SELECT * FROM documents WHERE id = ?")
+            .bind(document_id)
+            .fetch_one(&self.db_pool)
+            .await?;
+
         Ok(TestDocument {
-            id: document_id,
-            title: request.title.unwrap_or("統合テスト文書".to_string()),
-            document_type_id: 1,
-            created_by: 1,
-            created_date: NaiveDate::from_ymd_opt(2024, 12, 15).unwrap(),
-            confidentiality: TestConfidentiality::default(),
-            notes: request.notes,
-            is_active: true,
+            id: row.get("id"),
+            title: row.get("title"),
+            document_type_id: row.get("document_type_id"),
+            created_by: row.get("created_by"),
+            created_date: row.get("created_date"),
+            confidentiality: TestConfidentiality {
+                internal_external: row.get("internal_external"),
+                importance_class: row.get("importance_class"),
+                personal_info: row.get("personal_info"),
+            },
+            notes: row.get("notes"),
+            is_active: row.get("is_active"),
         })
     }
 

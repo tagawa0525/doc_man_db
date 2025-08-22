@@ -267,7 +267,7 @@ async fn test_document_search_functionality() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("技術".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )
@@ -287,7 +287,7 @@ async fn test_document_search_functionality() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("書".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )
@@ -380,7 +380,7 @@ async fn test_document_lifecycle_with_updates() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("更新された".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )
