@@ -132,11 +132,10 @@ impl CacheService {
 
     async fn remove_expired_entry(&self, key: &str) {
         let mut cache = self.cache.write().unwrap();
-        if let Some(entry) = cache.get(key) {
-            if entry.is_expired() {
+        if let Some(entry) = cache.get(key)
+            && entry.is_expired() {
                 cache.remove(key);
             }
-        }
     }
 }
 

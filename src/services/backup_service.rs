@@ -447,8 +447,8 @@ impl BackupService for BackupServiceImpl {
                 })?
         {
             let path = entry.path();
-            if let Ok(metadata) = fs::metadata(&path).await {
-                if let Ok(created) = metadata.created() {
+            if let Ok(metadata) = fs::metadata(&path).await
+                && let Ok(created) = metadata.created() {
                     let created_datetime: DateTime<Utc> = created.into();
                     if created_datetime < cutoff_date {
                         if let Err(e) = fs::remove_file(&path).await {
@@ -463,7 +463,6 @@ impl BackupService for BackupServiceImpl {
                         }
                     }
                 }
-            }
         }
 
         info!("古いバックアップファイル{}件を削除", deleted_count);
