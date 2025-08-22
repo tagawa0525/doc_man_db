@@ -37,8 +37,9 @@
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(npm run check:*)",
       "Bash(where:*)",
-      "Bash(npm run check:*)"
+      "WebSearch"
     ],
     "deny": [],
     "ask": [

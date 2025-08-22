@@ -6,7 +6,9 @@ use std::sync::Arc;
 
 pub struct CirculationService {
     circulation_repo: Arc<dyn CirculationRepository>,
+    #[allow(dead_code)]
     document_service: Arc<DocumentService>,
+    #[allow(dead_code)]
     notification_service: Arc<NotificationService>,
 }
 
@@ -169,6 +171,7 @@ impl CirculationService {
         Ok(())
     }
 
+    #[allow(dead_code)]
     async fn validate_circulation_permission(
         &self,
         _input: &CreateCirculationInput,

@@ -62,6 +62,7 @@ pub struct DatabaseOptimizer {
 struct QueryMetrics {
     executions: Vec<Duration>,
     query_type: String,
+    #[allow(dead_code)]
     first_seen: Instant,
     last_executed: Instant,
 }

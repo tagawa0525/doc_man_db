@@ -75,18 +75,22 @@ struct MetricsData {
     request_metrics: Vec<RequestMetric>,
     database_queries: Vec<QueryMetric>,
     cache_operations: Vec<CacheOperation>,
+    #[allow(dead_code)]
     start_time: Instant,
 }
 
 #[derive(Debug, Clone)]
 struct QueryMetric {
     duration: Duration,
+    #[allow(dead_code)]
     query_type: String,
+    #[allow(dead_code)]
     success: bool,
 }
 
 #[derive(Debug, Clone)]
 struct CacheOperation {
+    #[allow(dead_code)]
     operation: String,
     hit: bool,
 }

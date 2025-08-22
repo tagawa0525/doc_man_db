@@ -45,6 +45,7 @@ pub trait CirculationRepository: Send + Sync {
 }
 
 pub struct SqliteCirculationRepository {
+    #[allow(dead_code)]
     pool: Pool<Sqlite>,
 }
 
