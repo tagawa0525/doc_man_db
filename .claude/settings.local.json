@@ -37,7 +37,9 @@
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(npm install:*)",
       "Bash(npm run check:*)",
+      "Bash(npm run dev:*)",
       "Bash(where:*)",
       "WebSearch"
     ],
