@@ -728,7 +728,7 @@ async fn test_rate_limiting_security() {
 
         // 短時間での大量リクエストを模擬
         if i % 10 == 0 {
-            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(1)).await;
         }
     }
 

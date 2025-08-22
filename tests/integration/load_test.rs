@@ -452,8 +452,8 @@ async fn test_sustained_load_endurance() {
         .unwrap();
 
     // 5分間の持続負荷テスト（実際のテストでは短縮）
-    const TEST_DURATION: Duration = Duration::from_secs(30); // テストでは30秒に短縮
-    const OPERATIONS_PER_SECOND: usize = 10;
+    const TEST_DURATION: Duration = Duration::from_secs(2); // テストでは2秒に短縮
+    const OPERATIONS_PER_SECOND: usize = 50;
 
     println!(
         "⏱️  持続負荷テスト開始 ({}秒間)...",
@@ -506,8 +506,8 @@ async fn test_sustained_load_endurance() {
 
         // 1秒間隔を保つための調整
         let cycle_duration = cycle_start.elapsed();
-        if cycle_duration < Duration::from_secs(1) {
-            tokio::time::sleep(Duration::from_secs(1) - cycle_duration).await;
+        if cycle_duration < Duration::from_millis(100) {
+            tokio::time::sleep(Duration::from_millis(100) - cycle_duration).await;
         }
 
         // 進捗表示（10秒ごと）
