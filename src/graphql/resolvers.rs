@@ -43,6 +43,28 @@ impl QueryRoot {
             Err(e) => Err(async_graphql::Error::new(format!("Search error: {e}"))),
         }
     }
+
+    /// Get circulation workflows (placeholder implementation)
+    async fn circulation_workflows(&self, _ctx: &Context<'_>) -> Result<Vec<CirculationWorkflow>> {
+        // TODO: Implement when AppState includes circulation_service
+        Ok(vec![])
+    }
+
+    /// Get pending circulations for current user (placeholder implementation)
+    async fn my_pending_circulations(&self, _ctx: &Context<'_>) -> Result<Vec<CirculationStep>> {
+        // TODO: Implement when AppState includes circulation_service
+        Ok(vec![])
+    }
+
+    /// Get circulations for a document (placeholder implementation)
+    async fn document_circulations(
+        &self,
+        _ctx: &Context<'_>,
+        _document_id: i32,
+    ) -> Result<Vec<DocumentCirculation>> {
+        // TODO: Implement when AppState includes circulation_service
+        Ok(vec![])
+    }
 }
 
 #[derive(Default)]
@@ -63,5 +85,48 @@ impl MutationRoot {
             Ok(created) => Ok(created.into()),
             Err(e) => Err(async_graphql::Error::new(format!("Creation error: {e}"))),
         }
+    }
+
+    /// Create a new circulation (placeholder implementation)
+    async fn create_circulation(
+        &self,
+        _ctx: &Context<'_>,
+        _input: CreateCirculationInput,
+    ) -> Result<CirculationResponse> {
+        // TODO: Implement when AppState includes circulation_service
+        Ok(CirculationResponse {
+            success: false,
+            circulation: None,
+            message: "Not implemented yet".to_string(),
+        })
+    }
+
+    /// Complete a circulation step (placeholder implementation)
+    async fn complete_circulation_step(
+        &self,
+        _ctx: &Context<'_>,
+        _input: CompleteStepInput,
+    ) -> Result<StepResponse> {
+        // TODO: Implement when AppState includes circulation_service
+        Ok(StepResponse {
+            success: false,
+            step: None,
+            message: "Not implemented yet".to_string(),
+        })
+    }
+
+    /// Cancel a circulation (placeholder implementation)
+    async fn cancel_circulation(
+        &self,
+        _ctx: &Context<'_>,
+        _id: i32,
+        _reason: Option<String>,
+    ) -> Result<CirculationResponse> {
+        // TODO: Implement when AppState includes circulation_service
+        Ok(CirculationResponse {
+            success: false,
+            circulation: None,
+            message: "Not implemented yet".to_string(),
+        })
     }
 }

@@ -1,0 +1,166 @@
+# Doc Man DB - Production Configuration
+# Last Updated: 2024-12-21
+# Version: v1.0.0
+
+[server]
+# Server binding configuration
+host = "0.0.0.0"                    # Listen on all interfaces
+port = 8080                         # HTTP port
+workers = 4                         # Number of worker threads
+timeout_seconds = 30                # Request timeout
+max_request_size = "10MB"          # Maximum request body size
+enable_compression = true           # Enable gzip compression
+
+[database]
+# Database connection settings
+url = "sqlserver://server/DocManDB" # SQL Server connection string
+# Alternative SQLite for smaller deployments:
+# url = "sqlite://./data/production.db"
+
+# Connection pool settings
+max_connections = 20                # Maximum database connections
+min_connections = 5                 # Minimum database connections
+acquire_timeout = 30                # Connection acquire timeout (seconds)
+idle_timeout = 600                  # Connection idle timeout (seconds)
+max_lifetime = 1800                 # Connection max lifetime (seconds)
+migrate_on_start = true             # Run migrations on startup
+
+[auth]
+# Authentication configuration
+method = "windows_ad"               # "windows_ad" or "json"
+ad_domain = "company.local"         # Active Directory domain
+ad_server = "dc.company.local"      # Domain controller
+jwt_secret = "REPLACE_WITH_SECURE_SECRET" # JWT signing secret (32+ chars)
+token_expiry = 3600                 # Access token expiry (seconds)
+refresh_expiry = 86400              # Refresh token expiry (seconds)
+enable_refresh = true               # Enable token refresh
+
+[logging]
+# Logging configuration
+level = "info"                      # Log level: error, warn, info, debug, trace
+file = "logs/app.log"              # Log file path
+max_size = "100MB"                 # Maximum log file size
+max_files = 10                     # Number of log files to keep
+rotate_daily = true                # Rotate logs daily
+json_format = false                # Use JSON format for logs
+enable_access_log = true           # Enable HTTP access logging
+
+[security]
+# Security settings
+enable_https = true                 # Enable HTTPS
+cert_file = "certs/server.crt"     # SSL certificate file
+key_file = "certs/server.key"      # SSL private key file
+cors_origins = [                   # CORS allowed origins
+    "https://docman.company.com",
+    "https://company.com"
+]
+rate_limit_per_minute = 100        # Rate limit per IP per minute
+enable_rate_limit = true           # Enable rate limiting
+secure_headers = true              # Enable security headers
+
+[cache]
+# Caching configuration  
+redis_url = "redis://localhost:6379" # Redis connection string
+default_ttl = 3600                 # Default cache TTL (seconds)
+max_memory = "256MB"               # Maximum cache memory
+enable_compression = true          # Compress cached values
+
+[notifications]
+# Notification services
+email_smtp = "smtp.company.com"    # SMTP server
+email_port = 587                   # SMTP port
+email_username = "noreply@company.com" # SMTP username
+email_password = "EMAIL_PASSWORD"  # SMTP password (use env var)
+email_from = "DocManDB <noreply@company.com>" # From address
+email_enabled = true               # Enable email notifications
+
+teams_webhook = "https://outlook.office.com/webhook/..." # Teams webhook URL
+teams_enabled = true               # Enable Teams notifications
+
+[storage]
+# File storage settings
+base_path = "\\\\fileserver\\documents" # Base network path for documents
+temp_path = "C:\\doc_man_db\\temp"      # Temporary file storage
+max_file_size = "100MB"                 # Maximum file size
+allowed_extensions = [                  # Allowed file extensions
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", 
+    ".ppt", ".pptx", ".txt", ".rtf"
+]
+scan_for_viruses = true                # Enable virus scanning
+retention_days = 2555                  # File retention period (7 years)
+
+[backup]
+# Backup configuration
+enabled = true                     # Enable automatic backups
+schedule = "0 2 * * *"            # Cron schedule (daily at 2 AM)
+retention_days = 30               # Backup retention period
+compression = true                # Compress backup files
+backup_path = "\\\\backup\\docmandb" # Backup storage path
+
+[monitoring]
+# System monitoring
+enable_metrics = true             # Enable metrics collection
+metrics_port = 9090              # Metrics endpoint port
+health_check_interval = 30       # Health check interval (seconds)
+alert_email = "admin@company.com" # Alert notification email
+
+# Performance monitoring
+slow_query_threshold = 1000      # Slow query threshold (ms)
+memory_alert_threshold = 80      # Memory usage alert threshold (%)
+cpu_alert_threshold = 85         # CPU usage alert threshold (%)
+
+[document_numbering]
+# Document numbering rules
+technical_prefix = "技術"         # Technical documents prefix  
+management_prefix = "管理"        # Management documents prefix
+contract_prefix = "契約"          # Contract documents prefix
+year_format = "YY"               # Year format: YY or YYYY
+number_padding = 3               # Number padding (001, 002, ...)
+reset_yearly = true              # Reset numbering each year
+
+[workflow]
+# Workflow settings
+default_workflow = "standard_approval" # Default approval workflow
+timeout_days = 7                 # Step timeout (days)
+auto_reminder_days = 3           # Auto reminder after N days
+enable_delegation = true         # Enable approval delegation
+max_delegation_levels = 2        # Maximum delegation levels
+
+[search]
+# Search configuration
+enable_fulltext = true           # Enable full-text search
+index_update_interval = 300      # Search index update interval (seconds)
+max_results = 1000              # Maximum search results
+search_timeout = 10             # Search timeout (seconds)
+enable_suggestions = true        # Enable search suggestions
+
+[api]
+# API configuration
+enable_graphql = true           # Enable GraphQL endpoint
+enable_rest = true              # Enable REST API
+api_key_required = false        # Require API key for external access
+enable_swagger = false          # Enable Swagger UI (dev only)
+cors_max_age = 86400           # CORS preflight cache duration
+
+[ui]
+# UI settings
+theme = "corporate"             # UI theme
+language = "ja"                # Default language
+enable_dark_mode = true        # Enable dark mode option
+session_timeout = 1800         # UI session timeout (seconds)
+auto_save_interval = 30        # Auto-save interval (seconds)
+
+# Performance settings
+[performance]
+enable_caching = true          # Enable application-level caching
+cache_ttl = 300               # Default cache TTL (seconds)
+max_concurrent_requests = 100  # Maximum concurrent requests
+request_queue_size = 1000     # Request queue size
+enable_compression = true      # Enable response compression
+
+# Development settings (disable in production)
+[development]
+enable_debug_logs = false      # Enable debug logging
+enable_profiling = false       # Enable performance profiling
+mock_external_services = false # Mock external service calls
+disable_auth = false          # NEVER enable in production!

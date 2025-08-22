@@ -12,6 +12,7 @@
       "mcp__serena__get_symbols_overview",
       "mcp__serena__insert_after_symbol",
       "mcp__serena__list_dir",
+      "mcp__serena__list_memories",
       "mcp__serena__onboarding",
       "mcp__serena__prepare_for_new_conversation",
       "mcp__serena__read_file",
@@ -32,11 +33,13 @@
       "Bash(echo:*)",
       "Bash(git add:*)",
       "Bash(git config:*)",
+      "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(npm run check:*)",
       "Bash(where:*)",
-      "Bash(find:*)"
+      "WebSearch"
     ],
     "deny": [],
     "ask": [
