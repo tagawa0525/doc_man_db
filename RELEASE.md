@@ -141,7 +141,7 @@
 
 ### インストール手順
 
-1. **バイナリ配置**
+#### 1. **バイナリ配置**
 
 ```powershell
 # リリースパッケージ展開
@@ -151,7 +151,7 @@ Expand-Archive doc_man_db_v1.0.0.zip -DestinationPath C:\doc_man_db
 Copy-Item config\production.toml C:\doc_man_db\config\
 ```
 
-2. **データベースセットアップ**
+#### 2. **データベースセットアップ**
 
 ```bash
 # マイグレーション実行
@@ -161,7 +161,7 @@ C:\doc_man_db\doc_man_db.exe --migrate
 C:\doc_man_db\doc_man_db.exe --import-initial-data
 ```
 
-3. **サービス登録**
+#### 3. **サービス登録**
 
 ```powershell
 # Windowsサービス作成
@@ -290,7 +290,7 @@ base_path = "\\\\fileserver\\documents"
 
 ## 🏆 開発チーム
 
-**Doc Man DB Development Team**
+### **Doc Man DB Development Team**
 
 - フルスタック開発・アーキテクチャ設計
 - インフラ・DevOps

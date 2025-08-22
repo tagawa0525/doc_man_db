@@ -342,3 +342,35 @@ Extensive design documentation is available in the `docs/` directory:
 - Task-specific design documents for each development phase
 
 The system handles complex organizational document management with historical data preservation and flexible rule-based processing.
+
+## Important Development Notes
+
+### Environment Setup
+
+- **Rust Edition**: 2024 (see Cargo.toml)
+- **Database URLs**: Development uses `sqlite://./data/dev.db`
+- **Frontend**: Run `cd ui` before npm commands
+- **Coverage**: Use `cargo tarpaulin` for test coverage reports
+
+### Key Dependencies
+
+- **Web Framework**: Axum 0.8.4 with multipart support
+- **Database**: SQLx 0.8.6 with SQLite and chrono features
+- **GraphQL**: async-graphql 7.0.17 for API layer
+- **Frontend**: SvelteKit with TypeScript and Tailwind CSS
+
+### Testing Infrastructure
+
+- Comprehensive test suite with 90%+ coverage goal
+- Unit tests in `tests/unit/`
+- Integration tests in `tests/integration/`
+- API tests in `tests/api/`
+- Batch processing tests in `tests/batch/`
+- Service tests in `tests/services/`
+
+### Development Guidelines
+
+- Do what has been asked; nothing more, nothing less
+- NEVER create files unless absolutely necessary for the goal
+- ALWAYS prefer editing existing files to creating new ones
+- NEVER proactively create documentation files unless explicitly requested

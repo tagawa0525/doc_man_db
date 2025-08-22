@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::time::Duration;
 
 /// Test environment for integration tests
+#[allow(dead_code)]
 pub struct TestEnvironment {
     pub config: AppConfig,
     pub db_pool: Pool<Sqlite>,
@@ -509,6 +510,7 @@ impl TestEnvironment {
     }
 
     /// Make HTTP request to running server
+    #[allow(dead_code)]
     pub async fn make_request(
         &self,
         method: &str,
@@ -534,6 +536,7 @@ impl TestEnvironment {
     }
 
     /// Load test helper - generate concurrent requests
+    #[allow(dead_code)]
     pub async fn concurrent_requests(
         &self,
         count: usize,
@@ -588,6 +591,7 @@ pub struct StartCirculationRequest {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct ApproveStepRequest {
     pub circulation_id: i32,
     pub step_id: i32,
@@ -618,6 +622,7 @@ impl Default for Pagination {
 
 // Test model structures
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct TestDocument {
     pub id: i32,
     pub title: String,
@@ -663,6 +668,7 @@ pub struct ApprovalResult {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct DocumentSearchResult {
     pub documents: Vec<TestDocument>,
     pub total_count: i64,
@@ -670,6 +676,7 @@ pub struct DocumentSearchResult {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct FileExistenceResult {
     pub folder_exists: bool,
     pub files_found: Vec<String>,
@@ -677,6 +684,7 @@ pub struct FileExistenceResult {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Employee {
     pub id: i32,
     pub name: String,

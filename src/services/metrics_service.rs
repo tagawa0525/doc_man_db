@@ -465,8 +465,16 @@ mod tests {
     #[test]
     fn test_health_status() {
         let service = MetricsService::new(60);
+
+        // Add some cache operations to establish a good hit rate
+        service.record_cache_operation("test_key", true);
+        service.record_cache_operation("test_key2", true);
+        service.record_cache_operation("test_key3", true);
+        service.record_cache_operation("test_key4", false); // One miss to make it realistic
+
         let health = service.get_health_status();
 
+        // With good cache hit rate (75%), all should be healthy
         assert_eq!(health.overall, HealthState::Healthy);
         assert_eq!(health.api, HealthState::Healthy);
         assert_eq!(health.database, HealthState::Healthy);

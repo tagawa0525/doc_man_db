@@ -703,7 +703,7 @@ async fn test_rate_limiting_security() {
 
     // 1. API レート制限テスト（模擬）
     const RAPID_REQUESTS: usize = 100;
-    const TIME_WINDOW: std::time::Duration = std::time::Duration::from_secs(1);
+    // const TIME_WINDOW: std::time::Duration = std::time::Duration::from_secs(1);
 
     let start_time = std::time::Instant::now();
     let mut successful_requests = 0;
