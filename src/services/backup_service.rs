@@ -447,20 +447,20 @@ impl BackupService for BackupServiceImpl {
                 })?
         {
             let path = entry.path();
-            if let Ok(metadata) = fs::metadata(&path).await {
-                if let Ok(created) = metadata.created() {
-                    let created_datetime: DateTime<Utc> = created.into();
-                    if created_datetime < cutoff_date {
-                        if let Err(e) = fs::remove_file(&path).await {
-                            warn!(
-                                "古いバックアップファイル削除失敗: {}: {}",
-                                path.display(),
-                                e
-                            );
-                        } else {
-                            deleted_count += 1;
-                            info!("古いバックアップファイル削除: {}", path.display());
-                        }
+            if let Ok(metadata) = fs::metadata(&path).await
+                && let Ok(created) = metadata.created()
+            {
+                let created_datetime: DateTime<Utc> = created.into();
+                if created_datetime < cutoff_date {
+                    if let Err(e) = fs::remove_file(&path).await {
+                        warn!(
+                            "古いバックアップファイル削除失敗: {}: {}",
+                            path.display(),
+                            e
+                        );
+                    } else {
+                        deleted_count += 1;
+                        info!("古いバックアップファイル削除: {}", path.display());
                     }
                 }
             }

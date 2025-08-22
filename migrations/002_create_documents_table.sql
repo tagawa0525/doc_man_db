@@ -15,7 +15,9 @@ CREATE TABLE documents (
     network_path TEXT,
     is_active INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_type_id) REFERENCES document_types (id),
+    FOREIGN KEY (created_by) REFERENCES employees (id)
 );
 
 -- Create indexes for performance

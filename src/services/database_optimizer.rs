@@ -411,15 +411,14 @@ impl DatabaseOptimizer {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_query_type_detection() {
+    #[tokio::test]
+    async fn test_query_type_detection() {
         // Create a dummy pool for testing
         use sqlx::sqlite::SqlitePoolOptions;
         let pool = SqlitePoolOptions::new()
             .max_connections(1)
-            .connect_lazy("sqlite::memory:")
-            .unwrap();
-        let optimizer = DatabaseOptimizer::new(pool);
+            .connect_lazy("sqlite::memory:");
+        let optimizer = DatabaseOptimizer::new(pool.expect("Failed to create test pool"));
 
         assert_eq!(
             optimizer.determine_query_type("SELECT * FROM users"),
@@ -439,14 +438,13 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_query_hashing() {
+    #[tokio::test]
+    async fn test_query_hashing() {
         use sqlx::sqlite::SqlitePoolOptions;
         let pool = SqlitePoolOptions::new()
             .max_connections(1)
-            .connect_lazy("sqlite::memory:")
-            .unwrap();
-        let optimizer = DatabaseOptimizer::new(pool);
+            .connect_lazy("sqlite::memory:");
+        let optimizer = DatabaseOptimizer::new(pool.expect("Failed to create test pool"));
 
         let hash1 = optimizer.hash_query("SELECT * FROM users WHERE id = ?");
         let hash2 = optimizer.hash_query("SELECT   *   FROM   users   WHERE   id   =   ?");

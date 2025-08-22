@@ -2,7 +2,7 @@
 
 use crate::models::{CreateDocumentRequest, Document, DocumentSearchFilters};
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, Datelike};
 use sqlx::{Row, SqlitePool};
 
 // Repository エラー型
@@ -66,6 +66,74 @@ impl SqliteDocumentRepository {
         .execute(&pool)
         .await?;
 
+        // document_typesテーブルを作成
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS document_types (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                department_code TEXT,
+                prefix TEXT NOT NULL,
+                effective_from DATE NOT NULL,
+                effective_until DATE,
+                is_active INTEGER DEFAULT 1,
+                created_by INTEGER NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+        )
+        .execute(&pool)
+        .await?;
+
+        // employeesテーブルを作成（外部キー制約のため）
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS employees (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                employee_number TEXT UNIQUE NOT NULL,
+                name TEXT NOT NULL,
+                department TEXT NOT NULL,
+                position TEXT,
+                email TEXT,
+                phone TEXT,
+                hire_date DATE,
+                is_active INTEGER DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+        )
+        .execute(&pool)
+        .await?;
+
+        // テスト用初期データを挿入
+        // 従業員データ
+        sqlx::query(
+            r#"
+            INSERT OR IGNORE INTO employees (id, employee_number, name, department, position, email)
+            VALUES 
+                (1, 'EMP001', 'システム管理者', 'IT', 'Manager', 'admin@company.com'),
+                (2, 'EMP002', 'テストユーザー', 'General', 'Staff', 'test@company.com')
+            "#,
+        )
+        .execute(&pool)
+        .await?;
+
+        // 文書種類データ
+        sqlx::query(
+            r#"
+            INSERT OR IGNORE INTO document_types (id, name, description, prefix, effective_from, created_by)
+            VALUES 
+                (1, '技術文書', '技術仕様書、設計書等', 'TEC', '2024-01-01', 1),
+                (2, '業務文書', '業務手順書、報告書等', 'BUS', '2024-01-01', 1),
+                (3, '契約文書', '契約書、覚書等', 'CON', '2024-01-01', 1)
+            "#,
+        )
+        .execute(&pool)
+        .await?;
+
         Ok(Self { pool })
     }
 }
@@ -78,8 +146,40 @@ impl DocumentRepository for SqliteDocumentRepository {
             .validate()
             .map_err(|e| RepositoryError::Validation(e.to_string()))?;
 
-        // 文書番号を生成（簡易実装）
-        let document_number = format!("DOC-{:06}", chrono::Utc::now().timestamp_millis() % 1000000);
+        // 文書種類情報を取得
+        let doc_type = sqlx::query("SELECT prefix FROM document_types WHERE id = ?")
+            .bind(request.document_type_id)
+            .fetch_one(&self.pool)
+            .await
+            .map_err(RepositoryError::Database)?;
+        
+        let prefix: String = doc_type.get("prefix");
+        
+        // 年月を取得（YYMM形式）
+        let year_month = format!("{:02}{:02}", 
+            request.created_date.year() % 100,
+            request.created_date.month()
+        );
+        
+        // 同一プレフィックス・年月での最大番号を取得
+        let max_num_result = sqlx::query(
+            "SELECT number FROM documents WHERE number LIKE ? ORDER BY number DESC LIMIT 1"
+        )
+        .bind(format!("{}-{}%", prefix, year_month))
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(RepositoryError::Database)?;
+        
+        let next_sequence = if let Some(row) = max_num_result {
+            let last_number: String = row.get("number");
+            // "TEC-2508001" -> "001" の部分を抽出して +1
+            let sequence_part = &last_number[(prefix.len() + 1 + 4)..];
+            sequence_part.parse::<u32>().unwrap_or(0) + 1
+        } else {
+            1
+        };
+        
+        let document_number = format!("{}-{}{:03}", prefix, year_month, next_sequence);
 
         // データベースに挿入
         let result = sqlx::query(

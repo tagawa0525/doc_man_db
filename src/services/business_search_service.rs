@@ -144,20 +144,20 @@ impl BusinessSearchService {
         }
 
         // 日付範囲検証
-        if let (Some(from), Some(to)) = (&filters.start_date_from, &filters.start_date_to) {
-            if from > to {
-                return Err(SearchError::InvalidParameters(
-                    "開始日の範囲が無効です".to_string(),
-                ));
-            }
+        if let (Some(from), Some(to)) = (&filters.start_date_from, &filters.start_date_to)
+            && from > to
+        {
+            return Err(SearchError::InvalidParameters(
+                "開始日の範囲が無効です".to_string(),
+            ));
         }
 
-        if let (Some(from), Some(to)) = (&filters.end_date_from, &filters.end_date_to) {
-            if from > to {
-                return Err(SearchError::InvalidParameters(
-                    "終了日の範囲が無効です".to_string(),
-                ));
-            }
+        if let (Some(from), Some(to)) = (&filters.end_date_from, &filters.end_date_to)
+            && from > to
+        {
+            return Err(SearchError::InvalidParameters(
+                "終了日の範囲が無効です".to_string(),
+            ));
         }
 
         // 検索条件が最低一つはあることを確認（緩い制限）

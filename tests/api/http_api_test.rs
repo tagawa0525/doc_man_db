@@ -128,22 +128,35 @@ async fn test_search_documents_api() {
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
 
-    // 複数文書を作成
+    // 複数文書を作成（ユニークな番号を保証するためランダムサフィックス使用）
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(1);
+    let unique_id = COUNTER.fetch_add(1000, Ordering::SeqCst)
+        + std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_micros() as u64;
+
     for i in 1..=3 {
         let request_body = json!({
-            "title": format!("検索テスト文書{}", i),
+            "title": format!("検索テスト文書{}_{}", i, unique_id + i as u64),
             "document_type_code": "A",
             "department_code": "T",
             "created_by": 1,
             "created_date": "2025-08-17"
         });
 
-        client
+        let create_response = client
             .post(format!("http://{addr}/api/documents"))
             .json(&request_body)
             .send()
             .await
             .unwrap();
+
+        if !create_response.status().is_success() {
+            let error_body = create_response.text().await.unwrap();
+            panic!("Document creation {} failed: {}", i, error_body);
+        }
     }
 
     // When: 文書検索APIにリクエスト

@@ -70,15 +70,15 @@ impl CsvImportServiceImpl {
             .await?;
 
         // 重複チェック
-        if options.skip_duplicates {
-            if let Ok(existing) = self.find_duplicate_document(&record).await {
-                return Err(ImportError {
-                    row_number,
-                    field: None,
-                    message: format!("Duplicate document found: {}", existing.number),
-                    raw_data: format!("{record:?}"),
-                });
-            }
+        if options.skip_duplicates
+            && let Ok(existing) = self.find_duplicate_document(&record).await
+        {
+            return Err(ImportError {
+                row_number,
+                field: None,
+                message: format!("Duplicate document found: {}", existing.number),
+                raw_data: format!("{record:?}"),
+            });
         }
 
         // 文書作成リクエスト
@@ -163,15 +163,16 @@ impl CsvImportServiceImpl {
         }
 
         // 業務番号検証（省略可能だが、指定された場合は形式チェック）
-        if let Some(ref business_number) = record.business_number {
-            if !business_number.trim().is_empty() && business_number.len() > 50 {
-                return Err(ImportError {
-                    row_number,
-                    field: Some("business_number".to_string()),
-                    message: "Business number too long (max 50 characters)".to_string(),
-                    raw_data: business_number.clone(),
-                });
-            }
+        if let Some(ref business_number) = record.business_number
+            && !business_number.trim().is_empty()
+            && business_number.len() > 50
+        {
+            return Err(ImportError {
+                row_number,
+                field: Some("business_number".to_string()),
+                message: "Business number too long (max 50 characters)".to_string(),
+                raw_data: business_number.clone(),
+            });
         }
 
         Ok(())

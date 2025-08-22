@@ -193,20 +193,20 @@ pub async fn validate_csv(
         .await
         .map_err(|e| AppError::ValidationError(format!("Failed to read multipart field: {e}")))?
     {
-        if let Some(field_name) = field.name() {
-            if field_name == "file" {
-                file_name = field.file_name().unwrap_or("unknown.csv").to_string();
-                file_data = Some(
-                    field
-                        .bytes()
-                        .await
-                        .map_err(|e| {
-                            AppError::ValidationError(format!("Failed to read file data: {e}"))
-                        })?
-                        .to_vec(),
-                );
-                break;
-            }
+        if let Some(field_name) = field.name()
+            && field_name == "file"
+        {
+            file_name = field.file_name().unwrap_or("unknown.csv").to_string();
+            file_data = Some(
+                field
+                    .bytes()
+                    .await
+                    .map_err(|e| {
+                        AppError::ValidationError(format!("Failed to read file data: {e}"))
+                    })?
+                    .to_vec(),
+            );
+            break;
         }
     }
 

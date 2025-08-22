@@ -186,21 +186,21 @@ impl MigrationServiceImpl {
         }
 
         // 容量チェック（模擬）
-        if let Some(data_size) = plan.data_size_mb {
-            if data_size > 10000 {
-                // 10GB超える場合は警告
-                validation.add_issue(ValidationIssue {
-                    id: Uuid::new_v4(),
-                    severity: IssueSeverity::Medium,
-                    category: IssueCategory::PerformanceImpact,
-                    title: "大容量データ移行".to_string(),
-                    description: format!("移行データサイズが大きいです: {data_size}MB"),
-                    affected_tables: vec![],
-                    affected_records: None,
-                    recommendation: Some("バッチ処理での移行を検討してください".to_string()),
-                    auto_fixable: false,
-                });
-            }
+        if let Some(data_size) = plan.data_size_mb
+            && data_size > 10000
+        {
+            // 10GB超える場合は警告
+            validation.add_issue(ValidationIssue {
+                id: Uuid::new_v4(),
+                severity: IssueSeverity::Medium,
+                category: IssueCategory::PerformanceImpact,
+                title: "大容量データ移行".to_string(),
+                description: format!("移行データサイズが大きいです: {data_size}MB"),
+                affected_tables: vec![],
+                affected_records: None,
+                recommendation: Some("バッチ処理での移行を検討してください".to_string()),
+                auto_fixable: false,
+            });
         }
 
         validation.complete();

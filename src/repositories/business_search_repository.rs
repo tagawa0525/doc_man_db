@@ -118,11 +118,11 @@ impl BusinessSearchRepository for SqliteBusinessSearchRepository {
         }
 
         // ドキュメント有無フィルター
-        if let Some(has_documents) = filters.has_documents {
-            if has_documents {
-                joins.push("LEFT JOIN documents d ON d.business_id = b.id");
-                conditions.push("d.id IS NOT NULL");
-            }
+        if let Some(has_documents) = filters.has_documents
+            && has_documents
+        {
+            joins.push("LEFT JOIN documents d ON d.business_id = b.id");
+            conditions.push("d.id IS NOT NULL");
         }
 
         // 作成者フィルター

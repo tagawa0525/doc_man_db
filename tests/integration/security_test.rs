@@ -173,7 +173,7 @@ async fn test_input_validation_security() {
             .search_documents(
                 DocumentSearchInput {
                     title: Some(injection_attempt.to_string()),
-                    pagination: Pagination::default(),
+                    pagination: Pagination::new(1, 10),
                 },
                 &admin_token,
             )
@@ -191,7 +191,7 @@ async fn test_input_validation_security() {
             .search_documents(
                 DocumentSearchInput {
                     title: Some("テスト".to_string()),
-                    pagination: Pagination::default(),
+                    pagination: Pagination::new(1, 10),
                 },
                 &admin_token,
             )
@@ -238,7 +238,7 @@ async fn test_input_validation_security() {
                 .search_documents(
                     DocumentSearchInput {
                         title: Some(xss_attempt.to_string()),
-                        pagination: Pagination::default(),
+                        pagination: Pagination::new(1, 10),
                     },
                     &admin_token,
                 )
@@ -365,7 +365,7 @@ async fn test_data_confidentiality() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("機密".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &admin_token,
         )
@@ -376,7 +376,7 @@ async fn test_data_confidentiality() {
         .search_documents(
             DocumentSearchInput {
                 title: Some("機密".to_string()),
-                pagination: Pagination::default(),
+                pagination: Pagination::new(1, 10),
             },
             &user_token,
         )
@@ -703,7 +703,7 @@ async fn test_rate_limiting_security() {
 
     // 1. API レート制限テスト（模擬）
     const RAPID_REQUESTS: usize = 100;
-    const TIME_WINDOW: std::time::Duration = std::time::Duration::from_secs(1);
+    // const TIME_WINDOW: std::time::Duration = std::time::Duration::from_secs(1);
 
     let start_time = std::time::Instant::now();
     let mut successful_requests = 0;
@@ -714,7 +714,7 @@ async fn test_rate_limiting_security() {
             .search_documents(
                 DocumentSearchInput {
                     title: Some(format!("レート制限テスト {}", i)),
-                    pagination: Pagination::default(),
+                    pagination: Pagination::new(1, 10),
                 },
                 &admin_token,
             )
@@ -728,7 +728,7 @@ async fn test_rate_limiting_security() {
 
         // 短時間での大量リクエストを模擬
         if i % 10 == 0 {
-            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(1)).await;
         }
     }
 

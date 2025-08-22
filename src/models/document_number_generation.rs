@@ -57,17 +57,18 @@ impl CreateDocumentNumberGenerationRuleRequest {
         }
 
         // 部署コードが指定されている場合、1文字であることをチェック
-        if let Some(dept_code) = &self.department_code {
-            if !dept_code.trim().is_empty() && dept_code.trim().len() != 1 {
-                return Err(DocumentValidationError::InvalidDepartmentCodeLength);
-            }
+        if let Some(dept_code) = &self.department_code
+            && !dept_code.trim().is_empty()
+            && dept_code.trim().len() != 1
+        {
+            return Err(DocumentValidationError::InvalidDepartmentCodeLength);
         }
 
         // 有効期間の整合性をチェック
-        if let Some(effective_until) = self.effective_until {
-            if effective_until <= self.effective_from {
-                return Err(DocumentValidationError::InvalidEffectivePeriod);
-            }
+        if let Some(effective_until) = self.effective_until
+            && effective_until <= self.effective_from
+        {
+            return Err(DocumentValidationError::InvalidEffectivePeriod);
         }
 
         Ok(())
