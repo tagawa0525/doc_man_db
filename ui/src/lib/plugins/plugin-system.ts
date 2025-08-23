@@ -5,7 +5,7 @@
  * 将来の機能追加を容易にするプラグインベースの設計
  */
 
-import type { ComponentType } from 'svelte';
+import type { Component } from 'svelte';
 
 /**
  * プラグイン基底インターフェース
@@ -66,7 +66,7 @@ export interface DashboardPlugin extends Plugin {
 export interface DashboardWidget {
   id: string;
   title: string;
-  component: ComponentType;
+  component: Component;
   size: 'small' | 'medium' | 'large';
   order: number;
   refreshInterval?: number;

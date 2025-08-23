@@ -5,7 +5,7 @@
  * 段階的な機能ロールアウトと A/B テストを支援
  */
 
-import { writable, derived, type Readable } from 'svelte/stores';
+import { writable, derived, type Readable } from 'svelte/store';
 
 export interface FeatureFlag {
   key: string;
@@ -133,7 +133,7 @@ export const featureFlags = writable<Record<string, FeatureFlag>>(INITIAL_FLAGS)
  * 機能が有効かどうかを判定
  */
 export function isFeatureEnabled(flagKey: string): Readable<boolean> {
-  return derived(featureFlags, ($flags) => {
+  return derived(featureFlags, ($flags: Record<string, FeatureFlag>) => {
     const flag = $flags[flagKey];
     if (!flag) return false;
 
@@ -145,7 +145,7 @@ export function isFeatureEnabled(flagKey: string): Readable<boolean> {
 
     // 依存関係チェック
     if (flag.dependsOn) {
-      const allDepsEnabled = flag.dependsOn.every(dep =>
+      const allDepsEnabled = flag.dependsOn.every((dep: string) =>
         $flags[dep]?.enabled || false
       );
       if (!allDepsEnabled) return false;
@@ -159,7 +159,7 @@ export function isFeatureEnabled(flagKey: string): Readable<boolean> {
  * フィーチャーフラグを動的に更新
  */
 export function updateFeatureFlag(key: string, updates: Partial<FeatureFlag>): void {
-  featureFlags.update(flags => ({
+  featureFlags.update((flags: Record<string, FeatureFlag>) => ({
     ...flags,
     [key]: { ...flags[key], ...updates }
   }));
@@ -183,7 +183,7 @@ export class FeatureFlagManager {
 
   static getFeatureStatus(): Record<string, FeatureFlag> {
     let currentFlags: Record<string, FeatureFlag> = {};
-    featureFlags.subscribe(flags => currentFlags = flags)();
+    featureFlags.subscribe((flags: Record<string, FeatureFlag>) => currentFlags = flags)();
     return currentFlags;
   }
 }
@@ -193,7 +193,7 @@ export class FeatureFlagManager {
  */
 export function shouldShowVariant(flagKey: string, userId?: string): boolean {
   let currentFlags: Record<string, FeatureFlag> = {};
-  featureFlags.subscribe(flags => currentFlags = flags)();
+  featureFlags.subscribe((flags: Record<string, FeatureFlag>) => currentFlags = flags)();
 
   const flag = currentFlags[flagKey];
   if (!flag || !flag.enabled) return false;
@@ -214,7 +214,7 @@ export function shouldShowVariant(flagKey: string, userId?: string): boolean {
 /**
  * 開発者用フィーチャーフラグ情報表示
  */
-export const debugInfo = derived(featureFlags, ($flags) => {
+export const debugInfo = derived(featureFlags, ($flags: Record<string, FeatureFlag>) => {
   if (!import.meta.env.DEV) return null;
 
   return Object.entries($flags).map(([key, flag]) => ({

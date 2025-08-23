@@ -4,9 +4,12 @@
   export let roadmapPhase: string = "";
   export let estimatedCompletion: string = "";
   export let contactInfo: string = "システム管理者にお問い合わせください";
+
+  let className: string = "";
+  export { className as class };
 </script>
 
-<div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+<div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 {className}">
   <div class="flex items-start space-x-3">
     <div class="flex-shrink-0">
       <svg

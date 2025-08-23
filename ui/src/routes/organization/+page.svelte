@@ -279,7 +279,7 @@
 
 <div class="space-y-6">
   <!-- Placeholder Banner -->
-  <PlaceholderBanner featureKey="organization" />
+  <PlaceholderBanner feature="organization" />
 
   <!-- ページヘッダー -->
   <div class="md:flex md:items-center md:justify-between">

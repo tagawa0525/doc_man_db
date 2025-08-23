@@ -107,14 +107,18 @@
 {#if mobileCardMode}
   <div class="sm:hidden space-y-3">
     {#each data as item, index}
+      {#if onRowClick}
       <div
-        class="bg-white shadow rounded-lg p-4 {onRowClick
-          ? 'cursor-pointer hover:shadow-md'
-          : ''}"
-        on:click={onRowClick ? () => handleRowClick(item) : undefined}
-        role={onRowClick ? "button" : undefined}
-        tabindex={onRowClick ? 0 : undefined}
+        class="bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-md"
+        on:click={() => handleRowClick(item)}
+        role="button"
+        tabindex="0"
       >
+      {:else}
+      <div
+        class="bg-white shadow rounded-lg p-4"
+      >
+      {/if}
         <slot name="mobile-card" {item} {index}>
           {#each headers.filter((h) => !h.mobileHidden) as header}
             <div class="flex justify-between items-center py-1">

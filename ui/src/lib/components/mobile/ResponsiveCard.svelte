@@ -47,14 +47,21 @@
     .join(" ");
 </script>
 
+{#if clickable}
 <div
   class={cardClasses}
   on:click
   on:keydown
-  role={clickable ? "button" : undefined}
-  tabindex={clickable ? 0 : undefined}
+  role="button"
+  tabindex="0"
 >
   {#if title || subtitle || $$slots.header}
+{:else}
+<div
+  class={cardClasses}
+>
+  {#if title || subtitle || $$slots.header}
+{/if}
     <div
       class="mb-4 pb-4 border-b border-gray-200 last:mb-0 last:pb-0 last:border-b-0"
     >

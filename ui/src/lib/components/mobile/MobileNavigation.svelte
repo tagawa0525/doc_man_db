@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   interface NavItem {
     label: string;
@@ -43,7 +43,7 @@
     return icons[iconName] || icons.dashboard;
   }
 
-  $: currentPath = $page.url.pathname;
+  $: currentPath = page.url.pathname;
 
   function isActive(href: string): boolean {
     return (

@@ -205,7 +205,7 @@
 
 <div class="max-w-6xl mx-auto p-6">
   <!-- Placeholder Banner -->
-  <PlaceholderBanner featureKey="reports" class="mb-6" />
+  <PlaceholderBanner feature="reports" class="mb-6" />
 
   <div class="mb-6 flex justify-between items-center">
     <div>

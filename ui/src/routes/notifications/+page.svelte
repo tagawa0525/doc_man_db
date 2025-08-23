@@ -227,7 +227,7 @@
 
 <div class="space-y-6">
   <!-- Placeholder Banner -->
-  <PlaceholderBanner featureKey="notifications" />
+  <PlaceholderBanner feature="notifications" />
 
   <!-- ページヘッダー -->
   <div class="md:flex md:items-center md:justify-between">

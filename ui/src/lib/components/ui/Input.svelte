@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-
   type InputType =
     | "text"
     | "email"
@@ -28,24 +26,38 @@
   let className = "";
   export { className as class };
 
-  const dispatch = createEventDispatcher();
+  // Callback props for event handling
+  export let oninput:
+    | ((event: Event & { detail?: { value: string } }) => void)
+    | undefined = undefined;
+  export let onchange: ((event: Event) => void) | undefined = undefined;
+  export let onfocus: ((event: FocusEvent) => void) | undefined = undefined;
+  export let onblur: ((event: FocusEvent) => void) | undefined = undefined;
 
   function handleInput(event: Event) {
     const target = event.target as HTMLInputElement;
     value = target.value;
-    dispatch("input", { value });
+    if (oninput) {
+      oninput({ ...event, detail: { value } });
+    }
   }
 
   function handleChange(event: Event) {
-    dispatch("change", event);
+    if (onchange) {
+      onchange(event);
+    }
   }
 
   function handleFocus(event: FocusEvent) {
-    dispatch("focus", event);
+    if (onfocus) {
+      onfocus(event);
+    }
   }
 
   function handleBlur(event: FocusEvent) {
-    dispatch("blur", event);
+    if (onblur) {
+      onblur(event);
+    }
   }
 </script>
 
@@ -68,7 +80,7 @@
     {readonly}
     {required}
     {maxlength}
-    {autocomplete}
+    autocomplete={autocomplete || undefined}
     {value}
     class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset
            {error
