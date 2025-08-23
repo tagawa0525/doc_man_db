@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Select from "$lib/components/ui/Select.svelte";
+  // import Select from "$lib/components/ui/Select.svelte";
 
   interface WorkflowStep {
     step_number: number;
@@ -106,7 +106,7 @@
       <div class="space-y-3">
         <h4 class="text-md font-medium text-gray-800">ワークフロー手順:</h4>
 
-        {#each selectedWorkflow.steps as step, index (step.step_number)}
+        {#each selectedWorkflow.steps as step (step.step_number)}
           <div
             class="flex items-center space-x-3 p-3 bg-white rounded-md border"
           >

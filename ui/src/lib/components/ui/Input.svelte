@@ -22,6 +22,8 @@
   export let id = "";
   export let name = "";
   export let autocomplete = "";
+  export let label = "";
+  export let maxlength: number | undefined = undefined;
 
   const dispatch = createEventDispatcher();
 
@@ -44,6 +46,15 @@
   }
 </script>
 
+{#if label}
+  <label for={id} class="block text-sm font-medium text-gray-700 mb-1">
+    {label}
+    {#if required}
+      <span class="text-red-500">*</span>
+    {/if}
+  </label>
+{/if}
+
 <div class="relative">
   <input
     {type}
@@ -53,7 +64,8 @@
     {disabled}
     {readonly}
     {required}
-    {autocomplete}
+    {maxlength}
+    autocomplete={autocomplete || undefined}
     {value}
     class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset
            {error

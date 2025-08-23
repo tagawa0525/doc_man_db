@@ -3,7 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Select from "$lib/components/ui/Select.svelte";
-  import TextArea from "$lib/components/ui/TextArea.svelte";
+  // import TextArea from "$lib/components/ui/TextArea.svelte";
 
   // API統合
   import {
@@ -214,7 +214,7 @@
                   placeholder="文書名を入力してください"
                   required
                   error={errors.title}
-                  maxlength="200"
+                  maxlength={200}
                 />
               </div>
 

@@ -28,7 +28,7 @@ export class TouchHandler {
   }
 
   private setupEventListeners() {
-    let longPressTimer: number;
+    let longPressTimer: ReturnType<typeof setTimeout>;
 
     this.element.addEventListener('touchstart', (e) => {
       const touch = e.touches[0];
@@ -57,7 +57,7 @@ export class TouchHandler {
       }
     }, { passive: true });
 
-    this.element.addEventListener('touchend', (e) => {
+    this.element.addEventListener('touchend', () => {
       if (!this.startTouch || !this.currentTouch) return;
 
       // ロングプレス判定をキャンセル

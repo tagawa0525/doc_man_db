@@ -359,7 +359,8 @@
                           <button
                             type="button"
                             class="text-blue-600 hover:text-blue-900 font-medium"
-                            on:click={() => viewDocument(activity.documentId)}
+                            on:click={() =>
+                              viewDocument(activity.documentId || "")}
                           >
                             文書を表示
                           </button>

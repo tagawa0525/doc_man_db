@@ -15,6 +15,7 @@
   export let error = "";
   export let id = "";
   export let name = "";
+  export let label = "";
 
   const dispatch = createEventDispatcher();
 
@@ -24,6 +25,15 @@
     dispatch("change", { value });
   }
 </script>
+
+{#if label}
+  <label for={id} class="block text-sm font-medium text-gray-700 mb-1">
+    {label}
+    {#if required}
+      <span class="text-red-500">*</span>
+    {/if}
+  </label>
+{/if}
 
 <div class="relative">
   <select

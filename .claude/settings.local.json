@@ -41,6 +41,7 @@
       "Bash(npm install:*)",
       "Bash(npm run check:*)",
       "Bash(npm run dev:*)",
+      "Bash(npx svelte-check:*)",
       "Bash(where:*)",
       "WebSearch"
     ],
