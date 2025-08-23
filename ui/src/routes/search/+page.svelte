@@ -1,49 +1,50 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { writable } from "svelte/store";
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
-  import Select from "$lib/components/ui/Select.svelte";
   import SearchResults from "$lib/components/search/SearchResults.svelte";
   import SearchFilters from "$lib/components/search/SearchFilters.svelte";
   import SavedSearches from "$lib/components/search/SavedSearches.svelte";
 
-  interface SearchFilters {
-    title?: string;
-    document_type_id?: number;
-    created_by?: number;
-    created_date_from?: string;
-    created_date_to?: string;
-    department_id?: number;
-    business_id?: number;
-    content?: string;
-    file_exists?: boolean;
-    confidentiality_level?: string;
-    limit: number;
-    offset: number;
-  }
+  // API統合
+  import {
+    documents,
+    totalDocuments,
+    isLoadingDocuments,
+    documentsError,
+    searchDocuments,
+    updateSearchFilters,
+    searchFilters as storeSearchFilters,
+    paginationInfo,
+  } from "$lib/stores/documents.js";
+  import { showError } from "$lib/stores/errors.js";
+  import type { DocumentSearchFilters } from "$lib/api/queries/documents.js";
 
-  interface SearchResult {
-    documents: any[];
-    total: number;
-    took_ms: number;
-  }
-
-  let filters: SearchFilters = {
+  // ローカル検索フィルター（UI用）
+  let localFilters: DocumentSearchFilters = {
+    title: "",
+    documentTypeId: undefined,
+    createdBy: undefined,
+    createdDateFrom: undefined,
+    createdDateTo: undefined,
     limit: 20,
     offset: 0,
   };
 
-  let searchResults: SearchResult | null = null;
-  let isSearching = false;
   let savedSearches: any[] = [];
   let showAdvancedFilters = false;
   let searchHistory: string[] = [];
+  let searchTerm = "";
 
   onMount(() => {
     loadSavedSearches();
     loadSearchHistory();
   });
+
+  // エラーハンドリング
+  $: if ($documentsError) {
+    showError($documentsError);
+  }
 
   function loadSavedSearches() {
     const saved = localStorage.getItem("savedSearches");
@@ -67,40 +68,34 @@
   }
 
   async function handleSearch() {
-    if (!filters.title && !filters.content && !filters.document_type_id) {
+    if (
+      !localFilters.title &&
+      !localFilters.documentTypeId &&
+      !localFilters.createdBy
+    ) {
       return;
     }
 
     try {
-      isSearching = true;
-
-      if (filters.title) {
-        saveToHistory(filters.title);
+      if (localFilters.title) {
+        saveToHistory(localFilters.title);
       }
 
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          queryParams.append(key, value.toString());
-        }
-      });
-
-      const response = await fetch(`/api/documents/search?${queryParams}`);
-      if (response.ok) {
-        const data = await response.json();
-        searchResults = {
-          documents: data.documents || [],
-          total: data.total || 0,
-          took_ms: data.took_ms || 0,
-        };
-      } else {
-        console.error("Search failed");
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-    } finally {
-      isSearching = false;
+      // ストアのフィルターを更新してGraphQL検索実行
+      updateSearchFilters(localFilters);
+      await searchDocuments();
+    } catch (error: any) {
+      console.error("Search failed:", error);
+      showError(error.message || "検索中にエラーが発生しました");
     }
+  }
+
+  // クイック検索（検索履歴から）
+  async function performQuickSearch() {
+    if (!searchTerm.trim()) return;
+
+    localFilters.title = searchTerm.trim();
+    await handleSearch();
   }
 
   function handleLoadMore() {
@@ -181,7 +176,7 @@
                   type="button"
                   class="w-full text-left text-sm text-blue-600 hover:text-blue-800 truncate"
                   on:click={() => {
-                    filters.title = query;
+                    localFilters.title = query;
                     handleSearch();
                   }}
                 >
@@ -229,7 +224,7 @@
                 </label>
                 <Input
                   id="search-title"
-                  bind:value={filters.title}
+                  bind:value={localFilters.title}
                   placeholder="タイトルで検索..."
                 />
               </div>
@@ -239,12 +234,13 @@
                   for="search-content"
                   class="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  文書内容
+                  作成者ID
                 </label>
                 <Input
                   id="search-content"
-                  bind:value={filters.content}
-                  placeholder="内容で検索..."
+                  type="number"
+                  bind:value={localFilters.createdBy}
+                  placeholder="作成者IDで検索..."
                 />
               </div>
             </div>
@@ -283,13 +279,17 @@
             <!-- Search Button -->
             <div class="flex justify-between items-center">
               <div class="text-sm text-gray-500">
-                {#if searchResults}
-                  {searchResults.total}件の文書が見つかりました ({searchResults.took_ms}ms)
+                {#if $totalDocuments > 0}
+                  {$totalDocuments}件の文書が見つかりました
                 {/if}
               </div>
 
-              <Button type="submit" variant="primary" disabled={isSearching}>
-                {#if isSearching}
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={$isLoadingDocuments}
+              >
+                {#if $isLoadingDocuments}
                   <div class="flex items-center">
                     <div
                       class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
@@ -305,13 +305,54 @@
         </div>
 
         <!-- Search Results -->
-        {#if searchResults}
+        {#if $documents && $documents.length > 0}
           <SearchResults
-            results={searchResults}
-            on:loadMore={handleLoadMore}
-            hasMore={searchResults.documents.length < searchResults.total}
-            loading={isSearching}
+            results={{
+              documents: $documents,
+              total: $totalDocuments,
+              took_ms: 0, // TODO: GraphQL response時間を追加
+            }}
+            on:loadMore={() => {
+              localFilters.offset += localFilters.limit;
+              updateSearchFilters(localFilters);
+              searchDocuments();
+            }}
+            hasMore={$documents.length < $totalDocuments}
+            loading={$isLoadingDocuments}
           />
+        {:else if $isLoadingDocuments}
+          <div class="bg-white shadow rounded-lg p-8">
+            <div class="text-center">
+              <div
+                class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"
+              ></div>
+              <p class="text-gray-500">検索中...</p>
+            </div>
+          </div>
+        {:else}
+          <div class="bg-white shadow rounded-lg p-8">
+            <div class="text-center text-gray-500">
+              <svg
+                class="mx-auto h-12 w-12 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <p class="text-lg font-medium text-gray-900 mb-1">
+                検索結果がありません
+              </p>
+              <p class="text-sm text-gray-500">
+                検索条件を変更して再度お試しください。
+              </p>
+            </div>
+          </div>
         {/if}
       </div>
     </div>
