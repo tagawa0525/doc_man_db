@@ -1,6 +1,18 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Button from "../ui/Button.svelte";
+  
+  // API統合
+  import {
+    unreadNotifications,
+    unreadCount,
+    isLoadingUnread,
+    notificationsError,
+    loadUnreadNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead
+  } from "$lib/stores/notifications.js";
+  import { showError } from "$lib/stores/errors.js";
 
   interface Notification {
     id: string;
