@@ -170,7 +170,7 @@
   <!-- Load More Button -->
   {#if hasMore}
     <div class="px-6 py-4 border-t border-gray-200 text-center">
-      <Button variant="outline" on:click={handleLoadMore} disabled={loading}>
+      <Button variant="secondary" on:click={handleLoadMore} disabled={loading}>
         {#if loading}
           <div class="flex items-center">
             <div

@@ -1,18 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Button from "../ui/Button.svelte";
-  
-  // API統合
-  import {
-    unreadNotifications,
-    unreadCount,
-    isLoadingUnread,
-    notificationsError,
-    loadUnreadNotifications,
-    markNotificationAsRead,
-    markAllNotificationsAsRead
-  } from "$lib/stores/notifications.js";
-  import { showError } from "$lib/stores/errors.js";
 
   interface Notification {
     id: string;
@@ -29,7 +17,7 @@
 
   let notifications: Notification[] = [];
   let showNotifications = false;
-  let unreadCount = 0;
+  let localUnreadCount = 0;
 
   // 仮の通知データ
   const mockNotifications: Notification[] = [
@@ -90,7 +78,7 @@
 
   // 未読数更新
   function updateUnreadCount() {
-    unreadCount = notifications.filter((n) => !n.read).length;
+    localUnreadCount = notifications.filter((n) => !n.read).length;
   }
 
   // 通知パネル表示切り替え
@@ -233,11 +221,11 @@
     </svg>
 
     <!-- 未読数バッジ -->
-    {#if unreadCount > 0}
+    {#if localUnreadCount > 0}
       <span
         class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"
       >
-        {unreadCount > 99 ? "99+" : unreadCount}
+        {localUnreadCount > 99 ? "99+" : localUnreadCount}
       </span>
     {/if}
   </button>
@@ -252,7 +240,7 @@
         <div class="px-4 py-3 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-medium text-gray-900">通知</h3>
-            {#if unreadCount > 0}
+            {#if localUnreadCount > 0}
               <Button variant="secondary" size="sm" on:click={markAllAsRead}>
                 全て既読
               </Button>

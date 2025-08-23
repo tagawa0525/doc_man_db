@@ -14,8 +14,6 @@
     documentsError,
     searchDocuments,
     updateSearchFilters,
-    searchFilters as storeSearchFilters,
-    paginationInfo,
   } from "$lib/stores/documents.js";
   import { showError } from "$lib/stores/errors.js";
   import type { DocumentSearchFilters } from "$lib/api/queries/documents.js";
@@ -90,24 +88,18 @@
     }
   }
 
-  // クイック検索（検索履歴から）
-  async function performQuickSearch() {
-    if (!searchTerm.trim()) return;
-
-    localFilters.title = searchTerm.trim();
-    await handleSearch();
-  }
-
   function handleLoadMore() {
-    if (searchResults) {
-      filters.offset += filters.limit;
-      handleSearch();
+    if ($documents && $documents.length > 0) {
+      localFilters.offset =
+        (localFilters.offset || 0) + (localFilters.limit || 20);
+      updateSearchFilters(localFilters);
+      searchDocuments();
     }
   }
 
   function handleFilterChange(event: CustomEvent) {
-    filters = { ...filters, ...event.detail };
-    filters.offset = 0; // Reset pagination
+    localFilters = { ...localFilters, ...event.detail };
+    localFilters.offset = 0; // Reset pagination
   }
 
   function saveCurrentSearch() {
@@ -116,7 +108,7 @@
       const savedSearch = {
         id: Date.now(),
         name: searchName,
-        filters: { ...filters },
+        filters: { ...localFilters },
         createdAt: new Date().toISOString(),
       };
       savedSearches = [...savedSearches, savedSearch];
@@ -125,7 +117,7 @@
   }
 
   function loadSavedSearch(savedSearch: any) {
-    filters = { ...savedSearch.filters };
+    localFilters = { ...savedSearch.filters };
     handleSearch();
   }
 
@@ -135,8 +127,15 @@
   }
 
   function clearSearch() {
-    filters = { limit: 20, offset: 0 };
-    searchResults = null;
+    localFilters = {
+      title: "",
+      documentTypeId: undefined,
+      createdBy: undefined,
+      createdDateFrom: undefined,
+      createdDateTo: undefined,
+      limit: 20,
+      offset: 0,
+    };
   }
 </script>
 
@@ -238,7 +237,6 @@
                 </label>
                 <Input
                   id="search-content"
-                  type="number"
                   bind:value={localFilters.createdBy}
                   placeholder="作成者IDで検索..."
                 />
@@ -273,7 +271,10 @@
 
             <!-- Advanced Filters -->
             {#if showAdvancedFilters}
-              <SearchFilters bind:filters on:change={handleFilterChange} />
+              <SearchFilters
+                bind:filters={localFilters}
+                on:change={handleFilterChange}
+              />
             {/if}
 
             <!-- Search Button -->
@@ -313,7 +314,8 @@
               took_ms: 0, // TODO: GraphQL response時間を追加
             }}
             on:loadMore={() => {
-              localFilters.offset += localFilters.limit;
+              localFilters.offset =
+                (localFilters.offset || 0) + (localFilters.limit || 20);
               updateSearchFilters(localFilters);
               searchDocuments();
             }}

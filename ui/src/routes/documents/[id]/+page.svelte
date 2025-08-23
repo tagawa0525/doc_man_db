@@ -14,10 +14,9 @@
   import { showError } from "$lib/stores/errors.js";
 
   // パラメータからドキュメントIDを取得
-  $: documentId = parseInt($page.params.id);
+  $: documentId = $page.params.id ? parseInt($page.params.id) : null;
 
   // 状態管理
-  let showEditDialog = false;
   let showDeleteDialog = false;
 
   // 文書種別表示用（仮データ、後で実APIから取得）
@@ -29,20 +28,11 @@
     5: "手順書",
   };
 
-  // 機密性レベル表示用
-  function getConfidentialityLabel(level: string): string {
-    const labels: Record<string, string> = {
-      internal: "社内限定",
-      external: "社外公開",
-      confidential: "機密",
-      secret: "極秘",
-    };
-    return labels[level] || level;
-  }
-
   // 文書編集ページへ
   function goToEdit() {
-    goto(`/documents/${documentId}/edit`);
+    if (documentId) {
+      goto(`/documents/${documentId}/edit`);
+    }
   }
 
   // 文書削除処理（プレースホルダー）
@@ -72,8 +62,11 @@
 
   // 初期化
   onMount(async () => {
-    if (documentId) {
+    if (documentId && !isNaN(documentId)) {
       await loadDocument(documentId);
+    } else {
+      showError("無効な文書IDです");
+      goto("/documents");
     }
   });
 

@@ -44,10 +44,16 @@
           title: "ファイル不存在",
           value: formatStatValue($dashboardStats.missingFiles),
           change: "-25.0%", // TODO: 前月比データを取得
-          trend: $dashboardStats.missingFiles > 0 ? "up" : ("down" as const),
+          trend:
+            $dashboardStats.missingFiles > 0
+              ? ("up" as const)
+              : ("down" as const),
           icon: "warning",
           description: "最新ファイル確認結果",
-          color: $dashboardStats.missingFiles > 0 ? "red" : ("green" as const),
+          color:
+            $dashboardStats.missingFiles > 0
+              ? ("red" as const)
+              : ("green" as const),
         },
         {
           title: "アクティブユーザー",

@@ -12,7 +12,6 @@
     totalDocuments,
     isLoadingDocuments,
     documentsError,
-    searchFilters as storeSearchFilters,
     paginationInfo,
     searchDocuments,
     updateSearchFilters,
@@ -31,7 +30,7 @@
 
   // 状態管理
   let showAdvancedFilters = false;
-  let debounceTimer: number;
+  let debounceTimer: ReturnType<typeof setTimeout>;
 
   // 文書タイプ選択肢（仮データ、後で実APIから取得）
   const documentTypeOptions = [
@@ -164,7 +163,8 @@
             bind:value={localFilters.title}
             placeholder="文書名で検索..."
             on:input={performSearch}
-            on:keydown={(e) => e.key === "Enter" && handleQuickSearch()}
+            on:keydown={(e) =>
+              e.detail && e.detail.key === "Enter" && handleQuickSearch()}
           />
         </div>
 
@@ -262,7 +262,7 @@
           onRowClick={handleRowClick}
           onSort={handleSort}
         >
-          <svelte:fragment slot="cell" let:item let:header let:index>
+          <svelte:fragment slot="cell" let:item let:header>
             {#if header.key === "documentTypeId"}
               {documentTypeOptions.find(
                 (opt) => opt.value === item.documentTypeId.toString(),

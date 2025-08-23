@@ -30,7 +30,7 @@
 
   let isMonitoring = false;
   let observerInstances: PerformanceObserver[] = [];
-  let intervalId: number;
+  let intervalId: ReturnType<typeof setInterval>;
 
   // Start performance monitoring
   function startMonitoring() {
