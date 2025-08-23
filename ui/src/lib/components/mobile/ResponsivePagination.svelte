@@ -1,26 +1,26 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  
+  import { createEventDispatcher } from "svelte";
+
   const dispatch = createEventDispatcher();
-  
+
   export let currentPage: number;
   export let totalPages: number;
   export let totalCount: number;
   export let pageSize: number;
-  
+
   $: startIndex = (currentPage - 1) * pageSize + 1;
   $: endIndex = Math.min(currentPage * pageSize, totalCount);
-  
+
   function handlePageChange(page: number) {
     if (page >= 1 && page <= totalPages) {
-      dispatch('page-change', page);
+      dispatch("page-change", page);
     }
   }
-  
+
   function getPaginationPages(): number[] {
     const pages: number[] = [];
     const maxVisible = 5;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -28,12 +28,12 @@
     } else {
       const start = Math.max(1, currentPage - 2);
       const end = Math.min(totalPages, start + maxVisible - 1);
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
     }
-    
+
     return pages;
   }
 </script>
@@ -50,11 +50,11 @@
         >
           前へ
         </button>
-        
+
         <span class="text-sm text-gray-700 self-center">
           {currentPage} / {totalPages}
         </span>
-        
+
         <button
           disabled={currentPage >= totalPages}
           class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -63,7 +63,7 @@
           次へ
         </button>
       </div>
-      
+
       <!-- デスクトップ用詳細ページング -->
       <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
@@ -76,9 +76,12 @@
             件）
           </p>
         </div>
-        
+
         <div>
-          <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav
+            class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
+            aria-label="Pagination"
+          >
             <!-- 前のページボタン -->
             <button
               disabled={currentPage <= 1}
@@ -94,11 +97,12 @@
                 />
               </svg>
             </button>
-            
+
             <!-- ページ番号 -->
             {#each getPaginationPages() as page}
               <button
-                class="relative inline-flex items-center px-4 py-2 text-sm font-medium border {page === currentPage
+                class="relative inline-flex items-center px-4 py-2 text-sm font-medium border {page ===
+                currentPage
                   ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                   : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}"
                 on:click={() => handlePageChange(page)}
@@ -106,7 +110,7 @@
                 {page}
               </button>
             {/each}
-            
+
             <!-- 次のページボタン -->
             <button
               disabled={currentPage >= totalPages}

@@ -19,17 +19,17 @@ export const toastNotifications = writable<ToastNotification[]>([]);
 export function addToast(notification: Omit<ToastNotification, 'id'>) {
   const toast: ToastNotification = {
     ...notification,
-    id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+    id: Date.now().toString() + Math.random().toString(36).substring(2, 11)
   };
-  
+
   toastNotifications.update(notifications => [...notifications, toast]);
-  
+
   return toast.id;
 }
 
 // 通知削除
 export function removeToast(id: string) {
-  toastNotifications.update(notifications => 
+  toastNotifications.update(notifications =>
     notifications.filter(notification => notification.id !== id)
   );
 }
@@ -42,19 +42,19 @@ export function clearAllToasts() {
 // 便利な関数群
 export const notificationHelpers = {
   // 成功通知
-  success: (title: string, message?: string, duration?: number) => 
+  success: (title: string, message?: string, duration?: number) =>
     addToast({ type: 'success', title, message, duration }),
 
   // エラー通知
-  error: (title: string, message?: string, duration?: number) => 
+  error: (title: string, message?: string, duration?: number) =>
     addToast({ type: 'error', title, message, duration }),
 
   // 情報通知
-  info: (title: string, message?: string, duration?: number) => 
+  info: (title: string, message?: string, duration?: number) =>
     addToast({ type: 'info', title, message, duration }),
 
   // 警告通知
-  warning: (title: string, message?: string, duration?: number) => 
+  warning: (title: string, message?: string, duration?: number) =>
     addToast({ type: 'warning', title, message, duration }),
 
   // アクション付き通知
@@ -138,7 +138,7 @@ export class NotificationService {
       // TODO: 実際のAPI呼び出しに置き換え
       console.log('Sending email:', { recipient, subject, body, templateId });
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // 成功通知
       notificationHelpers.success('メール送信完了', `${recipient}にメールを送信しました`);
       return true;
@@ -160,7 +160,7 @@ export class NotificationService {
       // TODO: 実際のTeams Webhook呼び出しに置き換え
       console.log('Sending Teams message:', { webhookUrl, title, message, actionUrl });
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       // 成功通知
       notificationHelpers.success('Teams通知送信完了', 'Teamsチャネルに通知を送信しました');
       return true;
@@ -186,10 +186,10 @@ export class NotificationService {
     documentId: string,
     documentTitle: string,
     approverEmail: string,
-    requesterId: string
+    _requesterId: string
   ): Promise<void> {
     const settings = defaultNotificationSettings; // 実際は現在の設定を取得
-    
+
     // Email通知
     if (settings.email.enabled && settings.email.documentApproval) {
       await this.sendEmail(
@@ -234,7 +234,7 @@ export class NotificationService {
     details?: string
   ): Promise<void> {
     const settings = defaultNotificationSettings; // 実際は現在の設定を取得
-    
+
     // Email通知
     if (settings.email.enabled && settings.email.systemAlerts) {
       await this.sendEmail(
@@ -264,12 +264,12 @@ export class NotificationService {
   static async sendFileCheckResults(
     totalFiles: number,
     missingFiles: number,
-    errorFiles: string[]
+    _errorFiles: string[]
   ): Promise<void> {
     const settings = defaultNotificationSettings; // 実際は現在の設定を取得
-    
+
     const message = `ファイル存在確認が完了しました。\n対象ファイル: ${totalFiles}件\n不存在ファイル: ${missingFiles}件`;
-    
+
     // Teams通知（ファイル確認は主にTeamsで通知）
     if (settings.teams.enabled && settings.teams.fileCheck && settings.teams.webhookUrl) {
       await this.sendTeamsMessage(

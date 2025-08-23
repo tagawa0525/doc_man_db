@@ -178,41 +178,41 @@
   // テーブルヘッダー定義
   const tableHeaders = [
     {
-      key: 'document_info',
-      label: '文書番号・タイトル',
-      sortable: true
-    },
-    {
-      key: 'documentType',
-      label: '文書種別',
+      key: "document_info",
+      label: "文書番号・タイトル",
       sortable: true,
-      mobileHidden: true
     },
     {
-      key: 'creator_info',
-      label: '作成者・部署',
+      key: "documentType",
+      label: "文書種別",
       sortable: true,
-      mobileHidden: true
+      mobileHidden: true,
     },
     {
-      key: 'createdDate',
-      label: '作成日',
-      sortable: true
+      key: "creator_info",
+      label: "作成者・部署",
+      sortable: true,
+      mobileHidden: true,
     },
     {
-      key: 'confidentiality',
-      label: '機密レベル',
-      mobileHidden: true
+      key: "createdDate",
+      label: "作成日",
+      sortable: true,
     },
     {
-      key: 'file_status',
-      label: 'ファイル状況',
-      mobileHidden: true
+      key: "confidentiality",
+      label: "機密レベル",
+      mobileHidden: true,
     },
     {
-      key: 'actions',
-      label: '操作'
-    }
+      key: "file_status",
+      label: "ファイル状況",
+      mobileHidden: true,
+    },
+    {
+      key: "actions",
+      label: "操作",
+    },
   ];
 
   // 初期読み込み
@@ -516,12 +516,12 @@
         headers={tableHeaders}
         data={documents}
         onSort={(column: string, direction: string) => {
-          console.log('Sort:', column, direction);
+          console.log("Sort:", column, direction);
           // TODO: 実際のソート処理を実装
         }}
       >
         <svelte:fragment slot="cell" let:item let:header let:index>
-          {#if header.key === 'document_info'}
+          {#if header.key === "document_info"}
             <div>
               <div class="text-sm font-medium text-gray-900">
                 {item.number}
@@ -533,18 +533,18 @@
                 </div>
               {/if}
             </div>
-          {:else if header.key === 'documentType'}
+          {:else if header.key === "documentType"}
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
             >
               {item.documentType}
             </span>
-          {:else if header.key === 'creator_info'}
+          {:else if header.key === "creator_info"}
             <div class="text-sm text-gray-900">{item.createdBy}</div>
             <div class="text-sm text-gray-500">{item.department}</div>
-          {:else if header.key === 'createdDate'}
+          {:else if header.key === "createdDate"}
             <span class="text-sm text-gray-900">{item.createdDate}</span>
-          {:else if header.key === 'confidentiality'}
+          {:else if header.key === "confidentiality"}
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getConfidentialityColor(
                 item.confidentiality,
@@ -552,7 +552,7 @@
             >
               {getConfidentialityLabel(item.confidentiality)}
             </span>
-          {:else if header.key === 'file_status'}
+          {:else if header.key === "file_status"}
             <div class="flex items-center space-x-2">
               <div class="flex items-center">
                 <div
@@ -571,7 +571,7 @@
                 <span class="text-xs text-gray-600">承認書</span>
               </div>
             </div>
-          {:else if header.key === 'actions'}
+          {:else if header.key === "actions"}
             <button
               type="button"
               class="text-blue-600 hover:text-blue-900 text-sm font-medium"
@@ -580,7 +580,7 @@
               詳細
             </button>
           {:else}
-            {item[header.key] || '-'}
+            {item[header.key] || "-"}
           {/if}
         </svelte:fragment>
       </ResponsiveTable>
