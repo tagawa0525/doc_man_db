@@ -20,8 +20,13 @@ export function setAuthToken(token: string) {
 
 // エラーハンドリング用のラッパー関数
 export async function executeQuery<T>(query: string, variables?: any): Promise<T> {
+  console.log('Executing GraphQL query:', query);
+  console.log('With variables:', variables);
+  
   try {
-    return await graphqlClient.request<T>(query, variables);
+    const result = await graphqlClient.request<T>(query, variables);
+    console.log('GraphQL query successful, result:', result);
+    return result;
   } catch (error: any) {
     console.error('GraphQL Query Error:', error);
 

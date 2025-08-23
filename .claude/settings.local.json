@@ -44,7 +44,11 @@
       "Bash(npm run generate:types:*)",
       "Bash(npx svelte-check:*)",
       "Bash(where:*)",
-      "WebSearch"
+      "WebSearch",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_wait_for"
     ],
     "deny": [],
     "ask": [

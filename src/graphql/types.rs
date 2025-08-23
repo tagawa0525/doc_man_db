@@ -52,7 +52,7 @@ impl From<CreateDocumentInput> for crate::models::CreateDocumentWithNumberReques
 }
 
 /// GraphQL DocumentSearchFilters type
-#[derive(InputObject)]
+#[derive(InputObject, Debug)]
 pub struct DocumentSearchFilters {
     pub title: Option<String>,
     pub document_type_id: Option<i32>,

@@ -5,6 +5,7 @@ export const GET_DOCUMENT = `
   query GetDocument($id: Int!) {
     document(id: $id) {
       id
+      number
       title
       documentTypeId
       createdBy
@@ -21,6 +22,7 @@ export const SEARCH_DOCUMENTS = `
     searchDocuments(filters: $filters) {
       documents {
         id
+        number
         title
         documentTypeId
         createdBy
@@ -39,6 +41,7 @@ export const CREATE_DOCUMENT = `
     createDocument(input: $input) {
       document {
         id
+        number
         title
         documentTypeId
         createdBy
@@ -59,6 +62,7 @@ export const CREATE_DOCUMENT = `
 // TypeScript型定義（手動定義、後で自動生成に置き換え）
 export interface Document {
   id: number;
+  number: string;
   title: string;
   documentTypeId: number;
   createdBy: number;
@@ -75,13 +79,9 @@ export interface SearchDocumentsResult {
 export interface DocumentSearchFilters {
   title?: string;
   documentTypeId?: number;
-  departmentId?: number;
-  businessId?: number;
-  createdBy?: string;
+  createdBy?: number;
   createdDateFrom?: string;
   createdDateTo?: string;
-  confidentialityLevel?: string;
-  fileExists?: boolean;
   limit?: number;
   offset?: number;
 }

@@ -45,6 +45,7 @@
   // テーブルヘッダー定義
   const headers = [
     { key: "id", label: "ID", sortable: true, mobileHidden: true },
+    { key: "number", label: "文書番号", sortable: true },
     { key: "title", label: "文書名", sortable: true },
     {
       key: "documentTypeId",
@@ -287,7 +288,7 @@
             <div class="space-y-2">
               <div class="font-medium text-gray-900">{item.title}</div>
               <div class="text-sm text-gray-500">
-                ID: {item.id} | 種別: {documentTypeOptions.find(
+                番号: {item.number} | 種別: {documentTypeOptions.find(
                   (opt) => opt.value === item.documentTypeId.toString(),
                 )?.label || "不明"}
               </div>

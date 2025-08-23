@@ -24,6 +24,7 @@ impl QueryRoot {
         ctx: &Context<'_>,
         filters: DocumentSearchFilters,
     ) -> Result<SearchDocumentsResult> {
+        println!("DEBUG: search_documents called with filters: {:?}", filters);
         let state = ctx.data::<AppState>()?;
         let search_filters = filters.into();
 
@@ -67,103 +68,164 @@ impl QueryRoot {
     }
 
     /// Get dashboard statistics
-    async fn dashboard_stats(&self, _ctx: &Context<'_>) -> Result<DashboardStats> {
-        // Mock data for now - TODO: Implement with real statistics
+    async fn dashboard_stats(&self, ctx: &Context<'_>) -> Result<DashboardStats> {
+        let state = ctx.data::<AppState>()?;
+        
+        // Get total documents count by searching with no filters
+        let filters = crate::models::DocumentSearchFilters {
+            title: None,
+            document_type_id: None,
+            created_by: None,
+            created_date_from: None,
+            created_date_to: None,
+            limit: 1, // We only need the count
+            offset: 0,
+        };
+        
+        let (_documents, total_documents) = state.document_handlers
+            .search_documents(filters)
+            .await
+            .map_err(|e| async_graphql::Error::new(format!("Failed to get document count: {e}")))?;
+        
+        // Get monthly created documents (current month)
+        use chrono::{Datelike, Local, NaiveDate};
+        let now = Local::now().naive_local().date();
+        let month_start = NaiveDate::from_ymd_opt(now.year(), now.month(), 1)
+            .ok_or_else(|| async_graphql::Error::new("Invalid date"))?;
+        
+        let monthly_filters = crate::models::DocumentSearchFilters {
+            title: None,
+            document_type_id: None,
+            created_by: None,
+            created_date_from: Some(month_start),
+            created_date_to: Some(now),
+            limit: 1,
+            offset: 0,
+        };
+        
+        let (_monthly_docs, monthly_created) = state.document_handlers
+            .search_documents(monthly_filters)
+            .await
+            .map_err(|e| async_graphql::Error::new(format!("Failed to get monthly count: {e}")))?;
+        
         Ok(DashboardStats {
-            total_documents: 152,
-            monthly_created: 23,
-            missing_files: 3,
-            active_users: 28,
-            pending_approvals: 7,
-            system_uptime: 99.8,
+            total_documents: total_documents as i32,
+            monthly_created: monthly_created as i32,
+            missing_files: 0, // TODO: Implement file existence checking
+            active_users: 1, // TODO: Implement user activity tracking
+            pending_approvals: 0, // TODO: Implement approval system
+            system_uptime: 99.9,
         })
     }
 
     /// Get system status
-    async fn system_status(&self, _ctx: &Context<'_>) -> Result<SystemStatus> {
-        // Mock data for now - TODO: Implement with real system monitoring
+    async fn system_status(&self, ctx: &Context<'_>) -> Result<SystemStatus> {
+        let state = ctx.data::<AppState>()?;
+        
+        // Test database connectivity by performing a simple query
+        let database_status = match state.document_handlers
+            .search_documents(crate::models::DocumentSearchFilters {
+                title: None,
+                document_type_id: None,
+                created_by: None,
+                created_date_from: None,
+                created_date_to: None,
+                limit: 1,
+                offset: 0,
+            })
+            .await
+        {
+            Ok(_) => "healthy",
+            Err(_) => "error",
+        };
+        
+        // Test API status by checking health endpoint availability
+        let api_status = "healthy"; // If we're here, API is working
+        
+        // Get current timestamp for consistent formatting
+        use chrono::Utc;
+        let now = Utc::now();
+        
         Ok(SystemStatus {
-            api_status: "healthy".to_string(),
-            database_status: "healthy".to_string(),
-            file_system_status: "healthy".to_string(),
-            last_backup: "2024-08-23T02:00:00Z".to_string(),
-            server_uptime: "7 days, 14 hours".to_string(),
-            memory_usage: 68.5,
-            disk_usage: 45.2,
+            api_status: api_status.to_string(),
+            database_status: database_status.to_string(),
+            file_system_status: "healthy".to_string(), // TODO: Implement file system checks
+            last_backup: "Not implemented".to_string(), // TODO: Implement backup tracking
+            server_uptime: format!("Running since {}", now.format("%Y-%m-%d %H:%M:%S")),
+            memory_usage: 0.0, // TODO: Implement memory monitoring
+            disk_usage: 0.0,   // TODO: Implement disk monitoring
         })
     }
 
     /// Get recent activities
     async fn recent_activities(
         &self,
-        _ctx: &Context<'_>,
+        ctx: &Context<'_>,
         limit: Option<i32>,
     ) -> Result<Vec<Activity>> {
-        let limit = limit.unwrap_or(10) as usize;
-
-        // Mock data for now - TODO: Implement with real activity tracking
-        let all_activities = vec![
-            Activity {
-                id: "1".to_string(),
+        let limit = limit.unwrap_or(10);
+        let state = ctx.data::<AppState>()?;
+        
+        // Get recent documents (ordered by creation time) to simulate activities
+        let filters = crate::models::DocumentSearchFilters {
+            title: None,
+            document_type_id: None,
+            created_by: None,
+            created_date_from: None,
+            created_date_to: None,
+            limit: limit as i64,
+            offset: 0,
+        };
+        
+        let (documents, _total) = state.document_handlers
+            .search_documents(filters)
+            .await
+            .map_err(|e| async_graphql::Error::new(format!("Failed to get recent documents: {e}")))?;
+        
+        let mut activities = Vec::new();
+        
+        for (index, doc) in documents.iter().enumerate() {
+            // Create activity for document creation
+            activities.push(Activity {
+                id: (index + 1).to_string(),
                 activity_type: "create".to_string(),
-                message: "システム設計書 v3.0を作成しました".to_string(),
-                user: "山田太郎".to_string(),
-                timestamp: "2024-08-23T14:30:00Z".to_string(),
-                document_id: Some("DOC-001".to_string()),
-                document_title: Some("システム設計書 v3.0".to_string()),
-            },
-            Activity {
-                id: "2".to_string(),
-                activity_type: "approval".to_string(),
-                message: "データベース移行計画書の承認を依頼しました".to_string(),
-                user: "佐藤花子".to_string(),
-                timestamp: "2024-08-23T13:45:00Z".to_string(),
-                document_id: Some("DOC-002".to_string()),
-                document_title: Some("データベース移行計画書".to_string()),
-            },
-            Activity {
-                id: "3".to_string(),
-                activity_type: "update".to_string(),
-                message: "運用手順書 v2.1を更新しました".to_string(),
-                user: "田中一郎".to_string(),
-                timestamp: "2024-08-23T11:15:00Z".to_string(),
-                document_id: Some("DOC-003".to_string()),
-                document_title: Some("運用手順書 v2.1".to_string()),
-            },
-        ];
-
-        Ok(all_activities.into_iter().take(limit).collect())
+                message: format!("文書「{}」を作成しました", doc.title),
+                user: match doc.created_by {
+                    1 => "システム管理者",
+                    2 => "テストユーザー", 
+                    _ => "不明なユーザー",
+                }.to_string(),
+                timestamp: doc.created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                document_id: Some(doc.number.clone()),
+                document_title: Some(doc.title.clone()),
+            });
+        }
+        
+        // If no documents exist, show a placeholder activity
+        if activities.is_empty() {
+            activities.push(Activity {
+                id: "1".to_string(),
+                activity_type: "system".to_string(),
+                message: "システムが正常に起動しました".to_string(),
+                user: "システム".to_string(),
+                timestamp: chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                document_id: None,
+                document_title: None,
+            });
+        }
+        
+        Ok(activities)
     }
 
     /// Get pending approvals
     async fn pending_approvals(
         &self,
         _ctx: &Context<'_>,
-        limit: Option<i32>,
+        _limit: Option<i32>,
     ) -> Result<Vec<PendingApproval>> {
-        let limit = limit.unwrap_or(5) as usize;
-
-        // Mock data for now - TODO: Implement with real approval system
-        let all_approvals = vec![
-            PendingApproval {
-                id: "approval-1".to_string(),
-                document_id: "DOC-002".to_string(),
-                document_title: "データベース移行計画書".to_string(),
-                requester_name: "佐藤花子".to_string(),
-                requested_at: "2024-08-23T13:45:00Z".to_string(),
-                approval_type: "approval".to_string(),
-            },
-            PendingApproval {
-                id: "approval-2".to_string(),
-                document_id: "DOC-005".to_string(),
-                document_title: "セキュリティポリシー更新版".to_string(),
-                requester_name: "鈴木太郎".to_string(),
-                requested_at: "2024-08-23T10:30:00Z".to_string(),
-                approval_type: "review".to_string(),
-            },
-        ];
-
-        Ok(all_approvals.into_iter().take(limit).collect())
+        // Return empty list since approval system is not yet implemented
+        // TODO: Implement real approval system with database storage
+        Ok(vec![])
     }
 }
 
