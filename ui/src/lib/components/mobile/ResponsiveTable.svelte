@@ -35,7 +35,7 @@
   }
 
   // Custom cell renderer
-  function renderCell(item: any, header: any, index: number) {
+  function renderCell(item: any, header: any) {
     return item[header.key] || "-";
   }
 </script>

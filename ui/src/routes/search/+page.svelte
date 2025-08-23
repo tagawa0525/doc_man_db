@@ -32,7 +32,6 @@
   let savedSearches: any[] = [];
   let showAdvancedFilters = false;
   let searchHistory: string[] = [];
-  let searchTerm = "";
 
   onMount(() => {
     loadSavedSearches();
@@ -85,15 +84,6 @@
     } catch (error: any) {
       console.error("Search failed:", error);
       showError(error.message || "検索中にエラーが発生しました");
-    }
-  }
-
-  function handleLoadMore() {
-    if ($documents && $documents.length > 0) {
-      localFilters.offset =
-        (localFilters.offset || 0) + (localFilters.limit || 20);
-      updateSearchFilters(localFilters);
-      searchDocuments();
     }
   }
 

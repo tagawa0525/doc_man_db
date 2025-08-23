@@ -1,24 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import Input from "$lib/components/ui/Input.svelte";
-  import Select from "$lib/components/ui/Select.svelte";
 
-  interface SearchFilters {
-    title?: string;
-    document_type_id?: number;
-    created_by?: number;
-    created_date_from?: string;
-    created_date_to?: string;
-    department_id?: number;
-    business_id?: number;
-    content?: string;
-    file_exists?: boolean;
-    confidentiality_level?: string;
-    limit: number;
-    offset: number;
-  }
+  import type { DocumentSearchFilters } from "$lib/api/queries/documents.js";
 
-  export let filters: SearchFilters;
+  export let filters: DocumentSearchFilters;
 
   const dispatch = createEventDispatcher();
 

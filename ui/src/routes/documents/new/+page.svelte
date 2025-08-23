@@ -9,7 +9,7 @@
   import {
     createDocument,
     isLoadingDocuments,
-    documentsError
+    documentsError,
   } from "$lib/stores/documents.js";
   import { showError, showInfo } from "$lib/stores/errors.js";
   import type { CreateDocumentInput } from "$lib/api/queries/documents.js";
@@ -77,7 +77,7 @@
       const selectedDate = new Date(formData.createdDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (selectedDate > today) {
         errors.createdDate = "作成日は今日以前の日付を選択してください";
       }
@@ -106,16 +106,18 @@
         documentTypeCode: formData.documentTypeCode,
         departmentCode: formData.departmentCode,
         createdBy: formData.createdBy,
-        createdDate: formData.createdDate
+        createdDate: formData.createdDate,
       };
 
       const result = await createDocument(input);
-      
+
       if (result) {
         createdDocument = result;
         generatedNumber = result.documentNumber;
-        showInfo(`文書が正常に作成されました。文書番号: ${result.documentNumber}`);
-        
+        showInfo(
+          `文書が正常に作成されました。文書番号: ${result.documentNumber}`,
+        );
+
         // 3秒後に詳細ページに遷移
         setTimeout(() => {
           goto(`/documents/${result.document.id}`);
@@ -145,7 +147,7 @@
 
   // キャンセル
   function handleCancel() {
-    goto('/documents');
+    goto("/documents");
   }
 
   // エラーハンドリング
@@ -163,7 +165,11 @@
   <div class="flex items-center space-x-2 text-sm text-gray-500">
     <a href="/documents" class="hover:text-gray-700">文書管理</a>
     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+      <path
+        fill-rule="evenodd"
+        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+        clip-rule="evenodd"
+      />
     </svg>
     <span class="text-gray-900">新規文書作成</span>
   </div>
@@ -173,8 +179,16 @@
     <div class="bg-green-50 border border-green-200 rounded-lg p-4">
       <div class="flex">
         <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          <svg
+            class="h-5 w-5 text-green-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
           </svg>
         </div>
         <div class="ml-3">
@@ -205,7 +219,7 @@
           <!-- 基本情報 -->
           <div class="space-y-4">
             <h2 class="text-lg font-medium text-gray-900">基本情報</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="md:col-span-2">
                 <Input
@@ -251,7 +265,9 @@
           </div>
 
           <!-- アクションボタン -->
-          <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200">
+          <div
+            class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200"
+          >
             <Button
               type="button"
               on:click={resetForm}
@@ -260,7 +276,7 @@
             >
               リセット
             </Button>
-            
+
             <Button
               type="button"
               on:click={togglePreview}
@@ -269,7 +285,7 @@
             >
               プレビュー
             </Button>
-            
+
             <Button
               type="button"
               on:click={handleCancel}
@@ -278,7 +294,7 @@
             >
               キャンセル
             </Button>
-            
+
             <Button
               type="submit"
               variant="primary"
@@ -289,17 +305,12 @@
             </Button>
           </div>
         </form>
-
       {:else if showPreview && !createdDocument}
         <!-- プレビュー表示 -->
         <div class="space-y-6">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-medium text-gray-900">作成内容の確認</h2>
-            <Button
-              on:click={togglePreview}
-              variant="secondary"
-              size="sm"
-            >
+            <Button on:click={togglePreview} variant="secondary" size="sm">
               編集に戻る
             </Button>
           </div>
@@ -313,13 +324,17 @@
               <div>
                 <dt class="text-sm font-medium text-gray-900">文書種別</dt>
                 <dd class="text-sm text-gray-700">
-                  {documentTypeOptions.find(opt => opt.value === formData.documentTypeCode)?.label || formData.documentTypeCode}
+                  {documentTypeOptions.find(
+                    (opt) => opt.value === formData.documentTypeCode,
+                  )?.label || formData.documentTypeCode}
                 </dd>
               </div>
               <div>
                 <dt class="text-sm font-medium text-gray-900">所属部署</dt>
                 <dd class="text-sm text-gray-700">
-                  {departmentOptions.find(opt => opt.value === formData.departmentCode)?.label || formData.departmentCode}
+                  {departmentOptions.find(
+                    (opt) => opt.value === formData.departmentCode,
+                  )?.label || formData.departmentCode}
                 </dd>
               </div>
               <div>
@@ -338,7 +353,7 @@
             >
               編集に戻る
             </Button>
-            
+
             <Button
               on:click={handleSubmit}
               variant="primary"
@@ -357,8 +372,16 @@
   <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
     <div class="flex">
       <div class="flex-shrink-0">
-        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        <svg
+          class="h-5 w-5 text-blue-400"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+            clip-rule="evenodd"
+          />
         </svg>
       </div>
       <div class="ml-3">

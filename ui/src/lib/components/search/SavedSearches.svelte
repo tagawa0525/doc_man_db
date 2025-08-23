@@ -1,6 +1,5 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import Button from "$lib/components/ui/Button.svelte";
 
   interface SavedSearch {
     id: number;

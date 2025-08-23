@@ -24,6 +24,9 @@
   export let autocomplete = "";
   export let label = "";
   export let maxlength: number | undefined = undefined;
+  
+  let className = "";
+  export { className as class };
 
   const dispatch = createEventDispatcher();
 
@@ -65,14 +68,14 @@
     {readonly}
     {required}
     {maxlength}
-    autocomplete={autocomplete || undefined}
+    autocomplete={autocomplete || null}
     {value}
     class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset
            {error
       ? 'ring-red-300 focus:ring-red-500'
       : 'ring-gray-300 focus:ring-blue-500'} 
            placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6
-           disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+           disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed {className}"
     on:input={handleInput}
     on:change={handleChange}
     on:focus={handleFocus}
