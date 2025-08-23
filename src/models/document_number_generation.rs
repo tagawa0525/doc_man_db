@@ -92,8 +92,9 @@ impl DocumentNumberRequest {
             return Err(DocumentValidationError::EmptyDocumentTypeCode);
         }
 
-        // 文書種別コードが1文字であることをチェック
-        if self.document_type_code.trim().len() != 1 {
+        // 文書種別コードが適切な長さであることをチェック (1-10文字)
+        let doc_type_len = self.document_type_code.trim().len();
+        if doc_type_len < 1 || doc_type_len > 10 {
             return Err(DocumentValidationError::InvalidDocumentTypeCodeLength);
         }
 
@@ -102,8 +103,9 @@ impl DocumentNumberRequest {
             return Err(DocumentValidationError::EmptyDepartmentCode);
         }
 
-        // 部署コードが1文字であることをチェック
-        if self.department_code.trim().len() != 1 {
+        // 部署コードが適切な長さであることをチェック (1-10文字)  
+        let dept_code_len = self.department_code.trim().len();
+        if dept_code_len < 1 || dept_code_len > 10 {
             return Err(DocumentValidationError::InvalidDepartmentCodeLength);
         }
 

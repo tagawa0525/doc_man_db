@@ -41,6 +41,7 @@
       "Bash(npm install:*)",
       "Bash(npm run check:*)",
       "Bash(npm run dev:*)",
+      "Bash(npm run generate:types:*)",
       "Bash(npx svelte-check:*)",
       "Bash(where:*)",
       "WebSearch"
@@ -49,6 +50,9 @@
     "ask": [
       "Bash(git commit:*)",
       "Bash(rm:*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\tagaw\\rust\\doc_man_db"
     ]
   }
 }

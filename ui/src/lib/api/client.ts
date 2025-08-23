@@ -3,8 +3,8 @@ import { browser } from '$app/environment';
 
 // GraphQL エンドポイント設定
 const GRAPHQL_ENDPOINT = browser
-  ? 'http://localhost:3000/graphql'  // ブラウザから
-  : 'http://localhost:3000/graphql'; // SSR時
+  ? 'http://localhost:8080/graphql'  // ブラウザから
+  : 'http://localhost:8080/graphql'; // SSR時
 
 // GraphQLクライアント初期化
 export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {

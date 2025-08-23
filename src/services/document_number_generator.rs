@@ -61,6 +61,7 @@ impl DocumentNumberGenerator {
             let document_number = self.apply_template(
                 &rule.template,
                 &request.department_code,
+                &request.document_type_code,
                 year,
                 month,
                 sequence_number,
@@ -91,6 +92,7 @@ impl DocumentNumberGenerator {
         &self,
         template: &str,
         department_code: &str,
+        document_type_code: &str,
         year: i32,
         month: i32,
         sequence_number: i32,
@@ -98,6 +100,9 @@ impl DocumentNumberGenerator {
     ) -> Result<String, DocumentNumberGenerationError> {
         let mut result = template.to_string();
 
+        // 文書種別コード
+        result = result.replace("{文書種別コード}", document_type_code);
+        
         // 部署コード
         result = result.replace("{部署コード}", department_code);
 
@@ -139,7 +144,7 @@ mod tests {
         );
 
         let result = generator
-            .apply_template("{部署コード}-{年下2桁}{連番:3桁}", "T", 2025, 8, 1, 3)
+            .apply_template("{部署コード}-{年下2桁}{連番:3桁}", "T", "TEC", 2025, 8, 1, 3)
             .unwrap();
 
         assert_eq!(result, "T-25001");
@@ -152,7 +157,7 @@ mod tests {
         );
 
         let result = generator
-            .apply_template("CTA-{年下2桁}{月:2桁}{連番:3桁}", "C", 2025, 8, 8, 3)
+            .apply_template("CTA-{年下2桁}{月:2桁}{連番:3桁}", "C", "CTA", 2025, 8, 8, 3)
             .unwrap();
 
         assert_eq!(result, "CTA-2508008");
@@ -165,7 +170,7 @@ mod tests {
         );
 
         let result = generator
-            .apply_template("技術-{年下2桁}{連番:5桁}", "T", 2025, 8, 25, 5)
+            .apply_template("技術-{年下2桁}{連番:5桁}", "T", "TEC", 2025, 8, 25, 5)
             .unwrap();
 
         assert_eq!(result, "技術-2500025");
@@ -178,7 +183,7 @@ mod tests {
         );
 
         let result =
-            generator.apply_template("{不明なプレースホルダー}-{年下2桁}", "T", 2025, 8, 1, 3);
+            generator.apply_template("{不明なプレースホルダー}-{年下2桁}", "T", "TEC", 2025, 8, 1, 3);
 
         assert!(result.is_err());
         assert!(matches!(

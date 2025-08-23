@@ -4,6 +4,7 @@ use async_graphql::{Enum, InputObject, SimpleObject};
 #[derive(SimpleObject)]
 pub struct Document {
     pub id: i32,
+    pub number: String,
     pub title: String,
     pub document_type_id: i32,
     pub created_by: i32,
@@ -16,6 +17,7 @@ impl From<crate::models::Document> for Document {
     fn from(doc: crate::models::Document) -> Self {
         Self {
             id: doc.id,
+            number: doc.number,
             title: doc.title,
             document_type_id: doc.document_type_id,
             created_by: doc.created_by,
@@ -381,4 +383,53 @@ impl From<crate::models::StepResponse> for StepResponse {
             message: response.message,
         }
     }
+}
+
+// ========== Dashboard Types ==========
+
+/// GraphQL DashboardStats type
+#[derive(SimpleObject)]
+pub struct DashboardStats {
+    pub total_documents: i32,
+    pub monthly_created: i32,
+    pub missing_files: i32,
+    pub active_users: i32,
+    pub pending_approvals: i32,
+    pub system_uptime: f64,
+}
+
+/// GraphQL SystemStatus type
+#[derive(SimpleObject)]
+pub struct SystemStatus {
+    pub api_status: String,
+    pub database_status: String,
+    pub file_system_status: String,
+    pub last_backup: String,
+    pub server_uptime: String,
+    pub memory_usage: f64,
+    pub disk_usage: f64,
+}
+
+/// GraphQL Activity type
+#[derive(SimpleObject)]
+pub struct Activity {
+    pub id: String,
+    #[graphql(name = "type")]
+    pub activity_type: String,
+    pub message: String,
+    pub user: String,
+    pub timestamp: String,
+    pub document_id: Option<String>,
+    pub document_title: Option<String>,
+}
+
+/// GraphQL PendingApproval type
+#[derive(SimpleObject)]
+pub struct PendingApproval {
+    pub id: String,
+    pub document_id: String,
+    pub document_title: String,
+    pub requester_name: String,
+    pub requested_at: String,
+    pub approval_type: String,
 }
