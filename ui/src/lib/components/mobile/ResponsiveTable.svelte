@@ -108,32 +108,49 @@
   <div class="sm:hidden space-y-3">
     {#each data as item, index}
       {#if onRowClick}
-      <div
-        class="bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-md"
-        on:click={() => handleRowClick(item)}
-        role="button"
-        tabindex="0"
-      >
+        <div
+          class="bg-white shadow rounded-lg p-4 cursor-pointer hover:shadow-md"
+          on:click={() => handleRowClick(item)}
+          on:keydown={(e) =>
+            e.key === "Enter" || e.key === " "
+              ? handleRowClick(item)
+              : undefined}
+          role="button"
+          tabindex="0"
+        >
+          <slot name="mobile-card" {item} {index}>
+            {#each headers.filter((h) => !h.mobileHidden) as header}
+              <div class="flex justify-between items-center py-1">
+                <span class="text-sm font-medium text-gray-500"
+                  >{header.label}:</span
+                >
+                <span class="text-sm text-gray-900">
+                  <slot name="cell" {item} {header} {index}>
+                    {renderCell(item, header)}
+                  </slot>
+                </span>
+              </div>
+            {/each}
+          </slot>
+        </div>
       {:else}
-      <div
-        class="bg-white shadow rounded-lg p-4"
-      >
+        <div class="bg-white shadow rounded-lg p-4">
+          <slot name="mobile-card" {item} {index}>
+            {#each headers.filter((h) => !h.mobileHidden) as header}
+              <div class="flex justify-between items-center py-1">
+                <span class="text-sm font-medium text-gray-500"
+                  >{header.label}:</span
+                >
+                <span class="text-sm text-gray-900">
+                  <slot name="cell" {item} {header} {index}>
+                    {renderCell(item, header)}
+                  </slot>
+                </span>
+              </div>
+            {/each}
+          </slot>
+        </div>
       {/if}
-        <slot name="mobile-card" {item} {index}>
-          {#each headers.filter((h) => !h.mobileHidden) as header}
-            <div class="flex justify-between items-center py-1">
-              <span class="text-sm font-medium text-gray-500"
-                >{header.label}:</span
-              >
-              <span class="text-sm text-gray-900">
-                <slot name="cell" {item} {header} {index}>
-                  {renderCell(item, header)}
-                </slot>
-              </span>
-            </div>
-          {/each}
-        </slot>
-      </div>
     {/each}
   </div>
 {:else}

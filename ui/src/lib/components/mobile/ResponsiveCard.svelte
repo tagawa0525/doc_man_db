@@ -48,54 +48,83 @@
 </script>
 
 {#if clickable}
-<div
-  class={cardClasses}
-  on:click
-  on:keydown
-  role="button"
-  tabindex="0"
->
-  {#if title || subtitle || $$slots.header}
-{:else}
-<div
-  class={cardClasses}
->
-  {#if title || subtitle || $$slots.header}
-{/if}
-    <div
-      class="mb-4 pb-4 border-b border-gray-200 last:mb-0 last:pb-0 last:border-b-0"
-    >
-      {#if $$slots.header}
-        <slot name="header" />
-      {:else}
-        <div class="flex items-start justify-between">
-          <div>
-            {#if title}
-              <h3 class="text-lg font-medium text-gray-900 leading-6">
-                {title}
-              </h3>
-            {/if}
-            {#if subtitle}
-              <p class="mt-1 text-sm text-gray-500">{subtitle}</p>
+  <div class={cardClasses} on:click on:keydown role="button" tabindex="0">
+    {#if title || subtitle || $$slots.header}
+      <div
+        class="mb-4 pb-4 border-b border-gray-200 last:mb-0 last:pb-0 last:border-b-0"
+      >
+        {#if $$slots.header}
+          <slot name="header" />
+        {:else}
+          <div class="flex items-start justify-between">
+            <div>
+              {#if title}
+                <h3 class="text-lg font-medium text-gray-900 leading-6">
+                  {title}
+                </h3>
+              {/if}
+              {#if subtitle}
+                <p class="mt-1 text-sm text-gray-500">{subtitle}</p>
+              {/if}
+            </div>
+            {#if actions && $$slots.actions}
+              <div class="flex-shrink-0 ml-4">
+                <slot name="actions" />
+              </div>
             {/if}
           </div>
-          {#if actions && $$slots.actions}
-            <div class="flex-shrink-0 ml-4">
-              <slot name="actions" />
-            </div>
-          {/if}
-        </div>
-      {/if}
-    </div>
-  {/if}
+        {/if}
+      </div>
+    {/if}
 
-  <div class="space-y-4">
-    <slot />
+    <div class="space-y-4">
+      <slot />
+    </div>
+
+    {#if $$slots.footer}
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <slot name="footer" />
+      </div>
+    {/if}
   </div>
+{:else}
+  <div class={cardClasses}>
+    {#if title || subtitle || $$slots.header}
+      <div
+        class="mb-4 pb-4 border-b border-gray-200 last:mb-0 last:pb-0 last:border-b-0"
+      >
+        {#if $$slots.header}
+          <slot name="header" />
+        {:else}
+          <div class="flex items-start justify-between">
+            <div>
+              {#if title}
+                <h3 class="text-lg font-medium text-gray-900 leading-6">
+                  {title}
+                </h3>
+              {/if}
+              {#if subtitle}
+                <p class="mt-1 text-sm text-gray-500">{subtitle}</p>
+              {/if}
+            </div>
+            {#if actions && $$slots.actions}
+              <div class="flex-shrink-0 ml-4">
+                <slot name="actions" />
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
 
-  {#if $$slots.footer}
-    <div class="mt-4 pt-4 border-t border-gray-200">
-      <slot name="footer" />
+    <div class="space-y-4">
+      <slot />
     </div>
-  {/if}
-</div>
+
+    {#if $$slots.footer}
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <slot name="footer" />
+      </div>
+    {/if}
+  </div>
+{/if}
