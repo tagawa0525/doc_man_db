@@ -162,7 +162,7 @@
   }
 
   // 再送信
-  async function resendNotification(notif: NotificationHistory) {
+  async function resendNotification(_notif: NotificationHistory) {
     try {
       // TODO: 実際の再送信API呼び出しに置き換え
       await new Promise((resolve) => setTimeout(resolve, 1000));
