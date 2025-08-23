@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import PlaceholderBanner from "$lib/components/ui/PlaceholderBanner.svelte";
 
   let usageData = {
     totalDocuments: 1250,
@@ -203,6 +204,9 @@
 </svelte:head>
 
 <div class="max-w-6xl mx-auto p-6">
+  <!-- Placeholder Banner -->
+  <PlaceholderBanner featureKey="reports" class="mb-6" />
+
   <div class="mb-6 flex justify-between items-center">
     <div>
       <h1 class="text-3xl font-bold text-gray-900">利用状況レポート</h1>

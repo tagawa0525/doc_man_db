@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import PlaceholderBanner from "$lib/components/ui/PlaceholderBanner.svelte";
 
   let activeTab = "general";
   let settings = {
@@ -96,6 +97,9 @@
 </svelte:head>
 
 <div class="max-w-6xl mx-auto p-6">
+  <!-- Placeholder Banner -->
+  <PlaceholderBanner featureKey="settings" class="mb-6" />
+
   <div class="mb-6">
     <h1 class="text-3xl font-bold text-gray-900">システム設定</h1>
     <p class="text-gray-600 mt-2">システムの動作を設定・管理</p>

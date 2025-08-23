@@ -3,6 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import ResponsiveTable from "$lib/components/mobile/ResponsiveTable.svelte";
+  import PlaceholderBanner from "$lib/components/ui/PlaceholderBanner.svelte";
 
   // 状態管理
   let activeTab = "departments";
@@ -277,6 +278,9 @@
 </script>
 
 <div class="space-y-6">
+  <!-- Placeholder Banner -->
+  <PlaceholderBanner featureKey="organization" />
+
   <!-- ページヘッダー -->
   <div class="md:flex md:items-center md:justify-between">
     <div class="min-w-0 flex-1">

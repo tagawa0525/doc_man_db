@@ -3,6 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Select from "$lib/components/ui/Select.svelte";
+  import PlaceholderBanner from "$lib/components/ui/PlaceholderBanner.svelte";
 
   // 通知履歴データ
   interface NotificationHistory {
@@ -225,6 +226,9 @@
 </script>
 
 <div class="space-y-6">
+  <!-- Placeholder Banner -->
+  <PlaceholderBanner featureKey="notifications" />
+
   <!-- ページヘッダー -->
   <div class="md:flex md:items-center md:justify-between">
     <div class="min-w-0 flex-1">
