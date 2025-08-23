@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // サーバーを起動
     let listener = TcpListener::bind("127.0.0.1:8080").await?;
-    
+
     println!("🚀 Document Management System starting on http://127.0.0.1:8080");
     println!("📚 GraphQL Playground: http://127.0.0.1:8080/graphql");
     println!("🏥 Health Check: http://127.0.0.1:8080/health");

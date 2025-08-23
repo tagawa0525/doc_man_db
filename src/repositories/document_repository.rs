@@ -2,7 +2,7 @@
 
 use crate::models::{CreateDocumentRequest, Document, DocumentSearchFilters};
 use async_trait::async_trait;
-use chrono::{DateTime, Utc, Datelike};
+use chrono::{DateTime, Datelike, Utc};
 use sqlx::{Row, SqlitePool};
 
 // Repository エラー型
@@ -152,24 +152,25 @@ impl DocumentRepository for SqliteDocumentRepository {
             .fetch_one(&self.pool)
             .await
             .map_err(RepositoryError::Database)?;
-        
+
         let prefix: String = doc_type.get("prefix");
-        
+
         // 年月を取得（YYMM形式）
-        let year_month = format!("{:02}{:02}", 
+        let year_month = format!(
+            "{:02}{:02}",
             request.created_date.year() % 100,
             request.created_date.month()
         );
-        
+
         // 同一プレフィックス・年月での最大番号を取得
         let max_num_result = sqlx::query(
-            "SELECT number FROM documents WHERE number LIKE ? ORDER BY number DESC LIMIT 1"
+            "SELECT number FROM documents WHERE number LIKE ? ORDER BY number DESC LIMIT 1",
         )
         .bind(format!("{}-{}%", prefix, year_month))
         .fetch_optional(&self.pool)
         .await
         .map_err(RepositoryError::Database)?;
-        
+
         let next_sequence = if let Some(row) = max_num_result {
             let last_number: String = row.get("number");
             // "TEC-2508001" -> "001" の部分を抽出して +1
@@ -178,7 +179,7 @@ impl DocumentRepository for SqliteDocumentRepository {
         } else {
             1
         };
-        
+
         let document_number = format!("{}-{}{:03}", prefix, year_month, next_sequence);
 
         // データベースに挿入
