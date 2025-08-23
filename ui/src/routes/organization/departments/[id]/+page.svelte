@@ -2,7 +2,6 @@
   import { page } from "$app/stores";
   import { onMount } from "svelte";
   import Button from "$lib/components/ui/Button.svelte";
-  import Input from "$lib/components/ui/Input.svelte";
 
   // パラメータから部署IDを取得
   $: departmentId = $page.params.id;

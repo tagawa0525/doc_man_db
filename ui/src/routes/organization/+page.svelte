@@ -7,7 +7,6 @@
   // 状態管理
   let activeTab = "departments";
   let searchTerm = "";
-  let isLoading = false;
 
   // 部署データ
   let departments = [
@@ -173,11 +172,6 @@
     });
 
     return hierarchy;
-  }
-
-  // 部署詳細表示
-  function viewDepartmentDetails(departmentId: number) {
-    window.location.href = `/organization/departments/${departmentId}`;
   }
 
   // 社員詳細表示
@@ -409,22 +403,7 @@
         <Input
           bind:value={searchTerm}
           placeholder="検索（名前、コード、メールアドレスなど）"
-        >
-          <svg
-            slot="icon"
-            class="h-4 w-4 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </Input>
+        ></Input>
       </div>
     </div>
 

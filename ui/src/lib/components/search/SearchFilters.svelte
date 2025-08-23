@@ -90,7 +90,7 @@
     </label>
     <select
       id="filter-document-type"
-      bind:value={filters.document_type_id}
+      bind:value={filters.documentTypeId}
       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">すべての種別</option>
@@ -110,7 +110,7 @@
     </label>
     <select
       id="filter-department"
-      bind:value={filters.department_id}
+      bind:value={filters.departmentId}
       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">すべての部署</option>
@@ -130,7 +130,7 @@
     </label>
     <select
       id="filter-business"
-      bind:value={filters.business_id}
+      bind:value={filters.businessId}
       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">すべての事業部</option>
@@ -150,7 +150,7 @@
     </label>
     <select
       id="filter-created-by"
-      bind:value={filters.created_by}
+      bind:value={filters.createdBy}
       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">すべてのユーザー</option>
@@ -171,7 +171,7 @@
     <Input
       id="filter-date-from"
       type="date"
-      bind:value={filters.created_date_from}
+      bind:value={filters.createdDateFrom}
     />
   </div>
 
@@ -183,11 +183,7 @@
     >
       作成日 (終了)
     </label>
-    <Input
-      id="filter-date-to"
-      type="date"
-      bind:value={filters.created_date_to}
-    />
+    <Input id="filter-date-to" type="date" bind:value={filters.createdDateTo} />
   </div>
 
   <!-- Confidentiality Level -->
@@ -200,7 +196,7 @@
     </label>
     <select
       id="filter-confidentiality"
-      bind:value={filters.confidentiality_level}
+      bind:value={filters.confidentialityLevel}
       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">すべてのレベル</option>
@@ -220,7 +216,7 @@
     </label>
     <select
       id="filter-file-exists"
-      bind:value={filters.file_exists}
+      bind:value={filters.fileExists}
       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">すべて</option>

@@ -21,10 +21,10 @@
   export let error = "";
   export let id = "";
   export let name = "";
-  export let autocomplete = "";
+  export let autocomplete: string | undefined = undefined;
   export let label = "";
   export let maxlength: number | undefined = undefined;
-  
+
   let className = "";
   export { className as class };
 
@@ -68,7 +68,7 @@
     {readonly}
     {required}
     {maxlength}
-    autocomplete={autocomplete || null}
+    {autocomplete}
     {value}
     class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset
            {error

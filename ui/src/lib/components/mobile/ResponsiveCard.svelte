@@ -8,7 +8,7 @@
   export let clickable: boolean = false;
 
   function getPaddingClass(size: string): string {
-    const classes = {
+    const classes: Record<string, string> = {
       sm: "p-3 sm:p-4",
       md: "p-4 sm:p-6",
       lg: "p-6 sm:p-8",
@@ -17,7 +17,7 @@
   }
 
   function getShadowClass(size: string): string {
-    const classes = {
+    const classes: Record<string, string> = {
       none: "",
       sm: "shadow-sm",
       md: "shadow",
@@ -27,7 +27,7 @@
   }
 
   function getRoundedClass(size: string): string {
-    const classes = {
+    const classes: Record<string, string> = {
       none: "",
       sm: "rounded-sm",
       md: "rounded-md",

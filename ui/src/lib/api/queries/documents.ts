@@ -75,9 +75,13 @@ export interface SearchDocumentsResult {
 export interface DocumentSearchFilters {
   title?: string;
   documentTypeId?: number;
-  createdBy?: number;
+  departmentId?: number;
+  businessId?: number;
+  createdBy?: string;
   createdDateFrom?: string;
   createdDateTo?: string;
+  confidentialityLevel?: string;
+  fileExists?: boolean;
   limit?: number;
   offset?: number;
 }

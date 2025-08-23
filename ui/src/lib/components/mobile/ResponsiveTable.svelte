@@ -93,7 +93,7 @@
           {#each headers as header}
             <td class="px-6 py-4 whitespace-nowrap {header.class || ''}">
               <slot name="cell" {item} {header} {index}>
-                {renderCell(item, header, index)}
+                {renderCell(item, header)}
               </slot>
             </td>
           {/each}
@@ -123,7 +123,7 @@
               >
               <span class="text-sm text-gray-900">
                 <slot name="cell" {item} {header} {index}>
-                  {renderCell(item, header, index)}
+                  {renderCell(item, header)}
                 </slot>
               </span>
             </div>
@@ -158,7 +158,7 @@
             {#each headers.filter((h) => !h.mobileHidden) as header}
               <td class="px-3 py-2 text-sm">
                 <slot name="cell" {item} {header} {index}>
-                  {renderCell(item, header, index)}
+                  {renderCell(item, header)}
                 </slot>
               </td>
             {/each}

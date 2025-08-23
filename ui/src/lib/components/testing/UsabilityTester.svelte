@@ -162,16 +162,6 @@
     }
   }
 
-  // Add error to task
-  function addTaskError(taskId: string, error: string) {
-    const taskIndex = tasks.findIndex((t) => t.id === taskId);
-    if (taskIndex !== -1) {
-      tasks[taskIndex].errors.push(error);
-      tasks = [...tasks];
-      errorCount++;
-    }
-  }
-
   // Calculate usability score
   function calculateUsabilityScore(): number {
     const completedTasks = tasks.filter((t) => t.completed).length;
