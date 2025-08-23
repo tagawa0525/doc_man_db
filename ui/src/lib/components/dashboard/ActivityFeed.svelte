@@ -1,6 +1,15 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
+  // API統合
+  import {
+    recentActivities,
+    isLoadingActivities,
+    loadRecentActivities,
+    dashboardError,
+  } from "$lib/stores/dashboard.js";
+  import { showError } from "$lib/stores/errors.js";
+
   interface Activity {
     id: string;
     type:

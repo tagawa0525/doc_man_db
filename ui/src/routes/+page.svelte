@@ -5,87 +5,89 @@
   import SystemStatusCard from "$lib/components/dashboard/SystemStatusCard.svelte";
   import ActivityFeed from "$lib/components/dashboard/ActivityFeed.svelte";
 
-  // ダッシュボード統計データ
-  let stats = [
-    {
-      title: "総文書数",
-      value: "12,547",
-      change: "+2.1%",
-      trend: "up" as const,
-      icon: "documents",
-      description: "全部署の管理文書",
-      color: "blue" as const,
-    },
-    {
-      title: "今月作成",
-      value: "89",
-      change: "+12.3%",
-      trend: "up" as const,
-      icon: "new",
-      description: "8月の新規作成文書",
-      color: "green" as const,
-    },
-    {
-      title: "ファイル不存在",
-      value: "3",
-      change: "-25.0%",
-      trend: "down" as const,
-      icon: "warning",
-      description: "最新ファイル確認結果",
-      color: "red" as const,
-    },
-    {
-      title: "アクティブユーザー",
-      value: "24",
-      change: "+8.7%",
-      trend: "up" as const,
-      icon: "users",
-      description: "過去30日間のアクティブユーザー",
-      color: "purple" as const,
-    },
-    {
-      title: "承認待ち",
-      value: "7",
-      change: "+2",
-      trend: "up" as const,
-      icon: "clock",
-      description: "承認待ちの文書",
-      color: "yellow" as const,
-    },
-    {
-      title: "システム稼働率",
-      value: "99.8%",
-      change: "+0.1%",
-      trend: "up" as const,
-      icon: "check",
-      description: "過去30日間の平均稼働率",
-      color: "green" as const,
-    },
-  ];
+  // API統合
+  import {
+    dashboardStats,
+    isLoadingStats,
+    pendingApprovals,
+    isLoadingApprovals,
+    dashboardError,
+    initializeDashboard,
+    formatStatValue,
+  } from "$lib/stores/dashboard.js";
+  import { showError } from "$lib/stores/errors.js";
 
-  let isLoading = true;
-
-  // 統計データ読み込み
-  async function loadDashboardStats() {
-    isLoading = true;
-
-    try {
-      // TODO: 実際のAPI呼び出しに置き換え
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // 実際の統計データを取得して更新
-      // stats = await fetchDashboardStats();
-    } catch (error) {
-      console.error("Failed to load dashboard stats:", error);
-    } finally {
-      isLoading = false;
-    }
-  }
+  // リアクティブな統計データ生成
+  $: stats = $dashboardStats
+    ? [
+        {
+          title: "総文書数",
+          value: formatStatValue($dashboardStats.totalDocuments),
+          change: "+2.1%", // TODO: 前月比データを取得
+          trend: "up" as const,
+          icon: "documents",
+          description: "全部署の管理文書",
+          color: "blue" as const,
+        },
+        {
+          title: "今月作成",
+          value: formatStatValue($dashboardStats.monthlyCreated),
+          change: "+12.3%", // TODO: 前月比データを取得
+          trend: "up" as const,
+          icon: "new",
+          description:
+            new Date().toLocaleString("ja-JP", { month: "long" }) +
+            "の新規作成文書",
+          color: "green" as const,
+        },
+        {
+          title: "ファイル不存在",
+          value: formatStatValue($dashboardStats.missingFiles),
+          change: "-25.0%", // TODO: 前月比データを取得
+          trend: $dashboardStats.missingFiles > 0 ? "up" : ("down" as const),
+          icon: "warning",
+          description: "最新ファイル確認結果",
+          color: $dashboardStats.missingFiles > 0 ? "red" : ("green" as const),
+        },
+        {
+          title: "アクティブユーザー",
+          value: formatStatValue($dashboardStats.activeUsers),
+          change: "+8.7%", // TODO: 前月比データを取得
+          trend: "up" as const,
+          icon: "users",
+          description: "過去30日間のアクティブユーザー",
+          color: "purple" as const,
+        },
+        {
+          title: "承認待ち",
+          value: formatStatValue($dashboardStats.pendingApprovals),
+          change: "+2", // TODO: 前日比データを取得
+          trend: "up" as const,
+          icon: "clock",
+          description: "承認待ちの文書",
+          color: "yellow" as const,
+        },
+        {
+          title: "システム稼働率",
+          value: ($dashboardStats.systemUptime * 100).toFixed(1) + "%",
+          change: "+0.1%", // TODO: 前月比データを取得
+          trend: "up" as const,
+          icon: "check",
+          description: "過去30日間の平均稼働率",
+          color: "green" as const,
+        },
+      ]
+    : [];
 
   // 初期読み込み
-  onMount(() => {
-    loadDashboardStats();
+  onMount(async () => {
+    await initializeDashboard();
   });
+
+  // エラーハンドリング
+  $: if ($dashboardError) {
+    showError($dashboardError);
+  }
 </script>
 
 <div class="space-y-6">
@@ -144,7 +146,7 @@
   </div>
 
   <!-- 統計カード -->
-  {#if isLoading}
+  {#if $isLoadingStats}
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {#each Array(6) as _}
         <div
@@ -160,7 +162,7 @@
         </div>
       {/each}
     </div>
-  {:else}
+  {:else if stats.length > 0}
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {#each stats as stat}
         <StatsCard
@@ -173,6 +175,28 @@
           color={stat.color}
         />
       {/each}
+    </div>
+  {:else}
+    <div class="bg-gray-50 rounded-lg p-8 text-center">
+      <div class="text-gray-500">
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+        <p class="text-lg font-medium text-gray-900 mb-1">データを取得中...</p>
+        <p class="text-sm text-gray-500">
+          統計情報を読み込んでいます。しばらくお待ちください。
+        </p>
+      </div>
     </div>
   {/if}
 
@@ -310,42 +334,79 @@
           >
             承認待ち回覧
           </h3>
-          <div class="space-y-3">
-            <div
-              class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-3 bg-yellow-50 rounded-lg"
-            >
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 truncate">
-                  システム設計書 v3.0 - 確認
-                </p>
-                <p class="text-xs text-gray-500">山田太郎からの回覧 • 2日前</p>
-              </div>
-              <Button variant="primary" size="sm">
-                <a href="/circulations" class="flex items-center"> 確認 </a>
-              </Button>
+
+          {#if $isLoadingApprovals}
+            <div class="space-y-3">
+              {#each Array(2) as _}
+                <div class="animate-pulse p-3 bg-gray-50 rounded-lg">
+                  <div class="space-y-2">
+                    <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                    <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+                  </div>
+                </div>
+              {/each}
             </div>
-            <div
-              class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-3 bg-yellow-50 rounded-lg"
-            >
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 truncate">
-                  セキュリティポリシー - 承認
-                </p>
-                <p class="text-xs text-gray-500">佐藤花子からの回覧 • 1日前</p>
+          {:else if $pendingApprovals && $pendingApprovals.length > 0}
+            <div class="space-y-3">
+              {#each $pendingApprovals as approval}
+                <div
+                  class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 p-3 bg-yellow-50 rounded-lg"
+                >
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-gray-900 truncate">
+                      {approval.documentTitle} - {approval.approvalType ===
+                      "review"
+                        ? "確認"
+                        : approval.approvalType === "approval"
+                          ? "承認"
+                          : "確認"}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                      {approval.requesterName}からの回覧 • {new Date(
+                        approval.requestedAt,
+                      ).toLocaleDateString("ja-JP", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <Button variant="primary" size="sm">
+                    <a
+                      href="/circulations/{approval.id}"
+                      class="flex items-center"
+                    >
+                      {approval.approvalType === "approval" ? "承認" : "確認"}
+                    </a>
+                  </Button>
+                </div>
+              {/each}
+              <div class="pt-3 border-t border-gray-200">
+                <a
+                  href="/circulations"
+                  class="text-sm text-blue-600 hover:text-blue-900 font-medium"
+                >
+                  すべての承認待ちを表示
+                </a>
               </div>
-              <Button variant="primary" size="sm">
-                <a href="/circulations" class="flex items-center"> 承認 </a>
-              </Button>
             </div>
-            <div class="pt-3 border-t border-gray-200">
-              <a
-                href="/circulations"
-                class="text-sm text-blue-600 hover:text-blue-900 font-medium"
+          {:else}
+            <div class="text-center py-6">
+              <svg
+                class="mx-auto h-8 w-8 text-gray-400 mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                すべての承認待ちを表示
-              </a>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p class="text-sm text-gray-500">承認待ちの文書はありません</p>
             </div>
-          </div>
+          {/if}
         </div>
       </div>
     </div>
