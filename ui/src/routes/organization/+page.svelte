@@ -425,7 +425,7 @@
             }}
           >
             <!-- セル内容をheader.keyで分岐 -->
-            <svelte:fragment slot="cell" let:item let:header let:index>
+            <svelte:fragment slot="cell" let:item let:header>
               {#if header.key === "department_info"}
                 <div style="margin-left: {item.level * 20}px;">
                   {#if item.level > 0}
@@ -511,7 +511,7 @@
             }}
           >
             <!-- 従業員セル内容 -->
-            <svelte:fragment slot="cell" let:item let:header let:index>
+            <svelte:fragment slot="cell" let:item let:header>
               {#if header.key === "employee_info"}
                 <div>
                   <div class="text-sm font-medium text-gray-900">

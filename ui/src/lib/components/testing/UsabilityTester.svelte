@@ -66,7 +66,7 @@
 
     performanceMetrics = {
       loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-      interactionTime: navigation.domInteractive - navigation.domLoading,
+      interactionTime: navigation.domInteractive - navigation.fetchStart,
       renderTime:
         navigation.domContentLoadedEventEnd -
         navigation.domContentLoadedEventStart,
