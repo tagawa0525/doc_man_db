@@ -36,7 +36,6 @@ export const documentsError = writable<string | null>(null);
 
 // 文書検索関数
 export async function searchDocuments(filters?: DocumentSearchFilters): Promise<void> {
-  console.log('searchDocuments called with filters:', filters);
   isLoadingDocuments.set(true);
   documentsError.set(null);
 
@@ -49,14 +48,11 @@ export async function searchDocuments(filters?: DocumentSearchFilters): Promise<
     unsubscribe();
 
     const mergedFilters = { ...currentFilters!, ...filters };
-    console.log('Executing GraphQL query with merged filters:', mergedFilters);
 
     const result = await executeQuery<{ searchDocuments: SearchDocumentsResult }>(
       SEARCH_DOCUMENTS,
       { filters: mergedFilters }
     );
-    
-    console.log('GraphQL query result:', result);
 
     documents.set(result.searchDocuments.documents);
     totalDocuments.set(result.searchDocuments.total);
@@ -153,7 +149,6 @@ export const paginationInfo = derived(
 
 // 初期化関数
 export function initializeDocuments(): void {
-  console.log('initializeDocuments called');
   // 初期検索を実行
   searchDocuments();
 }

@@ -113,7 +113,6 @@ export class FeatureFlags {
  */
 export function trackPlaceholderUsage(featureKey: string, action: 'view' | 'click' | 'feedback'): void {
   if (import.meta.env.DEV) {
-    console.log(`[Placeholder] ${featureKey}: ${action}`);
   }
 
   // 将来的にはアナリティクスサービスに送信

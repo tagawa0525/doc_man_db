@@ -64,7 +64,8 @@
       "Bash(timeout:*)",
       "Bash(rustc:*)",
       "Bash(./check_db.exe)",
-      "mcp__serena__replace_symbol_body"
+      "mcp__serena__replace_symbol_body",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": [
