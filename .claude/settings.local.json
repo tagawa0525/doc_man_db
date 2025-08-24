@@ -48,7 +48,11 @@
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "Bash(sqlx migrate run:*)",
+      "Bash(sqlx database create:*)",
+      "Bash(sqlx migrate revert:*)",
+      "Bash(sqlx migrate info:*)"
     ],
     "deny": [],
     "ask": [

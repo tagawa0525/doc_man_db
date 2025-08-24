@@ -3,7 +3,9 @@ use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 
 use crate::handlers::{DocumentHandlers, HealthHandler};
-use crate::repositories::{SqliteDocumentNumberRuleRepository, SqliteDocumentRepository};
+use crate::repositories::{
+    DepartmentRepository, SqliteDocumentNumberRuleRepository, SqliteDocumentRepository,
+};
 use crate::routes::create_routes;
 use crate::services::DocumentService;
 
@@ -12,6 +14,7 @@ use crate::services::DocumentService;
 pub struct AppState {
     pub document_handlers: DocumentHandlers,
     pub health_handler: HealthHandler,
+    pub department_repository: DepartmentRepository,
 }
 
 /// アプリケーションのメインエントリーポイント
@@ -24,6 +27,9 @@ pub async fn create_app() -> Router {
     let rule_repo = SqliteDocumentNumberRuleRepository::new_in_memory()
         .await
         .expect("Failed to create rule repository");
+    let dept_repo = DepartmentRepository::new_with_file_db("sqlite://./data/dev.db")
+        .await
+        .expect("Failed to create department repository");
 
     // サービス層の初期化
     let document_service = DocumentService::new(doc_repo, rule_repo);
@@ -36,6 +42,7 @@ pub async fn create_app() -> Router {
     let state = AppState {
         document_handlers,
         health_handler,
+        department_repository: dept_repo,
     };
 
     // ルーターとミドルウェアの構築

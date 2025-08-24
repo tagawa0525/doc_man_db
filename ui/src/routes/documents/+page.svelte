@@ -31,6 +31,7 @@
   // 状態管理
   let showAdvancedFilters = false;
   let debounceTimer: ReturnType<typeof setTimeout>;
+  let currentSort = { key: "", direction: "" };
 
   // 文書タイプ選択肢（仮データ、後で実APIから取得）
   const documentTypeOptions = [
@@ -106,8 +107,43 @@
 
   // ソート処理
   function handleSort(key: string, direction: string) {
-    // TODO: バックエンドでソート実装後に対応
     console.log("Sort:", key, direction);
+    currentSort = { key, direction };
+    
+    // documentsストアから現在のデータを取得してソート
+    documents.update(currentDocuments => {
+      const sorted = [...currentDocuments].sort((a, b) => {
+        let aVal = a[key];
+        let bVal = b[key];
+        
+        // 特別な処理が必要なフィールド
+        if (key === 'documentTypeId') {
+          // 数値として比較
+          aVal = parseInt(aVal) || 0;
+          bVal = parseInt(bVal) || 0;
+        } else if (key === 'createdDate') {
+          // 日付として比較
+          aVal = new Date(aVal).getTime();
+          bVal = new Date(bVal).getTime();
+        } else if (key === 'id' || key === 'createdBy') {
+          // 数値として比較
+          aVal = parseInt(aVal) || 0;
+          bVal = parseInt(bVal) || 0;
+        } else {
+          // 文字列として比較
+          aVal = String(aVal || '').toLowerCase();
+          bVal = String(bVal || '').toLowerCase();
+        }
+        
+        if (direction === 'asc') {
+          return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        } else {
+          return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+        }
+      });
+      
+      return sorted;
+    });
   }
 
   // 文書作成ページへ

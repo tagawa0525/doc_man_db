@@ -70,7 +70,7 @@ impl QueryRoot {
     /// Get dashboard statistics
     async fn dashboard_stats(&self, ctx: &Context<'_>) -> Result<DashboardStats> {
         let state = ctx.data::<AppState>()?;
-        
+
         // Get total documents count by searching with no filters
         let filters = crate::models::DocumentSearchFilters {
             title: None,
@@ -81,18 +81,19 @@ impl QueryRoot {
             limit: 1, // We only need the count
             offset: 0,
         };
-        
-        let (_documents, total_documents) = state.document_handlers
+
+        let (_documents, total_documents) = state
+            .document_handlers
             .search_documents(filters)
             .await
             .map_err(|e| async_graphql::Error::new(format!("Failed to get document count: {e}")))?;
-        
+
         // Get monthly created documents (current month)
         use chrono::{Datelike, Local, NaiveDate};
         let now = Local::now().naive_local().date();
         let month_start = NaiveDate::from_ymd_opt(now.year(), now.month(), 1)
             .ok_or_else(|| async_graphql::Error::new("Invalid date"))?;
-        
+
         let monthly_filters = crate::models::DocumentSearchFilters {
             title: None,
             document_type_id: None,
@@ -102,17 +103,18 @@ impl QueryRoot {
             limit: 1,
             offset: 0,
         };
-        
-        let (_monthly_docs, monthly_created) = state.document_handlers
+
+        let (_monthly_docs, monthly_created) = state
+            .document_handlers
             .search_documents(monthly_filters)
             .await
             .map_err(|e| async_graphql::Error::new(format!("Failed to get monthly count: {e}")))?;
-        
+
         Ok(DashboardStats {
             total_documents: total_documents as i32,
             monthly_created: monthly_created as i32,
-            missing_files: 0, // TODO: Implement file existence checking
-            active_users: 1, // TODO: Implement user activity tracking
+            missing_files: 0,     // TODO: Implement file existence checking
+            active_users: 1,      // TODO: Implement user activity tracking
             pending_approvals: 0, // TODO: Implement approval system
             system_uptime: 99.9,
         })
@@ -121,9 +123,10 @@ impl QueryRoot {
     /// Get system status
     async fn system_status(&self, ctx: &Context<'_>) -> Result<SystemStatus> {
         let state = ctx.data::<AppState>()?;
-        
+
         // Test database connectivity by performing a simple query
-        let database_status = match state.document_handlers
+        let database_status = match state
+            .document_handlers
             .search_documents(crate::models::DocumentSearchFilters {
                 title: None,
                 document_type_id: None,
@@ -138,14 +141,14 @@ impl QueryRoot {
             Ok(_) => "healthy",
             Err(_) => "error",
         };
-        
+
         // Test API status by checking health endpoint availability
         let api_status = "healthy"; // If we're here, API is working
-        
+
         // Get current timestamp for consistent formatting
         use chrono::Utc;
         let now = Utc::now();
-        
+
         Ok(SystemStatus {
             api_status: api_status.to_string(),
             database_status: database_status.to_string(),
@@ -165,7 +168,7 @@ impl QueryRoot {
     ) -> Result<Vec<Activity>> {
         let limit = limit.unwrap_or(10);
         let state = ctx.data::<AppState>()?;
-        
+
         // Get recent documents (ordered by creation time) to simulate activities
         let filters = crate::models::DocumentSearchFilters {
             title: None,
@@ -176,14 +179,17 @@ impl QueryRoot {
             limit: limit as i64,
             offset: 0,
         };
-        
-        let (documents, _total) = state.document_handlers
+
+        let (documents, _total) = state
+            .document_handlers
             .search_documents(filters)
             .await
-            .map_err(|e| async_graphql::Error::new(format!("Failed to get recent documents: {e}")))?;
-        
+            .map_err(|e| {
+                async_graphql::Error::new(format!("Failed to get recent documents: {e}"))
+            })?;
+
         let mut activities = Vec::new();
-        
+
         for (index, doc) in documents.iter().enumerate() {
             // Create activity for document creation
             activities.push(Activity {
@@ -192,15 +198,16 @@ impl QueryRoot {
                 message: format!("文書「{}」を作成しました", doc.title),
                 user: match doc.created_by {
                     1 => "システム管理者",
-                    2 => "テストユーザー", 
+                    2 => "テストユーザー",
                     _ => "不明なユーザー",
-                }.to_string(),
+                }
+                .to_string(),
                 timestamp: doc.created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                 document_id: Some(doc.number.clone()),
                 document_title: Some(doc.title.clone()),
             });
         }
-        
+
         // If no documents exist, show a placeholder activity
         if activities.is_empty() {
             activities.push(Activity {
@@ -213,7 +220,7 @@ impl QueryRoot {
                 document_title: None,
             });
         }
-        
+
         Ok(activities)
     }
 
@@ -226,6 +233,59 @@ impl QueryRoot {
         // Return empty list since approval system is not yet implemented
         // TODO: Implement real approval system with database storage
         Ok(vec![])
+    }
+
+    // ========== Department Queries ==========
+
+    /// Get all departments
+    async fn departments(&self, ctx: &Context<'_>) -> Result<Vec<DepartmentWithManager>> {
+        let state = ctx.data::<AppState>()?;
+
+        match state.department_repository.get_all_departments().await {
+            Ok(departments) => {
+                let graphql_departments: Vec<DepartmentWithManager> =
+                    departments.into_iter().map(|d| d.into()).collect();
+                Ok(graphql_departments)
+            }
+            Err(e) => Err(async_graphql::Error::new(format!("Database error: {e}"))),
+        }
+    }
+
+    /// Get a department by ID
+    async fn department(
+        &self,
+        ctx: &Context<'_>,
+        id: i32,
+    ) -> Result<Option<DepartmentWithManager>> {
+        let state = ctx.data::<AppState>()?;
+
+        match state.department_repository.get_department_by_id(id).await {
+            Ok(department) => Ok(department.map(|d| d.into())),
+            Err(e) => Err(async_graphql::Error::new(format!("Database error: {e}"))),
+        }
+    }
+
+    /// Search departments
+    async fn search_departments(
+        &self,
+        ctx: &Context<'_>,
+        filters: DepartmentSearchFilters,
+    ) -> Result<Vec<DepartmentWithManager>> {
+        let state = ctx.data::<AppState>()?;
+        let search_filters = filters.into();
+
+        match state
+            .department_repository
+            .search_departments(&search_filters)
+            .await
+        {
+            Ok(departments) => {
+                let graphql_departments: Vec<DepartmentWithManager> =
+                    departments.into_iter().map(|d| d.into()).collect();
+                Ok(graphql_departments)
+            }
+            Err(e) => Err(async_graphql::Error::new(format!("Search error: {e}"))),
+        }
     }
 }
 
@@ -290,5 +350,56 @@ impl MutationRoot {
             circulation: None,
             message: "Not implemented yet".to_string(),
         })
+    }
+
+    // ========== Department Mutations ==========
+
+    /// Create a new department
+    async fn create_department(
+        &self,
+        ctx: &Context<'_>,
+        input: CreateDepartmentInput,
+    ) -> Result<Department> {
+        let state = ctx.data::<AppState>()?;
+        let request = input.into();
+
+        match state
+            .department_repository
+            .create_department(&request)
+            .await
+        {
+            Ok(department) => Ok(department.into()),
+            Err(e) => Err(async_graphql::Error::new(format!("Creation error: {e}"))),
+        }
+    }
+
+    /// Update a department
+    async fn update_department(
+        &self,
+        ctx: &Context<'_>,
+        id: i32,
+        input: UpdateDepartmentInput,
+    ) -> Result<Option<Department>> {
+        let state = ctx.data::<AppState>()?;
+        let request = input.into();
+
+        match state
+            .department_repository
+            .update_department(id, &request)
+            .await
+        {
+            Ok(department) => Ok(department.map(|d| d.into())),
+            Err(e) => Err(async_graphql::Error::new(format!("Update error: {e}"))),
+        }
+    }
+
+    /// Delete (deactivate) a department
+    async fn delete_department(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
+        let state = ctx.data::<AppState>()?;
+
+        match state.department_repository.delete_department(id).await {
+            Ok(success) => Ok(success),
+            Err(e) => Err(async_graphql::Error::new(format!("Delete error: {e}"))),
+        }
     }
 }
