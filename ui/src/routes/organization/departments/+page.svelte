@@ -236,7 +236,7 @@
                   type="button"
                   class="text-blue-600 hover:text-blue-900 text-sm"
                   on:click|stopPropagation={() =>
-                    goto(`/organization/departments/${item.id}`)}
+                    goto(`/organization/departments/${item.id}/edit`)}
                 >
                   編集
                 </button>
@@ -271,7 +271,7 @@
                   type="button"
                   class="text-blue-600 hover:text-blue-900 text-sm"
                   on:click|stopPropagation={() =>
-                    goto(`/organization/departments/${item.id}`)}
+                    goto(`/organization/departments/${item.id}/edit`)}
                 >
                   編集
                 </button>

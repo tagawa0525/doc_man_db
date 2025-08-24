@@ -3,6 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Select from "$lib/components/ui/Select.svelte";
+  import SearchableSelect from "$lib/components/ui/SearchableSelect.svelte";
   // import TextArea from "$lib/components/ui/TextArea.svelte";
 
   // API統合
@@ -233,20 +234,22 @@
               </div>
 
               <div>
-                <Select
+                <SearchableSelect
                   label="文書種別"
                   bind:value={formData.documentTypeCode}
                   options={documentTypeOptions}
+                  placeholder="文書種別を検索..."
                   required
                   error={errors.documentTypeCode}
                 />
               </div>
 
               <div>
-                <Select
+                <SearchableSelect
                   label="所属部署"
                   bind:value={formData.departmentCode}
                   options={departmentOptions}
+                  placeholder="部署を検索..."
                   required
                   error={errors.departmentCode}
                 />

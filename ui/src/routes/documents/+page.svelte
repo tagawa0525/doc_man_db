@@ -4,6 +4,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Select from "$lib/components/ui/Select.svelte";
+  import SearchableSelect from "$lib/components/ui/SearchableSelect.svelte";
   import ResponsiveTable from "$lib/components/mobile/ResponsiveTable.svelte";
 
   // API統合
@@ -109,39 +110,39 @@
   function handleSort(key: string, direction: string) {
     console.log("Sort:", key, direction);
     currentSort = { key, direction };
-    
+
     // documentsストアから現在のデータを取得してソート
-    documents.update(currentDocuments => {
+    documents.update((currentDocuments) => {
       const sorted = [...currentDocuments].sort((a, b) => {
         let aVal = a[key];
         let bVal = b[key];
-        
+
         // 特別な処理が必要なフィールド
-        if (key === 'documentTypeId') {
+        if (key === "documentTypeId") {
           // 数値として比較
           aVal = parseInt(aVal) || 0;
           bVal = parseInt(bVal) || 0;
-        } else if (key === 'createdDate') {
+        } else if (key === "createdDate") {
           // 日付として比較
           aVal = new Date(aVal).getTime();
           bVal = new Date(bVal).getTime();
-        } else if (key === 'id' || key === 'createdBy') {
+        } else if (key === "id" || key === "createdBy") {
           // 数値として比較
           aVal = parseInt(aVal) || 0;
           bVal = parseInt(bVal) || 0;
         } else {
           // 文字列として比較
-          aVal = String(aVal || '').toLowerCase();
-          bVal = String(bVal || '').toLowerCase();
+          aVal = String(aVal || "").toLowerCase();
+          bVal = String(bVal || "").toLowerCase();
         }
-        
-        if (direction === 'asc') {
+
+        if (direction === "asc") {
           return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
         } else {
           return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
         }
       });
-      
+
       return sorted;
     });
   }
@@ -206,10 +207,11 @@
         </div>
 
         <div>
-          <Select
+          <SearchableSelect
             label="文書種別"
             bind:value={localFilters.documentTypeId}
             options={documentTypeOptions}
+            placeholder="文書種別を検索..."
             on:change={performSearch}
           />
         </div>

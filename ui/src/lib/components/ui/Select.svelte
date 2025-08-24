@@ -2,13 +2,13 @@
   import { createEventDispatcher } from "svelte";
 
   interface Option {
-    value: string | number | null;
+    value: string | number | boolean | null;
     label: string;
     disabled?: boolean;
   }
 
   export let options: Option[] = [];
-  export let value: string | number | null = "";
+  export let value: string | number | boolean | null = "";
   export let placeholder = "選択してください...";
   export let disabled = false;
   export let required = false;
@@ -21,18 +21,23 @@
 
   function handleChange(event: Event) {
     const target = event.target as HTMLSelectElement;
-    let newValue: string | number | null = target.value;
-    
-    // 数値型の場合は変換
-    if (newValue && !isNaN(Number(newValue))) {
-      newValue = Number(newValue);
+    let newValue: string | number | boolean | null = target.value;
+
+    // boolean型の場合は変換
+    if (newValue === "true") {
+      newValue = true;
+    } else if (newValue === "false") {
+      newValue = false;
     }
-    
     // "null" 文字列の場合はnullに変換
-    if (newValue === "null") {
+    else if (newValue === "null") {
       newValue = null;
     }
-    
+    // 数値型の場合は変換
+    else if (newValue && !isNaN(Number(newValue))) {
+      newValue = Number(newValue);
+    }
+
     value = newValue;
     dispatch("change", { value });
   }
@@ -68,7 +73,7 @@
 
     {#each options as option}
       <option
-        value={option.value === null ? "null" : option.value}
+        value={option.value === null ? "null" : String(option.value)}
         disabled={option.disabled}
         selected={value === option.value}
       >

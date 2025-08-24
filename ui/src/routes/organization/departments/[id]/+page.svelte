@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
+  import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import Button from "$lib/components/ui/Button.svelte";
   import { graphqlClient } from "$lib/api/client";
@@ -53,9 +54,9 @@
     loadDepartment();
   }
 
-  // 編集ページへ遷移（仮実装）
+  // 編集ページへ遷移
   function editDepartment() {
-    alert("部署編集機能は実装中です");
+    goto(`/organization/departments/${departmentId}/edit`);
   }
 </script>
 

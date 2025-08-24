@@ -3,6 +3,7 @@
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
   import Select from "$lib/components/ui/Select.svelte";
+  import SearchableSelect from "$lib/components/ui/SearchableSelect.svelte";
   import { graphqlClient } from "$lib/api/client";
   import {
     CREATE_DEPARTMENT,
@@ -188,9 +189,10 @@
             />
           </div>
           <div class="md:col-span-1">
-            <Select
+            <SearchableSelect
               label="上位部署"
               bind:value={formData.parentId}
+              placeholder="部署を検索..."
               options={[
                 { value: null, label: "なし（トップレベル）" },
                 ...departments.map((dept) => ({
@@ -201,9 +203,10 @@
             />
           </div>
           <div class="md:col-span-1">
-            <Select
+            <SearchableSelect
               label="責任者"
               bind:value={formData.managerId}
+              placeholder="責任者を検索..."
               options={[
                 { value: null, label: "未設定" },
                 ...employees.map((emp) => ({
