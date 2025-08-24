@@ -147,7 +147,7 @@ impl CreateDocumentWithNumberRequest {
 
         // 文書種別コードが適切な長さであることをチェック (1-10文字)
         let doc_type_len = self.document_type_code.trim().len();
-        if doc_type_len < 1 || doc_type_len > 10 {
+        if !(1..=10).contains(&doc_type_len) {
             return Err(DocumentValidationError::InvalidDocumentTypeCodeLength);
         }
 
@@ -158,7 +158,7 @@ impl CreateDocumentWithNumberRequest {
 
         // 部署コードが適切な長さであることをチェック (1-10文字)
         let dept_code_len = self.department_code.trim().len();
-        if dept_code_len < 1 || dept_code_len > 10 {
+        if !(1..=10).contains(&dept_code_len) {
             return Err(DocumentValidationError::InvalidDepartmentCodeLength);
         }
 

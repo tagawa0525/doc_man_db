@@ -7,6 +7,7 @@ pub mod handlers;
 pub mod models;
 pub mod repositories;
 pub mod routes;
+pub mod seeds;
 pub mod services;
 
 // Re-export main components for easy access

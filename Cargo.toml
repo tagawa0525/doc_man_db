@@ -2,6 +2,7 @@
 name = "doc_man_db"
 version = "0.1.0"
 edition = "2024"
+default-run = "doc_man_db"
 
 [dependencies]
 # Web Framework
@@ -55,6 +56,9 @@ flate2 = "1.0"
 # Configuration management
 config = "0.14.1"
 
+# CLI argument parsing (for seeds binary)
+clap = { version = "4.5.20", features = ["derive"] }
+
 [dev-dependencies]
 # Testing
 tokio-test = "0.4.4"
@@ -72,3 +76,7 @@ tower = { version = "0.5.2", features = ["util"] }
 
 # For integration testing
 anyhow = "1.0"
+
+[[bin]]
+name = "seeds"
+path = "src/bin/seeds.rs"

@@ -6,6 +6,17 @@ use crate::models::{
 };
 use crate::repositories::DocumentNumberRuleRepository;
 
+/// テンプレート適用用のパラメータ構造体
+struct TemplateParams<'a> {
+    template: &'a str,
+    department_code: &'a str,
+    document_type_code: &'a str,
+    year: i32,
+    month: i32,
+    sequence_number: i32,
+    sequence_digits: i32,
+}
+
 /// 文書番号生成サービス
 #[derive(Clone)]
 pub struct DocumentNumberGenerator {
@@ -58,15 +69,15 @@ impl DocumentNumberGenerator {
                 + attempt;
 
             // テンプレートから文書番号を生成
-            let document_number = self.apply_template(
-                &rule.template,
-                &request.department_code,
-                &request.document_type_code,
+            let document_number = self.apply_template(TemplateParams {
+                template: &rule.template,
+                department_code: &request.department_code,
+                document_type_code: &request.document_type_code,
                 year,
                 month,
                 sequence_number,
-                rule.sequence_digits,
-            )?;
+                sequence_digits: rule.sequence_digits,
+            })?;
 
             // 重複チェック
             let exists = self
@@ -90,42 +101,37 @@ impl DocumentNumberGenerator {
     /// テンプレートを適用して文書番号を生成
     fn apply_template(
         &self,
-        template: &str,
-        department_code: &str,
-        document_type_code: &str,
-        year: i32,
-        month: i32,
-        sequence_number: i32,
-        sequence_digits: i32,
+        params: TemplateParams,
     ) -> Result<String, DocumentNumberGenerationError> {
-        let mut result = template.to_string();
+        let mut result = params.template.to_string();
 
         // 文書種別コード
-        result = result.replace("{文書種別コード}", document_type_code);
+        result = result.replace("{文書種別コード}", params.document_type_code);
 
         // 部署コード
-        result = result.replace("{部署コード}", department_code);
+        result = result.replace("{部署コード}", params.department_code);
 
         // 年（下2桁）
-        let year_short = year % 100;
+        let year_short = params.year % 100;
         result = result.replace("{年下2桁}", &format!("{year_short:02}"));
 
         // 月（2桁ゼロ埋め）
-        result = result.replace("{月:2桁}", &format!("{month:02}"));
+        result = result.replace("{月:2桁}", &format!("{:02}", params.month));
 
         // 連番（指定桁数でゼロ埋め）
-        let sequence_format = format!("{{連番:{sequence_digits}桁}}");
+        let sequence_format = format!("{{連番:{}桁}}", params.sequence_digits);
         let sequence_value = format!(
             "{:0width$}",
-            sequence_number,
-            width = sequence_digits as usize
+            params.sequence_number,
+            width = params.sequence_digits as usize
         );
         result = result.replace(&sequence_format, &sequence_value);
 
         // 未処理のプレースホルダーがないかチェック
         if result.contains('{') && result.contains('}') {
             return Err(DocumentNumberGenerationError::TemplateError(format!(
-                "Unresolved placeholders in template: {template}"
+                "Unresolved placeholders in template: {}",
+                params.template
             )));
         }
 
@@ -144,15 +150,15 @@ mod tests {
         );
 
         let result = generator
-            .apply_template(
-                "{部署コード}-{年下2桁}{連番:3桁}",
-                "T",
-                "TEC",
-                2025,
-                8,
-                1,
-                3,
-            )
+            .apply_template(TemplateParams {
+                template: "{部署コード}-{年下2桁}{連番:3桁}",
+                department_code: "T",
+                document_type_code: "TEC",
+                year: 2025,
+                month: 8,
+                sequence_number: 1,
+                sequence_digits: 3,
+            })
             .unwrap();
 
         assert_eq!(result, "T-25001");
@@ -165,7 +171,15 @@ mod tests {
         );
 
         let result = generator
-            .apply_template("CTA-{年下2桁}{月:2桁}{連番:3桁}", "C", "CTA", 2025, 8, 8, 3)
+            .apply_template(TemplateParams {
+                template: "CTA-{年下2桁}{月:2桁}{連番:3桁}",
+                department_code: "C",
+                document_type_code: "CTA",
+                year: 2025,
+                month: 8,
+                sequence_number: 8,
+                sequence_digits: 3,
+            })
             .unwrap();
 
         assert_eq!(result, "CTA-2508008");
@@ -178,7 +192,15 @@ mod tests {
         );
 
         let result = generator
-            .apply_template("技術-{年下2桁}{連番:5桁}", "T", "TEC", 2025, 8, 25, 5)
+            .apply_template(TemplateParams {
+                template: "技術-{年下2桁}{連番:5桁}",
+                department_code: "T",
+                document_type_code: "TEC",
+                year: 2025,
+                month: 8,
+                sequence_number: 25,
+                sequence_digits: 5,
+            })
             .unwrap();
 
         assert_eq!(result, "技術-2500025");
@@ -190,15 +212,15 @@ mod tests {
             crate::repositories::MockDocumentNumberRuleRepository::new(),
         );
 
-        let result = generator.apply_template(
-            "{不明なプレースホルダー}-{年下2桁}",
-            "T",
-            "TEC",
-            2025,
-            8,
-            1,
-            3,
-        );
+        let result = generator.apply_template(TemplateParams {
+            template: "{不明なプレースホルダー}-{年下2桁}",
+            department_code: "T",
+            document_type_code: "TEC",
+            year: 2025,
+            month: 8,
+            sequence_number: 1,
+            sequence_digits: 3,
+        });
 
         assert!(result.is_err());
         assert!(matches!(

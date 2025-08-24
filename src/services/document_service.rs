@@ -157,7 +157,7 @@ mod tests {
         let request = CreateDocumentWithNumberRequest {
             title: "テスト文書".to_string(),
             document_type_code: "A".to_string(),
-            department_code: "TA".to_string(), // 2文字（無効）
+            department_code: "".to_string(), // 空文字（無効）
             created_by: 1,
             created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
         };
@@ -166,7 +166,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            DocumentValidationError::InvalidDepartmentCodeLength
+            DocumentValidationError::EmptyDepartmentCode
         ));
     }
 }

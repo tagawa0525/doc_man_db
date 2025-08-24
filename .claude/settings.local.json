@@ -58,7 +58,8 @@
       "Bash(tasklist:*)",
       "Bash(taskkill:*)",
       "Bash(where:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(sqlx migrate add:*)"
     ],
     "deny": [],
     "ask": [
