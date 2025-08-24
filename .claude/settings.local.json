@@ -52,7 +52,8 @@
       "Bash(sqlx migrate run:*)",
       "Bash(sqlx database create:*)",
       "Bash(sqlx migrate revert:*)",
-      "Bash(sqlx migrate info:*)"
+      "Bash(sqlx migrate info:*)",
+      "mcp__playwright__browser_type"
     ],
     "deny": [],
     "ask": [

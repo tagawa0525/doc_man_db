@@ -86,10 +86,9 @@
     filteredDepartments = [...filteredDepartments];
   }
 
-  // 新規部署作成（仮実装）
+  // 新規部署作成
   function goToCreateDepartment() {
-    // TODO: 新規部署作成ページを実装
-    alert("新規部署作成機能は実装中です");
+    goto("/organization/departments/create");
   }
 
   // 初期化

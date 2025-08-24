@@ -2,13 +2,13 @@
   import { createEventDispatcher } from "svelte";
 
   interface Option {
-    value: string;
+    value: string | number | null;
     label: string;
     disabled?: boolean;
   }
 
   export let options: Option[] = [];
-  export let value = "";
+  export let value: string | number | null = "";
   export let placeholder = "選択してください...";
   export let disabled = false;
   export let required = false;
@@ -21,7 +21,19 @@
 
   function handleChange(event: Event) {
     const target = event.target as HTMLSelectElement;
-    value = target.value;
+    let newValue: string | number | null = target.value;
+    
+    // 数値型の場合は変換
+    if (newValue && !isNaN(Number(newValue))) {
+      newValue = Number(newValue);
+    }
+    
+    // "null" 文字列の場合はnullに変換
+    if (newValue === "null") {
+      newValue = null;
+    }
+    
+    value = newValue;
     dispatch("change", { value });
   }
 </script>
@@ -56,7 +68,7 @@
 
     {#each options as option}
       <option
-        value={option.value}
+        value={option.value === null ? "null" : option.value}
         disabled={option.disabled}
         selected={value === option.value}
       >
