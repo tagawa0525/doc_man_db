@@ -63,7 +63,8 @@
       "Bash(sqlite3:*)",
       "Bash(timeout:*)",
       "Bash(rustc:*)",
-      "Bash(./check_db.exe)"
+      "Bash(./check_db.exe)",
+      "mcp__serena__replace_symbol_body"
     ],
     "deny": [],
     "ask": [

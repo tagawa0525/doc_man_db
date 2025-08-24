@@ -81,6 +81,19 @@ impl DocumentRepository for MockDocumentRepository {
         }];
         Ok((documents, 1))
     }
+
+    async fn get_document_type_id_by_code(
+        &self,
+        document_type_code: &str,
+    ) -> Result<i32, RepositoryError> {
+        match document_type_code {
+            "TECH" => Ok(1),
+            "BUS" => Ok(2),
+            "PLAN" => Ok(2),
+            "REPORT" => Ok(2),
+            _ => Ok(1),
+        }
+    }
 }
 
 #[async_trait]
