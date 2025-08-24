@@ -103,7 +103,7 @@ impl DocumentNumberRequest {
             return Err(DocumentValidationError::EmptyDepartmentCode);
         }
 
-        // 部署コードが適切な長さであることをチェック (1-10文字)  
+        // 部署コードが適切な長さであることをチェック (1-10文字)
         let dept_code_len = self.department_code.trim().len();
         if dept_code_len < 1 || dept_code_len > 10 {
             return Err(DocumentValidationError::InvalidDepartmentCodeLength);

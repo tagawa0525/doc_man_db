@@ -4,7 +4,9 @@ use doc_man_db::handlers::csv_import::{
     download_csv_template, get_import_execution, get_import_executions, get_import_progress,
 };
 use doc_man_db::handlers::{DocumentHandlers, HealthHandler};
-use doc_man_db::repositories::{SqliteDocumentNumberRuleRepository, SqliteDocumentRepository};
+use doc_man_db::repositories::{
+    DepartmentRepository, SqliteDocumentNumberRuleRepository, SqliteDocumentRepository,
+};
 use doc_man_db::services::DocumentService;
 use uuid::Uuid;
 
@@ -17,6 +19,12 @@ async fn create_test_app_state() -> AppState {
         .await
         .expect("Failed to create rule repository");
 
+    // テスト用のメモリ内データベースプールを作成
+    let pool = sqlx::SqlitePool::connect(":memory:")
+        .await
+        .expect("Failed to create in-memory database pool");
+    let dept_repo = DepartmentRepository::new(pool);
+
     let document_service = DocumentService::new(doc_repo, rule_repo);
     let document_handlers = DocumentHandlers::new(document_service);
     let health_handler = HealthHandler::new();
@@ -24,6 +32,7 @@ async fn create_test_app_state() -> AppState {
     AppState {
         document_handlers,
         health_handler,
+        department_repository: dept_repo,
     }
 }
 

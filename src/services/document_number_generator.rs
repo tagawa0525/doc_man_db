@@ -102,7 +102,7 @@ impl DocumentNumberGenerator {
 
         // 文書種別コード
         result = result.replace("{文書種別コード}", document_type_code);
-        
+
         // 部署コード
         result = result.replace("{部署コード}", department_code);
 
@@ -144,7 +144,15 @@ mod tests {
         );
 
         let result = generator
-            .apply_template("{部署コード}-{年下2桁}{連番:3桁}", "T", "TEC", 2025, 8, 1, 3)
+            .apply_template(
+                "{部署コード}-{年下2桁}{連番:3桁}",
+                "T",
+                "TEC",
+                2025,
+                8,
+                1,
+                3,
+            )
             .unwrap();
 
         assert_eq!(result, "T-25001");
@@ -182,8 +190,15 @@ mod tests {
             crate::repositories::MockDocumentNumberRuleRepository::new(),
         );
 
-        let result =
-            generator.apply_template("{不明なプレースホルダー}-{年下2桁}", "T", "TEC", 2025, 8, 1, 3);
+        let result = generator.apply_template(
+            "{不明なプレースホルダー}-{年下2桁}",
+            "T",
+            "TEC",
+            2025,
+            8,
+            1,
+            3,
+        );
 
         assert!(result.is_err());
         assert!(matches!(
