@@ -53,11 +53,17 @@ impl DocumentService {
             .await
             .map_err(DocumentServiceError::NumberGenerationError)?;
 
-        // 文書作成リクエストを作成（仮のdocument_type_id=1を使用）
+        // document_type_codeからdocument_type_idを解決
+        let document_type_id = self
+            .resolve_document_type_id(&request.document_type_code)
+            .await
+            .map_err(DocumentServiceError::RepositoryError)?;
+
+        // 文書作成リクエストを作成
         let doc_request = CreateDocumentRequest {
             number: None, // 生成される
             title: request.title,
-            document_type_id: 1, // 実際にはdocument_type_codeから解決する必要がある
+            document_type_id,
             business_number: None,
             created_by: request.created_by,
             created_date: request.created_date,
@@ -101,6 +107,16 @@ impl DocumentService {
             .search(filters)
             .await
             .map_err(DocumentServiceError::RepositoryError)
+    }
+
+    /// document_type_codeからdocument_type_idを解決する（データベースから）
+    async fn resolve_document_type_id(
+        &self,
+        document_type_code: &str,
+    ) -> Result<i32, crate::repositories::RepositoryError> {
+        self.document_repository
+            .get_document_type_id_by_code(document_type_code)
+            .await
     }
 }
 

@@ -20,14 +20,16 @@ pub struct AppState {
 /// アプリケーションのメインエントリーポイント
 /// テストと本番環境の両方で使用される
 pub async fn create_app() -> Router {
-    // リポジトリの初期化（テスト用にSQLiteを使用）
-    let doc_repo = SqliteDocumentRepository::new_in_memory()
+    // データベース接続プールを作成
+    let database_url = "sqlite://./data/dev.db";
+    let pool = sqlx::SqlitePool::connect(database_url)
         .await
-        .expect("Failed to create document repository");
-    let rule_repo = SqliteDocumentNumberRuleRepository::new_in_memory()
-        .await
-        .expect("Failed to create rule repository");
-    let dept_repo = DepartmentRepository::new_with_file_db("sqlite://./data/dev.db")
+        .expect("Failed to connect to database");
+
+    // リポジトリの初期化（実際のデータベースファイルを使用）
+    let doc_repo = SqliteDocumentRepository::new(pool.clone());
+    let rule_repo = SqliteDocumentNumberRuleRepository::new(pool.clone());
+    let dept_repo = DepartmentRepository::new_with_file_db(database_url)
         .await
         .expect("Failed to create department repository");
 

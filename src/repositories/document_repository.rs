@@ -25,6 +25,7 @@ pub trait DocumentRepository: Send + Sync {
         &self,
         filters: DocumentSearchFilters,
     ) -> Result<(Vec<Document>, i64), RepositoryError>;
+    async fn get_document_type_id_by_code(&self, document_type_code: &str) -> Result<i32, RepositoryError>;
 }
 
 // SQLite実装
@@ -430,5 +431,34 @@ impl DocumentRepository for SqliteDocumentRepository {
             .collect();
 
         Ok((documents?, total))
+    }
+
+    async fn get_document_type_id_by_code(&self, document_type_code: &str) -> Result<i32, RepositoryError> {
+        // まず、フロントエンドの選択肢とdocument_typesテーブルのprefixでマッピングを確認
+        let prefix = match document_type_code {
+            "TECH" => "TEC",   // 技術文書
+            "PLAN" => "BUS",   // 計画書 -> 業務文書として扱う
+            "REPORT" => "BUS", // レポート -> 業務文書として扱う  
+            "MANUAL" => "TEC", // マニュアル -> 技術文書として扱う
+            "SPEC" => "TEC",   // 仕様書 -> 技術文書として扱う
+            "PROC" => "TEC",   // 手順書 -> 技術文書として扱う
+            "POLICY" => "HR-REG", // ポリシー -> 人事規程として扱う
+            // 直接マッピングできるもの
+            code => code, // そのまま使用
+        };
+
+        let row = sqlx::query("SELECT id FROM document_types WHERE prefix = ? AND is_active = 1")
+            .bind(prefix)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(RepositoryError::Database)?;
+
+        if let Some(row) = row {
+            Ok(row.get("id"))
+        } else {
+            Err(RepositoryError::Validation(
+                format!("Document type code '{}' not found", document_type_code)
+            ))
+        }
     }
 }

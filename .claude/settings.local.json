@@ -59,7 +59,11 @@
       "Bash(taskkill:*)",
       "Bash(where:*)",
       "WebSearch",
-      "Bash(sqlx migrate add:*)"
+      "Bash(sqlx migrate add:*)",
+      "Bash(sqlite3:*)",
+      "Bash(timeout:*)",
+      "Bash(rustc:*)",
+      "Bash(./check_db.exe)"
     ],
     "deny": [],
     "ask": [
