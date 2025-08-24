@@ -29,24 +29,24 @@ export function isBreakpoint(bp: Breakpoint, width?: number): boolean {
 // Utility function to get current breakpoint
 export function getCurrentBreakpoint(width?: number): Breakpoint {
   const screenWidth = width ?? (typeof window !== 'undefined' ? window.innerWidth : 0);
-  
+
   if (screenWidth >= breakpoints['2xl']) return '2xl';
   if (screenWidth >= breakpoints.xl) return 'xl';
   if (screenWidth >= breakpoints.lg) return 'lg';
   if (screenWidth >= breakpoints.md) return 'md';
   if (screenWidth >= breakpoints.sm) return 'sm';
-  
+
   return 'sm'; // Default to smallest breakpoint
 }
 
 // Initialize responsive utilities
 export function initResponsive() {
   if (typeof window === 'undefined') return;
-  
+
   const updateScreenSize = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     screenSize.set({
       width,
       height,
@@ -55,13 +55,13 @@ export function initResponsive() {
       isDesktop: width >= breakpoints.lg
     });
   };
-  
+
   // Initial update
   updateScreenSize();
-  
+
   // Listen for resize events
   window.addEventListener('resize', updateScreenSize);
-  
+
   // Return cleanup function
   return () => {
     window.removeEventListener('resize', updateScreenSize);
@@ -73,12 +73,12 @@ export const responsive = {
   isBreakpoint,
   getCurrentBreakpoint,
   breakpoints,
-  
+
   // Quick checks
   isMobile: (width?: number) => !isBreakpoint('md', width),
   isTablet: (width?: number) => isBreakpoint('md', width) && !isBreakpoint('lg', width),
   isDesktop: (width?: number) => isBreakpoint('lg', width),
-  
+
   // Classes helper for conditional styling
   classes: {
     showOnMobile: 'block md:hidden',

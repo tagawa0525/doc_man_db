@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "environment": "development",
+  "description": "開発環境用従業員マスタデータ",
+  "dependencies": [],
+  "data": [
+    {
+      "id": 1,
+      "employee_number": "EMP101",
+      "name": "山田太郎",
+      "department": "DEV",
+      "position": "部長",
+      "email": "yamada@company.com",
+      "hire_date": "2018-04-01"
+    },
+    {
+      "id": 2,
+      "employee_number": "EMP201",
+      "name": "佐藤花子",
+      "department": "SALES",
+      "position": "部長",
+      "email": "sato@company.com",
+      "hire_date": "2019-04-01"
+    },
+    {
+      "id": 3,
+      "employee_number": "EMP301",
+      "name": "田中一郎",
+      "department": "HR",
+      "position": "部長",
+      "email": "tanaka@company.com",
+      "hire_date": "2017-04-01"
+    },
+    {
+      "id": 4,
+      "employee_number": "EMP401",
+      "name": "鈴木二郎",
+      "department": "FIN",
+      "position": "部長",
+      "email": "suzuki.finance@company.com",
+      "hire_date": "2016-04-01"
+    },
+    {
+      "id": 11,
+      "employee_number": "EMP102",
+      "name": "鈴木次郎",
+      "department": "DEV",
+      "position": "課長",
+      "email": "suzuki@company.com",
+      "hire_date": "2019-07-01"
+    },
+    {
+      "id": 12,
+      "employee_number": "EMP103",
+      "name": "田村美子",
+      "department": "DEV",
+      "position": "主任",
+      "email": "tamura@company.com",
+      "hire_date": "2021-04-01"
+    },
+    {
+      "id": 13,
+      "employee_number": "EMP202",
+      "name": "高橋健太",
+      "department": "SALES",
+      "position": "課長",
+      "email": "takahashi@company.com",
+      "hire_date": "2020-04-01"
+    },
+    {
+      "id": 14,
+      "employee_number": "EMP203",
+      "name": "松本美香",
+      "department": "SALES",
+      "position": "主任",
+      "email": "matsumoto@company.com",
+      "hire_date": "2021-07-01"
+    },
+    {
+      "id": 15,
+      "employee_number": "EMP302",
+      "name": "渡辺聡子",
+      "department": "HR",
+      "position": "課長",
+      "email": "watanabe@company.com",
+      "hire_date": "2019-04-01"
+    },
+    {
+      "id": 16,
+      "employee_number": "EMP303",
+      "name": "小林達也",
+      "department": "HR",
+      "position": "主任",
+      "email": "kobayashi@company.com",
+      "hire_date": "2020-07-01"
+    },
+    {
+      "id": 17,
+      "employee_number": "EMP402",
+      "name": "伊藤明子",
+      "department": "FIN",
+      "position": "課長",
+      "email": "ito@company.com",
+      "hire_date": "2018-04-01"
+    }
+  ]
+}

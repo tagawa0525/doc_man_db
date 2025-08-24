@@ -1,0 +1,74 @@
+{
+  "version": "1.0",
+  "environment": "development",
+  "description": "開発環境用文書種別マスタデータ",
+  "dependencies": ["employees"],
+  "data": [
+    {
+      "id": 1,
+      "name": "技術文書",
+      "description": "技術仕様書、設計書等",
+      "department_code": null,
+      "prefix": "TEC",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "is_active": true,
+      "created_by": 1
+    },
+    {
+      "id": 2,
+      "name": "業務文書",
+      "description": "業務手順書、報告書等",
+      "department_code": null,
+      "prefix": "BUS",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "is_active": true,
+      "created_by": 1
+    },
+    {
+      "id": 3,
+      "name": "契約文書",
+      "description": "契約書、覚書等",
+      "department_code": null,
+      "prefix": "CON",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "is_active": true,
+      "created_by": 1
+    },
+    {
+      "id": 4,
+      "name": "開発部専用技術文書",
+      "description": "開発部内の技術ドキュメント",
+      "department_code": "DEV",
+      "prefix": "DEV-TEC",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "is_active": true,
+      "created_by": 1
+    },
+    {
+      "id": 5,
+      "name": "営業部業務文書",
+      "description": "営業部の業務関連文書",
+      "department_code": "SALES",
+      "prefix": "SALES-BUS",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "is_active": true,
+      "created_by": 2
+    },
+    {
+      "id": 6,
+      "name": "人事規程",
+      "description": "人事関連の規程・手順書",
+      "department_code": "HR",
+      "prefix": "HR-REG",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "is_active": true,
+      "created_by": 3
+    }
+  ]
+}

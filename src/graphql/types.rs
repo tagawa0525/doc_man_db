@@ -4,6 +4,7 @@ use async_graphql::{Enum, InputObject, SimpleObject};
 #[derive(SimpleObject)]
 pub struct Document {
     pub id: i32,
+    pub number: String,
     pub title: String,
     pub document_type_id: i32,
     pub created_by: i32,
@@ -16,6 +17,7 @@ impl From<crate::models::Document> for Document {
     fn from(doc: crate::models::Document) -> Self {
         Self {
             id: doc.id,
+            number: doc.number,
             title: doc.title,
             document_type_id: doc.document_type_id,
             created_by: doc.created_by,
@@ -50,7 +52,7 @@ impl From<CreateDocumentInput> for crate::models::CreateDocumentWithNumberReques
 }
 
 /// GraphQL DocumentSearchFilters type
-#[derive(InputObject)]
+#[derive(InputObject, Debug)]
 pub struct DocumentSearchFilters {
     pub title: Option<String>,
     pub document_type_id: Option<i32>,
@@ -379,6 +381,237 @@ impl From<crate::models::StepResponse> for StepResponse {
             success: response.success,
             step: response.step.map(|s| s.into()),
             message: response.message,
+        }
+    }
+}
+
+// ========== Dashboard Types ==========
+
+/// GraphQL DashboardStats type
+#[derive(SimpleObject)]
+pub struct DashboardStats {
+    pub total_documents: i32,
+    pub monthly_created: i32,
+    pub missing_files: i32,
+    pub active_users: i32,
+    pub pending_approvals: i32,
+    pub system_uptime: f64,
+}
+
+/// GraphQL SystemStatus type
+#[derive(SimpleObject)]
+pub struct SystemStatus {
+    pub api_status: String,
+    pub database_status: String,
+    pub file_system_status: String,
+    pub last_backup: String,
+    pub server_uptime: String,
+    pub memory_usage: f64,
+    pub disk_usage: f64,
+}
+
+/// GraphQL Activity type
+#[derive(SimpleObject)]
+pub struct Activity {
+    pub id: String,
+    #[graphql(name = "type")]
+    pub activity_type: String,
+    pub message: String,
+    pub user: String,
+    pub timestamp: String,
+    pub document_id: Option<String>,
+    pub document_title: Option<String>,
+}
+
+/// GraphQL PendingApproval type
+#[derive(SimpleObject)]
+pub struct PendingApproval {
+    pub id: String,
+    pub document_id: String,
+    pub document_title: String,
+    pub requester_name: String,
+    pub requested_at: String,
+    pub approval_type: String,
+}
+
+// ========== Department Types ==========
+
+/// GraphQL Department type
+#[derive(SimpleObject)]
+pub struct Department {
+    pub id: i32,
+    pub code: String,
+    pub name: String,
+    pub parent_id: Option<i32>,
+    pub level: i32,
+    pub manager_id: Option<i32>,
+    pub description: Option<String>,
+    pub location: Option<String>,
+    pub phone_number: Option<String>,
+    pub email: Option<String>,
+    pub budget: Option<f64>,
+    pub is_active: bool,
+    pub created_date: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+impl From<crate::models::Department> for Department {
+    fn from(dept: crate::models::Department) -> Self {
+        Self {
+            id: dept.id,
+            code: dept.code,
+            name: dept.name,
+            parent_id: dept.parent_id,
+            level: dept.level,
+            manager_id: dept.manager_id,
+            description: dept.description,
+            location: dept.location,
+            phone_number: dept.phone_number,
+            email: dept.email,
+            budget: dept.budget,
+            is_active: dept.is_active,
+            created_date: dept.created_date.map(|d| d.format("%Y-%m-%d").to_string()),
+            created_at: dept.created_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            updated_at: dept.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+        }
+    }
+}
+
+/// GraphQL DepartmentWithManager type
+#[derive(SimpleObject)]
+pub struct DepartmentWithManager {
+    pub id: i32,
+    pub code: String,
+    pub name: String,
+    pub parent_id: Option<i32>,
+    pub parent_name: Option<String>,
+    pub level: i32,
+    pub manager_id: Option<i32>,
+    pub manager_name: Option<String>,
+    pub description: Option<String>,
+    pub location: Option<String>,
+    pub phone_number: Option<String>,
+    pub email: Option<String>,
+    pub budget: Option<f64>,
+    pub is_active: bool,
+    pub employee_count: i64,
+    pub created_date: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+impl From<crate::models::DepartmentWithManager> for DepartmentWithManager {
+    fn from(dept: crate::models::DepartmentWithManager) -> Self {
+        Self {
+            id: dept.id,
+            code: dept.code,
+            name: dept.name,
+            parent_id: dept.parent_id,
+            parent_name: dept.parent_name,
+            level: dept.level,
+            manager_id: dept.manager_id,
+            manager_name: dept.manager_name,
+            description: dept.description,
+            location: dept.location,
+            phone_number: dept.phone_number,
+            email: dept.email,
+            budget: dept.budget,
+            is_active: dept.is_active,
+            employee_count: dept.employee_count,
+            created_date: dept.created_date.map(|d| d.format("%Y-%m-%d").to_string()),
+            created_at: dept.created_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            updated_at: dept.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+        }
+    }
+}
+
+/// GraphQL DepartmentSearchFilters type
+#[derive(InputObject, Debug)]
+pub struct DepartmentSearchFilters {
+    pub name: Option<String>,
+    pub code: Option<String>,
+    pub is_active: Option<bool>,
+    pub manager_name: Option<String>,
+    pub limit: Option<i64>,
+    pub offset: Option<i64>,
+}
+
+impl From<DepartmentSearchFilters> for crate::models::DepartmentSearchFilters {
+    fn from(val: DepartmentSearchFilters) -> Self {
+        crate::models::DepartmentSearchFilters {
+            name: val.name,
+            code: val.code,
+            is_active: val.is_active,
+            manager_name: val.manager_name,
+            limit: val.limit.unwrap_or(10),
+            offset: val.offset.unwrap_or(0),
+        }
+    }
+}
+
+/// GraphQL CreateDepartmentInput type
+#[derive(InputObject)]
+pub struct CreateDepartmentInput {
+    pub code: String,
+    pub name: String,
+    pub parent_id: Option<i32>,
+    pub manager_id: Option<i32>,
+    pub description: Option<String>,
+    pub location: Option<String>,
+    pub phone_number: Option<String>,
+    pub email: Option<String>,
+    pub budget: Option<f64>,
+    pub created_date: Option<String>,
+}
+
+impl From<CreateDepartmentInput> for crate::models::CreateDepartmentRequest {
+    fn from(val: CreateDepartmentInput) -> Self {
+        crate::models::CreateDepartmentRequest {
+            code: val.code,
+            name: val.name,
+            parent_id: val.parent_id,
+            manager_id: val.manager_id,
+            description: val.description,
+            location: val.location,
+            phone_number: val.phone_number,
+            email: val.email,
+            budget: val.budget,
+            created_date: val
+                .created_date
+                .and_then(|s| chrono::NaiveDate::parse_from_str(&s, "%Y-%m-%d").ok()),
+        }
+    }
+}
+
+/// GraphQL UpdateDepartmentInput type
+#[derive(InputObject)]
+pub struct UpdateDepartmentInput {
+    pub code: Option<String>,
+    pub name: Option<String>,
+    pub parent_id: Option<i32>,
+    pub manager_id: Option<i32>,
+    pub description: Option<String>,
+    pub location: Option<String>,
+    pub phone_number: Option<String>,
+    pub email: Option<String>,
+    pub budget: Option<f64>,
+    pub is_active: Option<bool>,
+}
+
+impl From<UpdateDepartmentInput> for crate::models::UpdateDepartmentRequest {
+    fn from(val: UpdateDepartmentInput) -> Self {
+        crate::models::UpdateDepartmentRequest {
+            code: val.code,
+            name: val.name,
+            parent_id: val.parent_id,
+            manager_id: val.manager_id,
+            description: val.description,
+            location: val.location,
+            phone_number: val.phone_number,
+            email: val.email,
+            budget: val.budget,
+            is_active: val.is_active,
         }
     }
 }

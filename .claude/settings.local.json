@@ -3,6 +3,14 @@
     "allow": [
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
+      "mcp__ide__getDiagnostics",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_wait_for",
       "mcp__serena__activate_project",
       "mcp__serena__check_onboarding_performed",
       "mcp__serena__create_text_file",
@@ -37,14 +45,29 @@
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(npm install:*)",
+      "Bash(powershell:*)",
       "Bash(npm run check:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run generate:types:*)",
+      "Bash(npx svelte-check:*)",
+      "Bash(sqlx database create:*)",
+      "Bash(sqlx migrate info:*)",
+      "Bash(sqlx migrate run:*)",
+      "Bash(sqlx migrate revert:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
       "Bash(where:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(sqlx migrate add:*)"
     ],
     "deny": [],
     "ask": [
       "Bash(git commit:*)",
       "Bash(rm:*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\tagaw\\rust\\doc_man_db"
     ]
   }
 }

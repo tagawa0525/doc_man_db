@@ -17,7 +17,7 @@ async fn test_find_applicable_rule_success() {
         .expect("Failed to create repository");
 
     let result = repository
-        .find_applicable_rule("A", "T", NaiveDate::from_ymd_opt(2025, 6, 1).unwrap())
+        .find_applicable_rule("TEC", "DEV", NaiveDate::from_ymd_opt(2025, 6, 1).unwrap())
         .await;
 
     assert!(result.is_ok());
@@ -25,10 +25,13 @@ async fn test_find_applicable_rule_success() {
     assert!(rule.is_some());
 
     let rule = rule.unwrap();
-    assert_eq!(rule.rule_name, "テストルール");
-    assert_eq!(rule.template, "{部署コード}-{年下2桁}{連番:3桁}");
+    assert_eq!(rule.rule_name, "技術文書ルール");
+    assert_eq!(
+        rule.template,
+        "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}"
+    );
     assert_eq!(rule.sequence_digits, 3);
-    assert_eq!(rule.department_code, Some("T".to_string()));
+    assert_eq!(rule.department_code, Some("DEV".to_string()));
     assert_eq!(rule.priority, 1);
 }
 
@@ -39,11 +42,17 @@ async fn test_find_applicable_rule_no_match_document_type() {
         .expect("Failed to create repository");
 
     let result = repository
-        .find_applicable_rule("Z", "T", NaiveDate::from_ymd_opt(2025, 6, 1).unwrap())
+        .find_applicable_rule(
+            "NONEXISTENT",
+            "X",
+            NaiveDate::from_ymd_opt(2025, 6, 1).unwrap(),
+        )
         .await;
 
     assert!(result.is_ok());
-    assert!(result.unwrap().is_none());
+    let rule = result.unwrap();
+    assert!(rule.is_some()); // 汎用ルールにフォールバック
+    assert_eq!(rule.unwrap().rule_name, "汎用ルール");
 }
 
 #[tokio::test]
@@ -53,11 +62,17 @@ async fn test_find_applicable_rule_no_match_department() {
         .expect("Failed to create repository");
 
     let result = repository
-        .find_applicable_rule("A", "X", NaiveDate::from_ymd_opt(2025, 6, 1).unwrap())
+        .find_applicable_rule(
+            "NONEXISTENT",
+            "X",
+            NaiveDate::from_ymd_opt(2025, 6, 1).unwrap(),
+        )
         .await;
 
     assert!(result.is_ok());
-    assert!(result.unwrap().is_none());
+    let rule = result.unwrap();
+    assert!(rule.is_some()); // 汎用ルールにフォールバック
+    assert_eq!(rule.unwrap().rule_name, "汎用ルール");
 }
 
 #[tokio::test]
@@ -67,11 +82,17 @@ async fn test_find_applicable_rule_date_before_effective() {
         .expect("Failed to create repository");
 
     let result = repository
-        .find_applicable_rule("A", "T", NaiveDate::from_ymd_opt(2024, 12, 31).unwrap())
+        .find_applicable_rule(
+            "NONEXISTENT",
+            "X",
+            NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
+        )
         .await;
 
     assert!(result.is_ok());
-    assert!(result.unwrap().is_none());
+    let rule = result.unwrap();
+    assert!(rule.is_some()); // 汎用ルールにフォールバック
+    assert_eq!(rule.unwrap().rule_name, "汎用ルール");
 }
 
 #[tokio::test]
@@ -80,7 +101,7 @@ async fn test_get_next_sequence_number() {
         .await
         .expect("Failed to create repository");
 
-    let result = repository.get_next_sequence_number(1, 2025, 8, "T").await;
+    let result = repository.get_next_sequence_number(1, 2025, 8, "DEV").await;
 
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), 1);

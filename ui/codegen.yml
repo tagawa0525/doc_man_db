@@ -1,0 +1,15 @@
+overwrite: true
+schema: "http://localhost:8080/graphql"
+documents: "src/lib/api/**/*.ts"
+generates:
+  src/lib/api/types.generated.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+    config:
+      scalars:
+        DateTime: string
+        Date: string
+      skipTypename: false
+      enumsAsTypes: true
+      constEnums: true

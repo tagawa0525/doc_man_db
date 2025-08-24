@@ -3,3 +3,8 @@
 *.profraw
 /coverage
 cobertura.xml
+
+/data
+*.db
+*.db-shm
+*.db-wal

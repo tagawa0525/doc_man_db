@@ -93,8 +93,8 @@ async fn test_graphql_create_document_mutation() {
         "variables": {
             "input": {
                 "title": "GraphQL経由のテスト文書",
-                "documentTypeCode": "A",
-                "departmentCode": "T",
+                "documentTypeCode": "TEC",
+                "departmentCode": "DEV",
                 "createdBy": 1,
                 "createdDate": "2025-08-17"
             }
@@ -121,12 +121,9 @@ async fn test_graphql_create_document_mutation() {
         created_document["document"]["title"],
         "GraphQL経由のテスト文書"
     );
-    assert!(
-        created_document["documentNumber"]
-            .as_str()
-            .unwrap()
-            .starts_with("T-25")
-    );
+    let doc_number = created_document["documentNumber"].as_str().unwrap();
+    println!("Generated document number: {}", doc_number);
+    assert!(doc_number.starts_with("TEC-25"));
     assert_eq!(created_document["generatedNumber"]["ruleId"], 1);
 }
 
@@ -230,8 +227,8 @@ async fn test_graphql_search_documents() {
             "variables": {
                 "input": {
                     "title": format!("GraphQL検索テスト文書{}", i),
-                    "documentTypeCode": "A",
-                    "departmentCode": "T",
+                    "documentTypeCode": "TEC",
+                    "departmentCode": "DEV",
                     "createdBy": 1,
                     "createdDate": "2025-08-17"
                 }

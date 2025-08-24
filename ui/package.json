@@ -9,13 +9,19 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"generate:types": "graphql-codegen --config codegen.yml",
+		"generate:types:watch": "graphql-codegen --config codegen.yml --watch"
 	},
 	"devDependencies": {
+		"@graphql-codegen/cli": "^5.0.7",
+		"@graphql-codegen/typescript": "^4.1.6",
+		"@graphql-codegen/typescript-operations": "^4.6.1",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/kit": "^2.22.0",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
 		"@tailwindcss/forms": "^0.5.10",
+		"@tailwindcss/postcss": "^4.1.12",
 		"@tailwindcss/typography": "^0.5.16",
 		"autoprefixer": "^10.4.21",
 		"postcss": "^8.5.6",
@@ -24,5 +30,10 @@
 		"tailwindcss": "^4.1.12",
 		"typescript": "^5.0.0",
 		"vite": "^7.0.4"
+	},
+	"dependencies": {
+		"@tailwindcss/vite": "^4.1.12",
+		"graphql": "^16.11.0",
+		"graphql-request": "^7.2.0"
 	}
 }

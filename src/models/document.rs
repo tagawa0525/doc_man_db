@@ -12,11 +12,11 @@ pub enum DocumentValidationError {
     InvalidCreatedBy,
     #[error("Document type code cannot be empty")]
     EmptyDocumentTypeCode,
-    #[error("Document type code must be exactly 1 character")]
+    #[error("Document type code must be 1-10 characters")]
     InvalidDocumentTypeCodeLength,
     #[error("Document type name cannot be empty")]
     EmptyDocumentTypeName,
-    #[error("Department code must be exactly 1 character")]
+    #[error("Department code must be 1-10 characters")]
     InvalidDepartmentCodeLength,
     #[error("Effective until date must be after effective from date")]
     InvalidEffectivePeriod,
@@ -145,8 +145,9 @@ impl CreateDocumentWithNumberRequest {
             return Err(DocumentValidationError::EmptyDocumentTypeCode);
         }
 
-        // 文書種別コードが1文字であることをチェック
-        if self.document_type_code.trim().len() != 1 {
+        // 文書種別コードが適切な長さであることをチェック (1-10文字)
+        let doc_type_len = self.document_type_code.trim().len();
+        if !(1..=10).contains(&doc_type_len) {
             return Err(DocumentValidationError::InvalidDocumentTypeCodeLength);
         }
 
@@ -155,8 +156,9 @@ impl CreateDocumentWithNumberRequest {
             return Err(DocumentValidationError::EmptyDepartmentCode);
         }
 
-        // 部署コードが1文字であることをチェック
-        if self.department_code.trim().len() != 1 {
+        // 部署コードが適切な長さであることをチェック (1-10文字)
+        let dept_code_len = self.department_code.trim().len();
+        if !(1..=10).contains(&dept_code_len) {
             return Err(DocumentValidationError::InvalidDepartmentCodeLength);
         }
 

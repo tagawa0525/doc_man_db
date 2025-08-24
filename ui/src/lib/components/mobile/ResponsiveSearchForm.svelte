@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import Button from '$lib/components/ui/Button.svelte';
-  import Input from '$lib/components/ui/Input.svelte';
-  import Select from '$lib/components/ui/Select.svelte';
-  
+  import { createEventDispatcher } from "svelte";
+  import Button from "$lib/components/ui/Button.svelte";
+  import Input from "$lib/components/ui/Input.svelte";
+  import Select from "$lib/components/ui/Select.svelte";
+
   const dispatch = createEventDispatcher();
-  
+
   export let filters: any = {};
   export let isSearching = false;
   export let showAdvancedFilters = false;
@@ -13,18 +13,18 @@
   export let internalExternalOptions: any[] = [];
   export let importanceClassOptions: any[] = [];
   export let personalInfoOptions: any[] = [];
-  
+
   function handleSearch() {
-    dispatch('search', filters);
+    dispatch("search", filters);
   }
-  
+
   function handleClear() {
-    dispatch('clear');
+    dispatch("clear");
   }
-  
+
   function toggleAdvanced() {
     showAdvancedFilters = !showAdvancedFilters;
-    dispatch('toggle-advanced', showAdvancedFilters);
+    dispatch("toggle-advanced", showAdvancedFilters);
   }
 </script>
 
@@ -33,10 +33,7 @@
     <!-- 基本検索 -->
     <div class="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2 lg:grid-cols-3">
       <div>
-        <label
-          for="title"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
           文書タイトル
         </label>
         <Input
@@ -103,11 +100,7 @@
             >
               作成日（終了）
             </label>
-            <Input
-              id="dateTo"
-              type="date"
-              bind:value={filters.createdDateTo}
-            />
+            <Input id="dateTo" type="date" bind:value={filters.createdDateTo} />
           </div>
         </div>
 
@@ -163,7 +156,9 @@
     {/if}
 
     <!-- 検索ボタン -->
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 space-y-3 sm:space-y-0">
+    <div
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 space-y-3 sm:space-y-0"
+    >
       <button
         type="button"
         on:click={toggleAdvanced}

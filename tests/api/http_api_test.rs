@@ -51,8 +51,8 @@ async fn test_create_document_with_number_api() {
 
     let request_body = json!({
         "title": "API経由のテスト文書",
-        "document_type_code": "A",
-        "department_code": "T",
+        "document_type_code": "TEC",
+        "department_code": "DEV",
         "created_by": 1,
         "created_date": "2025-08-17"
     });
@@ -71,7 +71,7 @@ async fn test_create_document_with_number_api() {
 
     let created_document: CreatedDocumentWithNumber = response.json().await.unwrap();
     assert_eq!(created_document.document.title, "API経由のテスト文書");
-    assert!(created_document.document_number.starts_with("T-25"));
+    assert!(created_document.document_number.starts_with("TEC-25"));
     assert_eq!(created_document.generated_number.rule_id, 1);
 }
 
@@ -140,8 +140,8 @@ async fn test_search_documents_api() {
     for i in 1..=3 {
         let request_body = json!({
             "title": format!("検索テスト文書{}_{}", i, unique_id + i as u64),
-            "document_type_code": "A",
-            "department_code": "T",
+            "document_type_code": "TEC",
+            "department_code": "DEV",
             "created_by": 1,
             "created_date": "2025-08-17"
         });

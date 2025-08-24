@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "environment": "development",
+  "description": "開発環境用文書番号生成ルール",
+  "dependencies": ["employees", "departments", "document_types"],
+  "data": [
+    {
+      "id": 1,
+      "rule_name": "技術文書ルール",
+      "template": "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}",
+      "sequence_digits": 3,
+      "department_code": "DEV",
+      "document_type_codes": "[\"TEC\"]",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "priority": 1,
+      "created_by": 1
+    },
+    {
+      "id": 2,
+      "rule_name": "業務文書ルール",
+      "template": "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}",
+      "sequence_digits": 3,
+      "department_code": "DEV",
+      "document_type_codes": "[\"BUS\"]",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "priority": 2,
+      "created_by": 1
+    },
+    {
+      "id": 3,
+      "rule_name": "汎用ルール",
+      "template": "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}",
+      "sequence_digits": 3,
+      "department_code": null,
+      "document_type_codes": "[\"TEC\",\"BUS\",\"CON\"]",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "priority": 9,
+      "created_by": 1
+    },
+    {
+      "id": 4,
+      "rule_name": "営業部業務文書ルール",
+      "template": "SALES-{年下2桁}{連番:4桁}",
+      "sequence_digits": 4,
+      "department_code": "SALES",
+      "document_type_codes": "[\"SALES-BUS\"]",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "priority": 1,
+      "created_by": 2
+    },
+    {
+      "id": 5,
+      "rule_name": "人事規程ルール",
+      "template": "HR-{年4桁}-{連番:2桁}",
+      "sequence_digits": 2,
+      "department_code": "HR",
+      "document_type_codes": "[\"HR-REG\"]",
+      "effective_from": "2024-01-01",
+      "effective_until": null,
+      "priority": 1,
+      "created_by": 3
+    }
+  ]
+}

@@ -1,33 +1,37 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { enhanceTouch } from '$lib/utils/touch';
-  
-  type ButtonVariant = 'primary' | 'secondary' | 'danger';
-  type ButtonSize = 'sm' | 'md' | 'lg';
-  
-  export let variant: ButtonVariant = 'primary';
-  export let size: ButtonSize = 'md';
+  import { createEventDispatcher } from "svelte";
+  import { enhanceTouch } from "$lib/utils/touch";
+
+  type ButtonVariant = "primary" | "secondary" | "danger";
+  type ButtonSize = "sm" | "md" | "lg";
+
+  export let variant: ButtonVariant = "primary";
+  export let size: ButtonSize = "md";
   export let loading = false;
   export let disabled = false;
-  export let type: 'button' | 'submit' | 'reset' = 'button';
-  
+  export let type: "button" | "submit" | "reset" = "button";
+
+  let className = "";
+  export { className as class };
+
   const dispatch = createEventDispatcher();
-  
+
   const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+    primary: "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500",
+    secondary:
+      "bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500",
+    danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500",
   };
-  
+
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2 text-base",
+    lg: "px-6 py-3 text-lg",
   };
-  
+
   function handleClick(event: MouseEvent) {
     if (!disabled && !loading) {
-      dispatch('click', event);
+      dispatch("click", event);
     }
   }
 </script>
@@ -35,29 +39,29 @@
 <button
   {type}
   class="inline-flex items-center justify-center rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation
-         {variants[variant]} {sizes[size]}"
+         {variants[variant]} {sizes[size]} {className}"
   {disabled}
   on:click={handleClick}
   use:enhanceTouch
 >
   {#if loading}
-    <svg 
-      class="animate-spin -ml-1 mr-2 h-4 w-4" 
-      xmlns="http://www.w3.org/2000/svg" 
-      fill="none" 
+    <svg
+      class="animate-spin -ml-1 mr-2 h-4 w-4"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
       viewBox="0 0 24 24"
     >
-      <circle 
-        class="opacity-25" 
-        cx="12" 
-        cy="12" 
-        r="10" 
-        stroke="currentColor" 
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
         stroke-width="4"
       ></circle>
-      <path 
-        class="opacity-75" 
-        fill="currentColor" 
+      <path
+        class="opacity-75"
+        fill="currentColor"
         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
       ></path>
     </svg>

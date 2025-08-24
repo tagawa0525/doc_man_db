@@ -40,19 +40,19 @@ export function checkColorContrast(foreground: string, background: string): {
     // Simplified luminance calculation
     const rgb = color.match(/\d+/g);
     if (!rgb) return 0;
-    
+
     const [r, g, b] = rgb.map(c => {
       const val = parseInt(c) / 255;
       return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
     });
-    
+
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
-  
+
   const l1 = getLuminance(foreground);
   const l2 = getLuminance(background);
   const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-  
+
   return {
     ratio,
     wcagAA: ratio >= 4.5,
@@ -63,15 +63,15 @@ export function checkColorContrast(foreground: string, background: string): {
 // Keyboard navigation testing
 export function checkKeyboardNavigation(element: HTMLElement): AccessibilityIssue[] {
   const issues: AccessibilityIssue[] = [];
-  
+
   // Check for focusable elements without visible focus
   const focusableElements = element.querySelectorAll(
     'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
   );
-  
+
   focusableElements.forEach((el, index) => {
     const htmlEl = el as HTMLElement;
-    
+
     // Check if element can receive focus
     if (htmlEl.tabIndex < 0 && !htmlEl.hasAttribute('tabindex')) {
       issues.push({
@@ -81,7 +81,7 @@ export function checkKeyboardNavigation(element: HTMLElement): AccessibilityIssu
         solution: 'Add tabindex="0" or ensure element is naturally focusable'
       });
     }
-    
+
     // Check for skip links on first focusable element
     if (index === 0 && !htmlEl.textContent?.includes('スキップ') && !htmlEl.textContent?.includes('Skip')) {
       issues.push({
@@ -92,14 +92,14 @@ export function checkKeyboardNavigation(element: HTMLElement): AccessibilityIssu
       });
     }
   });
-  
+
   return issues;
 }
 
 // Screen reader testing
 export function checkScreenReaderSupport(element: HTMLElement): AccessibilityIssue[] {
   const issues: AccessibilityIssue[] = [];
-  
+
   // Check for images without alt text
   const images = element.querySelectorAll('img');
   images.forEach(img => {
@@ -112,15 +112,15 @@ export function checkScreenReaderSupport(element: HTMLElement): AccessibilityIss
       });
     }
   });
-  
+
   // Check for form inputs without labels
   const inputs = element.querySelectorAll('input, select, textarea');
   inputs.forEach(input => {
     const hasLabel = input.hasAttribute('aria-label') ||
-                    input.hasAttribute('aria-labelledby') ||
-                    element.querySelector(`label[for="${input.id}"]`) ||
-                    input.closest('label');
-    
+      input.hasAttribute('aria-labelledby') ||
+      element.querySelector(`label[for="${input.id}"]`) ||
+      input.closest('label');
+
     if (!hasLabel) {
       issues.push({
         severity: 'error',
@@ -130,14 +130,14 @@ export function checkScreenReaderSupport(element: HTMLElement): AccessibilityIss
       });
     }
   });
-  
+
   // Check for buttons without accessible names
   const buttons = element.querySelectorAll('button');
   buttons.forEach(button => {
     const hasAccessibleName = button.textContent?.trim() ||
-                             button.hasAttribute('aria-label') ||
-                             button.hasAttribute('aria-labelledby');
-    
+      button.hasAttribute('aria-label') ||
+      button.hasAttribute('aria-labelledby');
+
     if (!hasAccessibleName) {
       issues.push({
         severity: 'error',
@@ -147,7 +147,7 @@ export function checkScreenReaderSupport(element: HTMLElement): AccessibilityIss
       });
     }
   });
-  
+
   return issues;
 }
 
@@ -155,11 +155,11 @@ export function checkScreenReaderSupport(element: HTMLElement): AccessibilityIss
 export function checkHeadingStructure(element: HTMLElement): AccessibilityIssue[] {
   const issues: AccessibilityIssue[] = [];
   const headings = element.querySelectorAll('h1, h2, h3, h4, h5, h6');
-  
+
   let previousLevel = 0;
   headings.forEach(heading => {
     const level = parseInt(heading.tagName.charAt(1));
-    
+
     if (level - previousLevel > 1) {
       issues.push({
         severity: 'warning',
@@ -168,10 +168,10 @@ export function checkHeadingStructure(element: HTMLElement): AccessibilityIssue[
         solution: 'Use consecutive heading levels for proper document structure'
       });
     }
-    
+
     previousLevel = level;
   });
-  
+
   return issues;
 }
 
@@ -182,14 +182,14 @@ export function auditAccessibility(element: HTMLElement): AccessibilityReport {
     ...checkScreenReaderSupport(element),
     ...checkHeadingStructure(element)
   ];
-  
+
   const errorCount = issues.filter(i => i.severity === 'error').length;
   const warningCount = issues.filter(i => i.severity === 'warning').length;
   const noticeCount = issues.filter(i => i.severity === 'notice').length;
-  
+
   // Calculate score (100 - penalties)
   const score = Math.max(0, 100 - (errorCount * 15) - (warningCount * 5) - (noticeCount * 1));
-  
+
   const recommendations = [
     'すべてのインタラクティブ要素がキーボードでアクセス可能であることを確認',
     '画像に適切な代替テキストを提供',
@@ -199,7 +199,7 @@ export function auditAccessibility(element: HTMLElement): AccessibilityReport {
     'フォーカス状態を視覚的に明確に表示',
     'エラーメッセージは明確で理解しやすく表示'
   ];
-  
+
   return {
     score,
     issues,
@@ -210,27 +210,27 @@ export function auditAccessibility(element: HTMLElement): AccessibilityReport {
 // Utility for testing focus management
 export function createFocusTracker() {
   const focusHistory: HTMLElement[] = [];
-  
+
   const trackFocus = (event: FocusEvent) => {
     if (event.target instanceof HTMLElement) {
       focusHistory.push(event.target);
     }
   };
-  
+
   const startTracking = () => {
     document.addEventListener('focusin', trackFocus);
   };
-  
+
   const stopTracking = () => {
     document.removeEventListener('focusin', trackFocus);
   };
-  
+
   const getFocusHistory = () => [...focusHistory];
-  
+
   const clearHistory = () => {
     focusHistory.length = 0;
   };
-  
+
   return {
     startTracking,
     stopTracking,
@@ -249,15 +249,15 @@ export function testKeyboardShortcuts(element: HTMLElement, shortcuts: Record<st
       event.metaKey && 'Meta',
       event.key
     ].filter(Boolean).join('+');
-    
+
     if (shortcuts[key]) {
       event.preventDefault();
       shortcuts[key]();
     }
   };
-  
+
   element.addEventListener('keydown', handleKeyDown);
-  
+
   return () => {
     element.removeEventListener('keydown', handleKeyDown);
   };

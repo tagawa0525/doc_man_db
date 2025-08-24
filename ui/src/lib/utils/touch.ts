@@ -14,7 +14,7 @@ export class TouchHandler {
   private startTouch: TouchPoint | null = null;
   private currentTouch: TouchPoint | null = null;
   private minSwipeDistance = 30;
-  
+
   constructor(
     private element: HTMLElement,
     private options: {
@@ -26,15 +26,15 @@ export class TouchHandler {
   ) {
     this.setupEventListeners();
   }
-  
+
   private setupEventListeners() {
-    let longPressTimer: NodeJS.Timeout;
-    
+    let longPressTimer: ReturnType<typeof setTimeout>;
+
     this.element.addEventListener('touchstart', (e) => {
       const touch = e.touches[0];
       this.startTouch = { x: touch.clientX, y: touch.clientY };
       this.currentTouch = this.startTouch;
-      
+
       // ロングプレス判定開始
       if (this.options.onLongPress) {
         longPressTimer = setTimeout(() => {
@@ -44,31 +44,31 @@ export class TouchHandler {
         }, this.options.longPressDelay || 500);
       }
     }, { passive: true });
-    
+
     this.element.addEventListener('touchmove', (e) => {
       if (!this.startTouch) return;
-      
+
       const touch = e.touches[0];
       this.currentTouch = { x: touch.clientX, y: touch.clientY };
-      
+
       // 移動が検出されたらロングプレス判定をキャンセル
       if (longPressTimer) {
         clearTimeout(longPressTimer);
       }
     }, { passive: true });
-    
-    this.element.addEventListener('touchend', (e) => {
+
+    this.element.addEventListener('touchend', () => {
       if (!this.startTouch || !this.currentTouch) return;
-      
+
       // ロングプレス判定をキャンセル
       if (longPressTimer) {
         clearTimeout(longPressTimer);
       }
-      
+
       const deltaX = this.currentTouch.x - this.startTouch.x;
       const deltaY = this.currentTouch.y - this.startTouch.y;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      
+
       if (distance < this.minSwipeDistance) {
         // タップ判定
         if (this.options.onTap) {
@@ -78,30 +78,30 @@ export class TouchHandler {
         // スワイプ判定
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
-        
+
         let direction: 'left' | 'right' | 'up' | 'down';
-        
+
         if (absDeltaX > absDeltaY) {
           direction = deltaX > 0 ? 'right' : 'left';
         } else {
           direction = deltaY > 0 ? 'down' : 'up';
         }
-        
+
         if (this.options.onSwipe) {
           this.options.onSwipe({ direction, distance });
         }
       }
-      
+
       this.startTouch = null;
       this.currentTouch = null;
     }, { passive: true });
   }
-  
+
   destroy() {
     // イベントリスナーを削除
-    this.element.removeEventListener('touchstart', () => {});
-    this.element.removeEventListener('touchmove', () => {});
-    this.element.removeEventListener('touchend', () => {});
+    this.element.removeEventListener('touchstart', () => { });
+    this.element.removeEventListener('touchmove', () => { });
+    this.element.removeEventListener('touchend', () => { });
   }
 }
 
@@ -115,7 +115,7 @@ export function swipe(
   }
 ) {
   const handler = new TouchHandler(element, options);
-  
+
   return {
     destroy() {
       handler.destroy();
@@ -127,14 +127,14 @@ export function swipe(
 export function enhanceTouch(element: HTMLElement) {
   // タッチデバイスでのクリック遅延を防ぐ
   element.style.touchAction = 'manipulation';
-  
+
   // タップ時のハイライト色を設定
-  element.style.webkitTapHighlightColor = 'rgba(59, 130, 246, 0.1)';
-  
+  (element.style as any).webkitTapHighlightColor = 'rgba(59, 130, 246, 0.1)';
+
   return {
     destroy() {
       element.style.touchAction = '';
-      element.style.webkitTapHighlightColor = '';
+      (element.style as any).webkitTapHighlightColor = '';
     }
   };
 }
@@ -154,18 +154,18 @@ export function getViewportInfo() {
 // スクロール位置の管理
 export class ScrollManager {
   private scrollPositions = new Map<string, number>();
-  
+
   saveScrollPosition(key: string) {
     this.scrollPositions.set(key, window.scrollY);
   }
-  
+
   restoreScrollPosition(key: string) {
     const position = this.scrollPositions.get(key);
     if (position !== undefined) {
       window.scrollTo(0, position);
     }
   }
-  
+
   clearScrollPosition(key: string) {
     this.scrollPositions.delete(key);
   }
