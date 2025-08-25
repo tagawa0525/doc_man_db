@@ -2,7 +2,6 @@
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
-  import Select from "$lib/components/ui/Select.svelte";
   import SearchableSelect from "$lib/components/ui/SearchableSelect.svelte";
   import { graphqlClient } from "$lib/api/client";
   import {
@@ -17,13 +16,13 @@
   let formData: CreateDepartmentInput = {
     code: "",
     name: "",
-    parentId: null,
-    managerId: null,
+    parentId: undefined,
+    managerId: undefined,
     description: "",
     location: "",
     phoneNumber: "",
     email: "",
-    budget: null,
+    budget: undefined,
     createdDate: new Date().toISOString().split("T")[0], // 今日の日付をデフォルト
   };
 
@@ -44,7 +43,7 @@
       error = "";
 
       const response = await graphqlClient.request(GET_DEPARTMENTS);
-      departments = response.departments;
+      departments = (response as any).departments;
     } catch (err) {
       console.error("Failed to load departments:", err);
       error = "部署データの読み込みに失敗しました";
@@ -96,7 +95,11 @@
     }
 
     // 予算の数値チェック
-    if (formData.budget !== null && formData.budget < 0) {
+    if (
+      formData.budget !== undefined &&
+      formData.budget !== null &&
+      formData.budget < 0
+    ) {
       formErrors.budget = "予算は0以上の値を入力してください";
     }
 
@@ -116,10 +119,10 @@
       // 空文字列をnullに変換
       const cleanedData = {
         ...formData,
-        description: formData.description.trim() || null,
-        location: formData.location.trim() || null,
-        phoneNumber: formData.phoneNumber.trim() || null,
-        email: formData.email.trim() || null,
+        description: formData.description?.trim() || null,
+        location: formData.location?.trim() || null,
+        phoneNumber: formData.phoneNumber?.trim() || null,
+        email: formData.email?.trim() || null,
       };
 
       await graphqlClient.request(CREATE_DEPARTMENT, {

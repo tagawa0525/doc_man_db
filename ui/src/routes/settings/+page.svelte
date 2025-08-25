@@ -85,7 +85,7 @@
     settings = JSON.parse(JSON.stringify(originalSettings));
   };
 
-  const handleTestConnection = async (type: string) => {
+  const handleTestConnection = async (_type: string) => {
     // TODO: 実際の接続テスト
   };
 </script>

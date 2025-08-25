@@ -3,7 +3,6 @@
   import { goto } from "$app/navigation";
   import Button from "$lib/components/ui/Button.svelte";
   import Input from "$lib/components/ui/Input.svelte";
-  import Select from "$lib/components/ui/Select.svelte";
   import SearchableSelect from "$lib/components/ui/SearchableSelect.svelte";
   import ResponsiveTable from "$lib/components/mobile/ResponsiveTable.svelte";
 
@@ -32,7 +31,6 @@
   // 状態管理
   let showAdvancedFilters = false;
   let debounceTimer: ReturnType<typeof setTimeout>;
-  let currentSort = { key: "", direction: "" };
 
   // 文書タイプ選択肢（仮データ、後で実APIから取得）
   const documentTypeOptions = [
@@ -55,7 +53,18 @@
       sortable: true,
       mobileHidden: true,
     },
-    { key: "createdBy", label: "作成者", sortable: false, mobileHidden: true },
+    {
+      key: "businessNumber",
+      label: "製番",
+      sortable: true,
+      mobileHidden: true,
+    },
+    {
+      key: "createdByName",
+      label: "作成者",
+      sortable: false,
+      mobileHidden: true,
+    },
     { key: "createdDate", label: "作成日", sortable: true },
     { key: "actions", label: "操作", sortable: false, class: "w-32" },
   ];
@@ -109,27 +118,26 @@
   // ソート処理
   function handleSort(key: string, direction: string) {
     console.log("Sort:", key, direction);
-    currentSort = { key, direction };
 
     // documentsストアから現在のデータを取得してソート
     documents.update((currentDocuments) => {
       const sorted = [...currentDocuments].sort((a, b) => {
-        let aVal = a[key];
-        let bVal = b[key];
+        let aVal = a[key as keyof typeof a];
+        let bVal = b[key as keyof typeof b];
 
         // 特別な処理が必要なフィールド
         if (key === "documentTypeId") {
           // 数値として比較
-          aVal = parseInt(aVal) || 0;
-          bVal = parseInt(bVal) || 0;
+          aVal = parseInt(String(aVal)) || 0;
+          bVal = parseInt(String(bVal)) || 0;
         } else if (key === "createdDate") {
           // 日付として比較
           aVal = new Date(aVal).getTime();
           bVal = new Date(bVal).getTime();
         } else if (key === "id" || key === "createdBy") {
           // 数値として比較
-          aVal = parseInt(aVal) || 0;
-          bVal = parseInt(bVal) || 0;
+          aVal = parseInt(String(aVal)) || 0;
+          bVal = parseInt(String(bVal)) || 0;
         } else {
           // 文字列として比較
           aVal = String(aVal || "").toLowerCase();
@@ -330,8 +338,13 @@
                   (opt) => opt.value === item.documentTypeId.toString(),
                 )?.label || "不明"}
               </div>
+              {#if item.businessNumber}
+                <div class="text-sm text-gray-500">
+                  製番: {item.businessNumber}
+                </div>
+              {/if}
               <div class="text-sm text-gray-500">
-                作成日: {item.createdDate}
+                作成者: {item.createdByName || "不明"} | 作成日: {item.createdDate}
               </div>
               <div class="flex justify-end space-x-2">
                 <button

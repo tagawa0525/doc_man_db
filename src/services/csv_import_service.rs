@@ -104,6 +104,7 @@ impl CsvImportServiceImpl {
             document_type_id: create_request.document_type_id,
             business_number: create_request.business_number,
             created_by: create_request.created_by,
+            created_by_name: Some("CSVインポート".to_string()),
             created_date: create_request.created_date,
             internal_external: create_request.internal_external,
             importance_class: create_request.importance_class,

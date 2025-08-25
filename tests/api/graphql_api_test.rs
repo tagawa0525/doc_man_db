@@ -70,6 +70,8 @@ async fn test_graphql_create_document_mutation() {
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
 
+    let unique_title = format!("GraphQL経由のテスト文書_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
+    
     let mutation = json!({
         "query": r#"
             mutation CreateDocument($input: CreateDocumentInput!) {
@@ -92,7 +94,7 @@ async fn test_graphql_create_document_mutation() {
         "#,
         "variables": {
             "input": {
-                "title": "GraphQL経由のテスト文書",
+                "title": unique_title,
                 "documentTypeCode": "TEC",
                 "departmentCode": "DEV",
                 "createdBy": 1,
@@ -114,12 +116,15 @@ async fn test_graphql_create_document_mutation() {
     assert_eq!(response.status(), StatusCode::OK);
 
     let body: serde_json::Value = response.json().await.unwrap();
+    if !body["errors"].is_null() {
+        println!("GraphQL Error Response: {}", serde_json::to_string_pretty(&body).unwrap());
+    }
     assert!(body["errors"].is_null());
 
     let created_document = &body["data"]["createDocument"];
     assert_eq!(
         created_document["document"]["title"],
-        "GraphQL経由のテスト文書"
+        unique_title
     );
     let doc_number = created_document["documentNumber"].as_str().unwrap();
     println!("Generated document number: {}", doc_number);
@@ -147,7 +152,7 @@ async fn test_graphql_query_document_by_id() {
         "variables": {
             "input": {
                 "title": "GraphQL取得テスト文書",
-                "documentTypeCode": "B",
+                "documentTypeCode": "BUS",
                 "departmentCode": "T",
                 "createdBy": 1,
                 "createdDate": "2025-08-17"
@@ -308,7 +313,7 @@ async fn test_graphql_validation_error() {
         "variables": {
             "input": {
                 "title": "", // 空のタイトル（バリデーションエラー）
-                "documentTypeCode": "A",
+                "documentTypeCode": "TEC",
                 "departmentCode": "T",
                 "createdBy": 1,
                 "createdDate": "2025-08-17"

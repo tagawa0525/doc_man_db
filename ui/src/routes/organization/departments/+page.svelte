@@ -37,7 +37,7 @@
       error = null;
 
       const response = await graphqlClient.request(GET_DEPARTMENTS);
-      departments = response.departments;
+      departments = (response as any).departments;
       filteredDepartments = departments;
     } catch (err) {
       console.error("Failed to load departments:", err);

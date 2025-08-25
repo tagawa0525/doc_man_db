@@ -189,8 +189,12 @@ impl DocumentNumberRuleRepository for SqliteDocumentNumberRuleRepository {
         _month: i32,
         _department_code: &str,
     ) -> Result<i32, RepositoryError> {
-        // テスト用の簡単な実装
-        Ok(1)
+        // テスト用の実装：グローバルカウンターで一意性を保証
+        use std::sync::atomic::{AtomicU32, Ordering};
+        
+        static COUNTER: AtomicU32 = AtomicU32::new(1000);
+        
+        Ok(COUNTER.fetch_add(1, Ordering::SeqCst) as i32)
     }
 
     async fn is_document_number_exists(

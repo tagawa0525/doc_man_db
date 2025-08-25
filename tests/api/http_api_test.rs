@@ -49,8 +49,10 @@ async fn test_create_document_with_number_api() {
     let (addr, _server_handle) = spawn_app().await;
     let client = Client::new();
 
+    let unique_title = format!("API経由のテスト文書_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
+    
     let request_body = json!({
-        "title": "API経由のテスト文書",
+        "title": unique_title,
         "document_type_code": "TEC",
         "department_code": "DEV",
         "created_by": 1,
@@ -67,10 +69,16 @@ async fn test_create_document_with_number_api() {
         .expect("Failed to execute request");
 
     // Then: 201 Createdが返される
+    println!("Create response status: {}", response.status());
+    if !response.status().is_success() {
+        let error_text = response.text().await.unwrap();
+        println!("Create response error: {error_text}");
+        panic!("Document creation failed: {error_text}");
+    }
     assert_eq!(response.status(), StatusCode::CREATED);
 
     let created_document: CreatedDocumentWithNumber = response.json().await.unwrap();
-    assert_eq!(created_document.document.title, "API経由のテスト文書");
+    assert_eq!(created_document.document.title, unique_title);
     assert!(created_document.document_number.starts_with("TEC-25"));
     assert_eq!(created_document.generated_number.rule_id, 1);
 }
@@ -84,7 +92,7 @@ async fn test_get_document_by_id_api() {
     // まず文書を作成
     let request_body = json!({
         "title": "取得テスト用文書",
-        "document_type_code": "B",
+        "document_type_code": "BUS",
         "department_code": "T",
         "created_by": 1,
         "created_date": "2025-08-17"
@@ -139,7 +147,7 @@ async fn test_search_documents_api() {
 
     for i in 1..=3 {
         let request_body = json!({
-            "title": format!("検索テスト文書{}_{}", i, unique_id + i as u64),
+            "title": format!("検索テスト文書{}_{}", i, unique_id + (i * 1000) as u64),
             "document_type_code": "TEC",
             "department_code": "DEV",
             "created_by": 1,
@@ -185,7 +193,7 @@ async fn test_create_document_validation_error() {
 
     let invalid_request = json!({
         "title": "", // 空のタイトル（バリデーションエラー）
-        "document_type_code": "A",
+        "document_type_code": "TEC",
         "department_code": "T",
         "created_by": 1,
         "created_date": "2025-08-17"

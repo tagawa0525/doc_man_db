@@ -22,13 +22,13 @@
   let formData: UpdateDepartmentInput = {
     code: "",
     name: "",
-    parentId: null,
-    managerId: null,
+    parentId: undefined,
+    managerId: undefined,
     description: "",
     location: "",
     phoneNumber: "",
     email: "",
-    budget: null,
+    budget: undefined,
     isActive: true,
   };
 
@@ -52,29 +52,31 @@
       error = "";
 
       const response = await graphqlClient.request(GET_DEPARTMENT, {
-        id: parseInt(departmentId),
+        id: parseInt(departmentId || ""),
       });
 
-      if (!response.department) {
+      if (!(response as any).department) {
         error = "指定された部署が見つかりません。";
         return;
       }
 
-      originalDepartment = response.department;
+      originalDepartment = (response as any).department;
 
       // フォームデータに設定
-      formData = {
-        code: originalDepartment.code,
-        name: originalDepartment.name,
-        parentId: originalDepartment.parentId,
-        managerId: originalDepartment.managerId,
-        description: originalDepartment.description || "",
-        location: originalDepartment.location || "",
-        phoneNumber: originalDepartment.phoneNumber || "",
-        email: originalDepartment.email || "",
-        budget: originalDepartment.budget,
-        isActive: originalDepartment.isActive,
-      };
+      if (originalDepartment) {
+        formData = {
+          code: originalDepartment.code,
+          name: originalDepartment.name,
+          parentId: originalDepartment.parentId,
+          managerId: originalDepartment.managerId,
+          description: originalDepartment.description || "",
+          location: originalDepartment.location || "",
+          phoneNumber: originalDepartment.phoneNumber || "",
+          email: originalDepartment.email || "",
+          budget: originalDepartment.budget,
+          isActive: originalDepartment.isActive,
+        };
+      }
     } catch (err) {
       console.error("Failed to load department:", err);
       error = "部署データの読み込みに失敗しました。";
@@ -88,8 +90,8 @@
     try {
       const response = await graphqlClient.request(GET_DEPARTMENTS);
       // 自分自身と子部署は除外
-      departments = response.departments.filter(
-        (dept: DepartmentWithManager) => dept.id !== parseInt(departmentId),
+      departments = (response as any).departments.filter(
+        (dept: DepartmentWithManager) => dept.id !== parseInt(departmentId || ""),
       );
     } catch (err) {
       console.error("Failed to load departments:", err);
@@ -164,10 +166,10 @@
       const cleanedData: UpdateDepartmentInput = {};
 
       if (formData.code !== originalDepartment?.code) {
-        cleanedData.code = formData.code?.trim() || null;
+        cleanedData.code = formData.code?.trim() || undefined;
       }
       if (formData.name !== originalDepartment?.name) {
-        cleanedData.name = formData.name?.trim() || null;
+        cleanedData.name = formData.name?.trim() || undefined;
       }
       if (formData.parentId !== originalDepartment?.parentId) {
         cleanedData.parentId = formData.parentId;
@@ -176,16 +178,16 @@
         cleanedData.managerId = formData.managerId;
       }
       if (formData.description !== (originalDepartment?.description || "")) {
-        cleanedData.description = formData.description?.trim() || null;
+        cleanedData.description = formData.description?.trim() || undefined;
       }
       if (formData.location !== (originalDepartment?.location || "")) {
-        cleanedData.location = formData.location?.trim() || null;
+        cleanedData.location = formData.location?.trim() || undefined;
       }
       if (formData.phoneNumber !== (originalDepartment?.phoneNumber || "")) {
-        cleanedData.phoneNumber = formData.phoneNumber?.trim() || null;
+        cleanedData.phoneNumber = formData.phoneNumber?.trim() || undefined;
       }
       if (formData.email !== (originalDepartment?.email || "")) {
-        cleanedData.email = formData.email?.trim() || null;
+        cleanedData.email = formData.email?.trim() || undefined;
       }
       if (formData.budget !== originalDepartment?.budget) {
         cleanedData.budget = formData.budget;
@@ -195,7 +197,7 @@
       }
 
       await graphqlClient.request(UPDATE_DEPARTMENT, {
-        id: parseInt(departmentId),
+        id: parseInt(departmentId || ""),
         input: cleanedData,
       });
 

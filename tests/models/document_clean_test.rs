@@ -44,6 +44,7 @@ fn test_document_creation() {
         document_type_id: 1,
         business_number: Some("BIZ-001".to_string()),
         created_by: 1,
+        created_by_name: Some("テストユーザー".to_string()),
         created_date: NaiveDate::from_ymd_opt(2024, 8, 19).unwrap(),
         internal_external: Some("internal".to_string()),
         importance_class: Some("high".to_string()),
