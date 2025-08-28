@@ -108,7 +108,7 @@ fn test_create_document_input_invalid_date() {
     assert_eq!(request.document_type_code, "TECH");
     assert_eq!(request.department_code, "DEV");
     assert_eq!(request.created_by, 789);
-    
+
     // 無効な日付の場合、現在日付が設定されているはず
     let today = chrono::Utc::now().naive_utc().date();
     assert_eq!(request.created_date, today);

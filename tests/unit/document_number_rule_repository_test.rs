@@ -1,29 +1,30 @@
 use chrono::{DateTime, NaiveDate};
 use doc_man_db::models::{CreateDocumentNumberGenerationRuleRequest, DocumentNumberGenerationRule};
-use doc_man_db::repositories::{
-    DocumentNumberRuleRepository, RepositoryError,
-};
+use doc_man_db::repositories::{DocumentNumberRuleRepository, RepositoryError};
 
 mod common {
     pub mod test_repositories {
-        use sqlx::SqlitePool;
-        use std::path::Path;
         use doc_man_db::{
             repositories::{
-                document_number_rule_repository::SqliteDocumentNumberRuleRepository,
                 RepositoryError,
+                document_number_rule_repository::SqliteDocumentNumberRuleRepository,
             },
             seeds::{Environment, Seeder},
         };
+        use sqlx::SqlitePool;
+        use std::path::Path;
 
-        pub async fn create_test_rule_repository() -> Result<SqliteDocumentNumberRuleRepository, RepositoryError> {
+        pub async fn create_test_rule_repository()
+        -> Result<SqliteDocumentNumberRuleRepository, RepositoryError> {
             let pool = SqlitePool::connect(":memory:").await?;
 
             // マイグレーションを実行
             let migrator = sqlx::migrate::Migrator::new(Path::new("./migrations"))
                 .await
-                .map_err(|e| RepositoryError::Validation(format!("Migration setup error: {}", e)))?;
-            
+                .map_err(|e| {
+                    RepositoryError::Validation(format!("Migration setup error: {}", e))
+                })?;
+
             migrator
                 .run(&pool)
                 .await
@@ -31,7 +32,9 @@ mod common {
 
             // seedシステムを使用してテストデータを投入
             let seeder = Seeder::new(pool.clone());
-            seeder.seed_all(&Environment::Test, false, false).await
+            seeder
+                .seed_all(&Environment::Test, false, false)
+                .await
                 .map_err(|e| RepositoryError::Validation(format!("Seed loading error: {}", e)))?;
 
             Ok(SqliteDocumentNumberRuleRepository::new(pool))
@@ -118,11 +121,7 @@ async fn test_find_applicable_rule_date_before_effective() {
         .expect("Failed to create repository");
 
     let result = repository
-        .find_applicable_rule(
-            "TEC",
-            "DEV",
-            NaiveDate::from_ymd_opt(2023, 12, 31).unwrap(),
-        )
+        .find_applicable_rule("TEC", "DEV", NaiveDate::from_ymd_opt(2023, 12, 31).unwrap())
         .await;
 
     assert!(result.is_ok());

@@ -371,8 +371,3 @@ pub async fn demo_merge_employees(
         "message": "Demo merge completed successfully"
     })))
 }
-
-#[cfg(test)]
-mod tests {
-    // TODO: Add tests when deduplication functionality is fully implemented
-}

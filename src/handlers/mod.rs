@@ -24,3 +24,6 @@ pub use deduplication::*;
 pub use migration::*;
 pub use monitoring::*;
 pub use validation::*;
+
+#[cfg(test)]
+mod tests;

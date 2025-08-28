@@ -34,3 +34,6 @@ pub use notification_service::*;
 pub use report_service::*;
 pub use search_history_service::*;
 pub use validation_service::*;
+
+#[cfg(test)]
+mod tests;

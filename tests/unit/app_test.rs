@@ -3,7 +3,7 @@ use doc_man_db::app::{AppState, create_app};
 
 #[tokio::test]
 async fn test_create_app_returns_router() {
-    let app = create_app().await;
+    let app = create_app().await.expect("Failed to create app");
 
     // Router型であることを確認
     assert!(std::mem::size_of_val(&app) > 0);
@@ -11,8 +11,8 @@ async fn test_create_app_returns_router() {
 
 #[tokio::test]
 async fn test_create_app_multiple_calls() {
-    let app1 = create_app().await;
-    let app2 = create_app().await;
+    let app1 = create_app().await.expect("Failed to create app1");
+    let app2 = create_app().await.expect("Failed to create app2");
 
     // 複数回呼び出しても正常に作成できることを確認
     assert!(std::mem::size_of_val(&app1) > 0);
@@ -36,7 +36,7 @@ fn test_app_state_clone() {
 
 #[tokio::test]
 async fn test_create_app_with_cors_middleware() {
-    let app = create_app().await;
+    let app = create_app().await.expect("Failed to create app");
 
     // アプリケーションが正常に作成され、適切なサイズを持つことを確認
     assert!(std::mem::size_of_val(&app) > 0);
@@ -50,7 +50,7 @@ async fn test_create_app_with_cors_middleware() {
 async fn test_create_app_consistency() {
     // アプリケーション作成の一貫性をテスト
     for _i in 0..3 {
-        let app = create_app().await;
+        let app = create_app().await.expect("Failed to create app");
         assert!(std::mem::size_of_val(&app) > 0);
     }
 }

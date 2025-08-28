@@ -32,6 +32,12 @@ pub enum AppError {
 
     #[error("Search error: {0}")]
     Search(#[from] SearchError),
+
+    #[error("Database connection error: {0}")]
+    DatabaseConnection(String),
+
+    #[error("Repository initialization error: {0}")]
+    RepositoryInit(String),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -178,6 +184,8 @@ impl From<AppError> for axum::http::StatusCode {
                 SearchError::TooManyResults { .. } => axum::http::StatusCode::PAYLOAD_TOO_LARGE,
                 _ => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             },
+            AppError::DatabaseConnection(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::RepositoryInit(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

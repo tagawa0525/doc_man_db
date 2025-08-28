@@ -7,7 +7,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
     // アプリケーションを作成
-    let app = create_app().await;
+    let app = create_app().await?;
 
     // サーバーを起動
     let listener = TcpListener::bind("127.0.0.1:8080").await?;

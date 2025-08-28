@@ -63,7 +63,6 @@ impl SqliteDocumentNumberRuleRepository {
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
     }
-
 }
 
 #[async_trait]
@@ -142,7 +141,7 @@ impl DocumentNumberRuleRepository for SqliteDocumentNumberRuleRepository {
         // 該当する年月のパターンで既存の文書番号から最大連番を取得
         let year_month_pattern = format!("{:02}{:02}", year % 100, month);
         let number_pattern = format!("%-{year_month_pattern}%");
-        
+
         let max_sequence = sqlx::query_scalar::<_, Option<i32>>(
             r#"
             SELECT MAX(
@@ -165,9 +164,10 @@ impl DocumentNumberRuleRepository for SqliteDocumentNumberRuleRepository {
 
         // 連番上限チェック（3桁の場合は999まで）
         if next_sequence > 999 {
-            return Err(RepositoryError::Validation(
-                format!("Sequence numbers exhausted for rule {}, year {}, month {}. Maximum reached: 999", rule_id, year, month)
-            ));
+            return Err(RepositoryError::Validation(format!(
+                "Sequence numbers exhausted for rule {}, year {}, month {}. Maximum reached: 999",
+                rule_id, year, month
+            )));
         }
 
         Ok(next_sequence)
