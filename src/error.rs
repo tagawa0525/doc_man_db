@@ -21,9 +21,6 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Database(#[from] sqlx::Error),
 
-    #[error("CSV import error: {0}")]
-    CsvImport(#[from] CsvImportError),
-
     #[error("Deduplication error: {0}")]
     Deduplication(#[from] DeduplicationError),
 
@@ -35,24 +32,6 @@ pub enum AppError {
 
     #[error("Search error: {0}")]
     Search(#[from] SearchError),
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum CsvImportError {
-    #[error("CSV parsing error: {0}")]
-    Parsing(#[from] csv::Error),
-
-    #[error("Invalid CSV format: {message}")]
-    InvalidFormat { message: String },
-
-    #[error("Header validation failed: missing required columns: {columns:?}")]
-    MissingHeaders { columns: Vec<String> },
-
-    #[error("Data validation failed at row {row}: {message}")]
-    DataValidation { row: usize, message: String },
-
-    #[error("Resolve error: {0}")]
-    Resolve(#[from] ResolveError),
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -177,7 +156,6 @@ impl From<AppError> for axum::http::StatusCode {
             AppError::InternalError(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::BadRequest(_) => axum::http::StatusCode::BAD_REQUEST,
             AppError::Database(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::CsvImport(_) => axum::http::StatusCode::BAD_REQUEST,
             AppError::Deduplication(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Batch(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Business(ref business_error) => match business_error {

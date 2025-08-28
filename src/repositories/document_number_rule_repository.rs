@@ -64,28 +64,6 @@ impl SqliteDocumentNumberRuleRepository {
         Self { pool }
     }
 
-    /// テスト用のインメモリSQLiteリポジトリを作成
-    pub async fn new_in_memory() -> Result<Self, RepositoryError> {
-        let pool = SqlitePool::connect(":memory:").await?;
-
-        // マイグレーションを実行
-        let migrator = sqlx::migrate::Migrator::new(std::path::Path::new("./migrations"))
-            .await
-            .map_err(|e| RepositoryError::Validation(format!("Migration setup error: {}", e)))?;
-        
-        migrator
-            .run(&pool)
-            .await
-            .map_err(|e| RepositoryError::Database(e.into()))?;
-
-        // seedシステムを使用してテストデータを投入
-        use crate::seeds::{Environment, Seeder};
-        let seeder = Seeder::new(pool.clone());
-        seeder.seed_all(&Environment::Test, false, false).await
-            .map_err(|e| RepositoryError::Validation(format!("Seed loading error: {}", e)))?;
-
-        Ok(Self { pool })
-    }
 }
 
 #[async_trait]

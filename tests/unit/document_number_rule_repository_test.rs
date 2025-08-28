@@ -1,18 +1,55 @@
 use chrono::{DateTime, NaiveDate};
 use doc_man_db::models::{CreateDocumentNumberGenerationRuleRequest, DocumentNumberGenerationRule};
 use doc_man_db::repositories::{
-    DocumentNumberRuleRepository, RepositoryError, SqliteDocumentNumberRuleRepository,
+    DocumentNumberRuleRepository, RepositoryError,
 };
+
+mod common {
+    pub mod test_repositories {
+        use sqlx::SqlitePool;
+        use std::path::Path;
+        use doc_man_db::{
+            repositories::{
+                document_number_rule_repository::SqliteDocumentNumberRuleRepository,
+                RepositoryError,
+            },
+            seeds::{Environment, Seeder},
+        };
+
+        pub async fn create_test_rule_repository() -> Result<SqliteDocumentNumberRuleRepository, RepositoryError> {
+            let pool = SqlitePool::connect(":memory:").await?;
+
+            // マイグレーションを実行
+            let migrator = sqlx::migrate::Migrator::new(Path::new("./migrations"))
+                .await
+                .map_err(|e| RepositoryError::Validation(format!("Migration setup error: {}", e)))?;
+            
+            migrator
+                .run(&pool)
+                .await
+                .map_err(|e| RepositoryError::Database(e.into()))?;
+
+            // seedシステムを使用してテストデータを投入
+            let seeder = Seeder::new(pool.clone());
+            seeder.seed_all(&Environment::Test, false, false).await
+                .map_err(|e| RepositoryError::Validation(format!("Seed loading error: {}", e)))?;
+
+            Ok(SqliteDocumentNumberRuleRepository::new(pool))
+        }
+    }
+}
+
+use common::test_repositories::create_test_rule_repository;
 
 #[tokio::test]
 async fn test_sqlite_repository_creation() {
-    let result = SqliteDocumentNumberRuleRepository::new_in_memory().await;
+    let result = create_test_rule_repository().await;
     assert!(result.is_ok());
 }
 
 #[tokio::test]
 async fn test_find_applicable_rule_success() {
-    let repository = SqliteDocumentNumberRuleRepository::new_in_memory()
+    let repository = create_test_rule_repository()
         .await
         .expect("Failed to create repository");
 
@@ -37,7 +74,7 @@ async fn test_find_applicable_rule_success() {
 
 #[tokio::test]
 async fn test_find_applicable_rule_no_match_document_type() {
-    let repository = SqliteDocumentNumberRuleRepository::new_in_memory()
+    let repository = create_test_rule_repository()
         .await
         .expect("Failed to create repository");
 
@@ -56,7 +93,7 @@ async fn test_find_applicable_rule_no_match_document_type() {
 
 #[tokio::test]
 async fn test_find_applicable_rule_no_match_department() {
-    let repository = SqliteDocumentNumberRuleRepository::new_in_memory()
+    let repository = create_test_rule_repository()
         .await
         .expect("Failed to create repository");
 
@@ -76,7 +113,7 @@ async fn test_find_applicable_rule_no_match_department() {
 
 #[tokio::test]
 async fn test_find_applicable_rule_date_before_effective() {
-    let repository = SqliteDocumentNumberRuleRepository::new_in_memory()
+    let repository = create_test_rule_repository()
         .await
         .expect("Failed to create repository");
 
@@ -95,7 +132,7 @@ async fn test_find_applicable_rule_date_before_effective() {
 
 #[tokio::test]
 async fn test_get_next_sequence_number() {
-    let repository = SqliteDocumentNumberRuleRepository::new_in_memory()
+    let repository = create_test_rule_repository()
         .await
         .expect("Failed to create repository");
 
@@ -186,7 +223,7 @@ async fn test_repository_not_found_error() {
 #[tokio::test]
 async fn test_repository_trait_methods() {
     // このテストはトレイトメソッドの存在を確認します
-    let repository = SqliteDocumentNumberRuleRepository::new_in_memory()
+    let repository = create_test_rule_repository()
         .await
         .expect("Failed to create repository");
 

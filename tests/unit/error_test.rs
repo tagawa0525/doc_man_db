@@ -1,5 +1,5 @@
 use axum::http::StatusCode;
-use doc_man_db::error::{AppError, BatchError, CsvImportError, DeduplicationError, ResolveError};
+use doc_man_db::error::{AppError, BatchError, DeduplicationError, ResolveError};
 use std::io;
 
 #[test]
@@ -13,24 +13,6 @@ fn test_app_error_variants() {
     for error in errors {
         assert!(!error.to_string().is_empty());
     }
-}
-
-#[test]
-fn test_csv_import_error_variants() {
-    let error1 = CsvImportError::InvalidFormat {
-        message: "test format".to_string(),
-    };
-    let error2 = CsvImportError::MissingHeaders {
-        columns: vec!["col1".to_string(), "col2".to_string()],
-    };
-    let error3 = CsvImportError::DataValidation {
-        row: 1,
-        message: "test validation".to_string(),
-    };
-
-    assert!(error1.to_string().contains("test format"));
-    assert!(error2.to_string().contains("col1"));
-    assert!(error3.to_string().contains("row 1"));
 }
 
 #[test]
@@ -55,19 +37,6 @@ fn test_batch_error_variants() {
 
     assert!(error1.to_string().contains("scheduler failed"));
     assert!(error2.to_string().contains("job failed"));
-}
-
-#[test]
-fn test_app_error_from_csv_import_error() {
-    let csv_error = CsvImportError::InvalidFormat {
-        message: "test".to_string(),
-    };
-    let app_error: AppError = csv_error.into();
-
-    match app_error {
-        AppError::CsvImport(_) => (),
-        _ => panic!("Expected CsvImport variant"),
-    }
 }
 
 #[test]
@@ -143,16 +112,6 @@ fn test_error_debug_format() {
     let debug_str = format!("{error:?}");
     assert!(debug_str.contains("ValidationError"));
     assert!(debug_str.contains("test validation"));
-}
-
-#[test]
-fn test_error_display_format() {
-    let error = CsvImportError::InvalidFormat {
-        message: "test format".to_string(),
-    };
-    let display_str = error.to_string();
-    assert!(display_str.contains("Invalid CSV format"));
-    assert!(display_str.contains("test format"));
 }
 
 #[test]
