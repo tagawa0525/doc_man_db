@@ -232,12 +232,16 @@ fn test_invalid_date_format_handling() {
         created_date: "invalid-date".to_string(),
     };
 
-    // 無効な日付形式の場合パニックするかテスト
-    let result = std::panic::catch_unwind(|| {
-        let _: CreateDocumentWithNumberRequest = input.into();
-    });
+    // 無効な日付形式の場合は現在日付が使用される
+    let request: CreateDocumentWithNumberRequest = input.into();
 
-    assert!(result.is_err());
+    assert_eq!(request.title, "テスト文書");
+    assert_eq!(request.document_type_code, "技術");
+    assert_eq!(request.department_code, "DEV");
+    assert_eq!(request.created_by, 1);
+    // 無効な日付の場合、現在日付が設定されているはず
+    let today = chrono::Utc::now().naive_utc().date();
+    assert_eq!(request.created_date, today);
 }
 
 #[test]

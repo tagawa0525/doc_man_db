@@ -67,7 +67,8 @@
       "mcp__serena__replace_symbol_body",
       "Bash(sed:*)",
       "Bash(npm run build:*)",
-      "mcp__playwright__browser_snapshot"
+      "mcp__playwright__browser_snapshot",
+      "Bash(copy seedsdatadevelopment*.json seedsdatatest)"
     ],
     "deny": [],
     "ask": [

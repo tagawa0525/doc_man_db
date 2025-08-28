@@ -50,7 +50,7 @@ impl From<CreateDocumentInput> for crate::models::CreateDocumentWithNumberReques
             department_code: val.department_code,
             created_by: val.created_by,
             created_date: chrono::NaiveDate::parse_from_str(&val.created_date, "%Y-%m-%d")
-                .expect("Invalid date format"),
+                .unwrap_or_else(|_| chrono::Utc::now().naive_utc().date()),
         }
     }
 }

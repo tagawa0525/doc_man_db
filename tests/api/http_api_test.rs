@@ -2,31 +2,13 @@ use axum::http::StatusCode;
 use doc_man_db::models::CreatedDocumentWithNumber;
 use reqwest::Client;
 use serde_json::json;
-use std::net::SocketAddr;
-use tokio::net::TcpListener;
 
-// テスト用のアプリケーションサーバー起動ヘルパー
-async fn spawn_app() -> (SocketAddr, tokio::task::JoinHandle<()>) {
-    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let addr = listener.local_addr().unwrap();
-
-    // TODO: 実際のアプリケーションインスタンスを作成
-    let app = doc_man_db::create_app().await;
-
-    let server_handle = tokio::spawn(async move {
-        axum::serve(listener, app).await.unwrap();
-    });
-
-    // サーバーが起動するまで少し待機
-    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
-    (addr, server_handle)
-}
+use super::helpers::spawn_app;
 
 #[tokio::test]
 async fn test_health_check_endpoint() {
     // Given: テストサーバーを起動
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
     // When: ヘルスチェックエンドポイントにリクエスト
@@ -46,11 +28,17 @@ async fn test_health_check_endpoint() {
 #[tokio::test]
 async fn test_create_document_with_number_api() {
     // Given: テストサーバーを起動
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
-    let unique_title = format!("API経由のテスト文書_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos());
-    
+    let unique_title = format!(
+        "API経由のテスト文書_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    );
+
     let request_body = json!({
         "title": unique_title,
         "document_type_code": "TEC",
@@ -86,14 +74,14 @@ async fn test_create_document_with_number_api() {
 #[tokio::test]
 async fn test_get_document_by_id_api() {
     // Given: テストサーバーを起動し、文書を作成
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
     // まず文書を作成
     let request_body = json!({
         "title": "取得テスト用文書",
         "document_type_code": "BUS",
-        "department_code": "T",
+        "department_code": "DEV",
         "created_by": 1,
         "created_date": "2025-08-17"
     });
@@ -133,7 +121,7 @@ async fn test_get_document_by_id_api() {
 #[tokio::test]
 async fn test_search_documents_api() {
     // Given: テストサーバーを起動し、複数の文書を作成
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
     // 複数文書を作成（ユニークな番号を保証するためランダムサフィックス使用）
@@ -188,7 +176,7 @@ async fn test_search_documents_api() {
 #[tokio::test]
 async fn test_create_document_validation_error() {
     // Given: テストサーバーを起動
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
     let invalid_request = json!({
@@ -217,7 +205,7 @@ async fn test_create_document_validation_error() {
 #[tokio::test]
 async fn test_get_nonexistent_document() {
     // Given: テストサーバーを起動
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
     // When: 存在しない文書IDで取得APIにリクエスト
@@ -234,7 +222,7 @@ async fn test_get_nonexistent_document() {
 #[tokio::test]
 async fn test_cors_headers() {
     // Given: テストサーバーを起動
-    let (addr, _server_handle) = spawn_app().await;
+    let addr = spawn_app().await;
     let client = Client::new();
 
     // When: CORSプリフライトリクエスト

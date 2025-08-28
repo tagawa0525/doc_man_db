@@ -20,8 +20,12 @@ pub struct AppState {
 /// アプリケーションのメインエントリーポイント
 /// テストと本番環境の両方で使用される
 pub async fn create_app() -> Router {
+    create_app_with_db_url("sqlite://./data/dev.db").await
+}
+
+/// テスト用のアプリケーション作成関数（カスタムDB URLを使用）
+pub async fn create_app_with_db_url(database_url: &str) -> Router {
     // データベース接続プールを作成
-    let database_url = "sqlite://./data/dev.db";
     let pool = sqlx::SqlitePool::connect(database_url)
         .await
         .expect("Failed to connect to database");

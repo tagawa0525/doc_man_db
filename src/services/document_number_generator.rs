@@ -60,13 +60,12 @@ impl DocumentNumberGenerator {
         let month = request.created_date.month() as i32;
 
         // 最大10回まで重複回避を試行
-        for attempt in 0..10 {
+        for _attempt in 0..10 {
             // 次の連番を取得
             let sequence_number = self
                 .rule_repository
                 .get_next_sequence_number(rule.id, year, month, &request.department_code)
-                .await?
-                + attempt;
+                .await?;
 
             // テンプレートから文書番号を生成
             let document_number = self.apply_template(TemplateParams {

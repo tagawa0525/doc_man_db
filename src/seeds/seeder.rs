@@ -113,7 +113,7 @@ impl Seeder {
                     .load_seed_file::<SeedDocumentType>(env, table_name)?;
                 self.seed_document_types(&seed_file.data, dry_run).await?
             }
-            "document_number_rules" => {
+            "document_number_generation_rules" => {
                 let seed_file = self
                     .loader
                     .load_seed_file::<SeedDocumentNumberRule>(env, table_name)?;
@@ -160,7 +160,7 @@ impl Seeder {
                     .execute(&self.pool)
                     .await?
             }
-            "document_number_rules" => {
+            "document_number_generation_rules" => {
                 sqlx::query("DELETE FROM document_number_generation_rules")
                     .execute(&self.pool)
                     .await?
@@ -193,7 +193,7 @@ impl Seeder {
                 "employees" => vec![],
                 "departments" => vec!["employees".to_string()],
                 "document_types" => vec!["employees".to_string()],
-                "document_number_rules" => vec![
+                "document_number_generation_rules" => vec![
                     "employees".to_string(),
                     "departments".to_string(),
                     "document_types".to_string(),

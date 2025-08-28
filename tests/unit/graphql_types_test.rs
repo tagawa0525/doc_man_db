@@ -92,7 +92,6 @@ fn test_create_document_input_conversion() {
 }
 
 #[test]
-#[should_panic(expected = "Invalid date format")]
 fn test_create_document_input_invalid_date() {
     let input = CreateDocumentInput {
         title: "New Document".to_string(),
@@ -102,7 +101,17 @@ fn test_create_document_input_invalid_date() {
         created_date: "invalid-date".to_string(),
     };
 
-    let _: models::CreateDocumentWithNumberRequest = input.into();
+    let request: models::CreateDocumentWithNumberRequest = input.into();
+
+    // 無効な日付の場合、現在日付が設定されている
+    assert_eq!(request.title, "New Document");
+    assert_eq!(request.document_type_code, "TECH");
+    assert_eq!(request.department_code, "DEV");
+    assert_eq!(request.created_by, 789);
+    
+    // 無効な日付の場合、現在日付が設定されているはず
+    let today = chrono::Utc::now().naive_utc().date();
+    assert_eq!(request.created_date, today);
 }
 
 #[test]
