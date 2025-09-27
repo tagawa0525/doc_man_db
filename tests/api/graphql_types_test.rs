@@ -13,6 +13,7 @@ fn test_document_conversion() {
         document_type_id: 1,
         business_number: Some("BIZ-001".to_string()),
         created_by: 1,
+        created_by_name: Some("テストユーザー".to_string()),
         created_date: NaiveDate::from_ymd_opt(2024, 8, 19).unwrap(),
         internal_external: Some("internal".to_string()),
         importance_class: Some("normal".to_string()),
@@ -133,6 +134,7 @@ fn test_created_document_with_number_conversion() {
         document_type_id: 1,
         business_number: Some("BIZ-001".to_string()),
         created_by: 1,
+        created_by_name: Some("テストユーザー".to_string()),
         created_date: NaiveDate::from_ymd_opt(2024, 8, 19).unwrap(),
         internal_external: Some("internal".to_string()),
         importance_class: Some("normal".to_string()),
@@ -175,6 +177,7 @@ fn test_search_documents_result_creation() {
             document_type_id: 1,
             business_number: None,
             created_by: 1,
+            created_by_name: Some("テストユーザー1".to_string()),
             created_date: NaiveDate::from_ymd_opt(2024, 8, 19).unwrap(),
             internal_external: Some("internal".to_string()),
             importance_class: Some("normal".to_string()),
@@ -192,6 +195,7 @@ fn test_search_documents_result_creation() {
             document_type_id: 2,
             business_number: None,
             created_by: 2,
+            created_by_name: Some("テストユーザー2".to_string()),
             created_date: NaiveDate::from_ymd_opt(2024, 8, 19).unwrap(),
             internal_external: Some("internal".to_string()),
             importance_class: Some("normal".to_string()),
@@ -228,12 +232,16 @@ fn test_invalid_date_format_handling() {
         created_date: "invalid-date".to_string(),
     };
 
-    // 無効な日付形式の場合パニックするかテスト
-    let result = std::panic::catch_unwind(|| {
-        let _: CreateDocumentWithNumberRequest = input.into();
-    });
+    // 無効な日付形式の場合は現在日付が使用される
+    let request: CreateDocumentWithNumberRequest = input.into();
 
-    assert!(result.is_err());
+    assert_eq!(request.title, "テスト文書");
+    assert_eq!(request.document_type_code, "技術");
+    assert_eq!(request.department_code, "DEV");
+    assert_eq!(request.created_by, 1);
+    // 無効な日付の場合、現在日付が設定されているはず
+    let today = chrono::Utc::now().naive_utc().date();
+    assert_eq!(request.created_date, today);
 }
 
 #[test]

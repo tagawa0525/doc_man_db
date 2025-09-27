@@ -82,6 +82,10 @@ export interface DocumentSearchFilters {
   createdBy?: number;
   createdDateFrom?: string;
   createdDateTo?: string;
+  departmentId?: number;
+  businessId?: string;
+  confidentialityLevel?: string;
+  fileExists?: boolean;
   limit?: number;
   offset?: number;
 }

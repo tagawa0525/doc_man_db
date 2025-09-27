@@ -13,7 +13,6 @@ pub struct SeedDocumentNumberRule {
     pub effective_from: String,      // JSON内では文字列で管理
     pub effective_until: Option<String>,
     pub priority: i32,
-    pub created_by: i32,
 }
 
 impl SeedDocumentNumberRule {
@@ -54,8 +53,7 @@ mod tests {
             "document_type_codes": "[\"TEC\"]",
             "effective_from": "2024-01-01",
             "effective_until": null,
-            "priority": 1,
-            "created_by": 1
+            "priority": 1
         }"#;
 
         let rule: SeedDocumentNumberRule = serde_json::from_str(json).unwrap();
@@ -89,8 +87,7 @@ mod tests {
             "document_type_codes": "[\"TEC\",\"BUS\",\"CON\"]",
             "effective_from": "2024-01-01",
             "effective_until": null,
-            "priority": 9,
-            "created_by": 1
+            "priority": 9
         }"#;
 
         let rule: SeedDocumentNumberRule = serde_json::from_str(json).unwrap();

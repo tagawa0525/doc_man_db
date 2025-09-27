@@ -11,7 +11,7 @@
     | "time";
 
   export let type: InputType = "text";
-  export let value = "";
+  export let value: string | number = "";
   export let placeholder = "";
   export let disabled = false;
   export let readonly = false;
@@ -19,7 +19,7 @@
   export let error = "";
   export let id = "";
   export let name = "";
-  export let autocomplete: string | undefined = undefined;
+  export let autocomplete: AutoFill | undefined = undefined;
   export let label = "";
   export let maxlength: number | undefined = undefined;
 

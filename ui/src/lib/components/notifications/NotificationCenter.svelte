@@ -19,57 +19,14 @@
   let showNotifications = false;
   let localUnreadCount = 0;
 
-  // 仮の通知データ
-  const mockNotifications: Notification[] = [
-    {
-      id: "1",
-      type: "info",
-      title: "文書承認依頼",
-      message: "山田太郎さんから「システム設計書」の承認依頼があります。",
-      timestamp: "2024-08-15 14:30",
-      read: false,
-      actions: [
-        { label: "承認", action: "approve" },
-        { label: "詳細", action: "view" },
-      ],
-    },
-    {
-      id: "2",
-      type: "warning",
-      title: "ファイル存在確認",
-      message: "3件の文書でファイルが見つかりませんでした。",
-      timestamp: "2024-08-15 12:00",
-      read: false,
-      actions: [{ label: "確認", action: "check" }],
-    },
-    {
-      id: "3",
-      type: "success",
-      title: "バックアップ完了",
-      message: "データベースの日次バックアップが正常に完了しました。",
-      timestamp: "2024-08-15 09:00",
-      read: true,
-    },
-    {
-      id: "4",
-      type: "error",
-      title: "システムエラー",
-      message: "Teams通知の送信に失敗しました。管理者に連絡してください。",
-      timestamp: "2024-08-14 16:45",
-      read: false,
-      actions: [
-        { label: "再試行", action: "retry" },
-        { label: "管理者連絡", action: "contact" },
-      ],
-    },
-  ];
+  // 通知データ（TODO: APIから取得）
 
   // 通知読み込み
   async function loadNotifications() {
     try {
       // TODO: 実際のAPI呼び出しに置き換え
       await new Promise((resolve) => setTimeout(resolve, 500));
-      notifications = mockNotifications;
+      notifications = [];
       updateUnreadCount();
     } catch (error) {
       console.error("Failed to load notifications:", error);

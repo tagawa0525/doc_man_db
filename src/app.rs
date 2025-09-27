@@ -1,3 +1,4 @@
+use crate::error::AppError;
 use axum::{Router, extract::DefaultBodyLimit};
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
@@ -19,17 +20,27 @@ pub struct AppState {
 
 /// アプリケーションのメインエントリーポイント
 /// テストと本番環境の両方で使用される
-pub async fn create_app() -> Router {
-    // リポジトリの初期化（テスト用にSQLiteを使用）
-    let doc_repo = SqliteDocumentRepository::new_in_memory()
+pub async fn create_app() -> Result<Router, AppError> {
+    create_app_with_db_url("sqlite://./data/dev.db").await
+}
+
+/// テスト用のアプリケーション作成関数（カスタムDB URLを使用）
+pub async fn create_app_with_db_url(database_url: &str) -> Result<Router, AppError> {
+    // データベース接続プールを作成
+    let pool = sqlx::SqlitePool::connect(database_url).await.map_err(|e| {
+        tracing::error!("Failed to connect to database at {}: {}", database_url, e);
+        AppError::DatabaseConnection(e.to_string())
+    })?;
+
+    // リポジトリの初期化（実際のデータベースファイルを使用）
+    let doc_repo = SqliteDocumentRepository::new(pool.clone());
+    let rule_repo = SqliteDocumentNumberRuleRepository::new(pool.clone());
+    let dept_repo = DepartmentRepository::new_with_file_db(database_url)
         .await
-        .expect("Failed to create document repository");
-    let rule_repo = SqliteDocumentNumberRuleRepository::new_in_memory()
-        .await
-        .expect("Failed to create rule repository");
-    let dept_repo = DepartmentRepository::new_with_file_db("sqlite://./data/dev.db")
-        .await
-        .expect("Failed to create department repository");
+        .map_err(|e| {
+            tracing::error!("Failed to create department repository: {}", e);
+            AppError::RepositoryInit(e.to_string())
+        })?;
 
     // サービス層の初期化
     let document_service = DocumentService::new(doc_repo, rule_repo);
@@ -46,7 +57,7 @@ pub async fn create_app() -> Router {
     };
 
     // ルーターとミドルウェアの構築
-    create_routes()
+    Ok(create_routes()
         .layer(
             ServiceBuilder::new()
                 .layer(
@@ -57,5 +68,5 @@ pub async fn create_app() -> Router {
                 )
                 .layer(DefaultBodyLimit::max(1024 * 1024)), // 1MB制限
         )
-        .with_state(state)
+        .with_state(state))
 }

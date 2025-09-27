@@ -25,6 +25,10 @@ pub trait DocumentRepository: Send + Sync {
         &self,
         filters: DocumentSearchFilters,
     ) -> Result<(Vec<Document>, i64), RepositoryError>;
+    async fn get_document_type_id_by_code(
+        &self,
+        document_type_code: &str,
+    ) -> Result<i32, RepositoryError>;
 }
 
 // SQLite実装
@@ -35,106 +39,6 @@ pub struct SqliteDocumentRepository {
 impl SqliteDocumentRepository {
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
-    }
-
-    /// テスト用のインメモリSQLiteリポジトリを作成
-    pub async fn new_in_memory() -> Result<Self, RepositoryError> {
-        let pool = SqlitePool::connect(":memory:").await?;
-
-        // テーブル作成
-        sqlx::query(
-            r#"
-            CREATE TABLE IF NOT EXISTS documents (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                number TEXT UNIQUE NOT NULL,
-                title TEXT NOT NULL,
-                document_type_id INTEGER NOT NULL,
-                business_number TEXT,
-                created_by INTEGER NOT NULL,
-                created_date TEXT NOT NULL,
-                internal_external TEXT,
-                importance_class TEXT,
-                personal_info TEXT,
-                notes TEXT,
-                network_path TEXT,
-                is_active INTEGER DEFAULT 1,
-                created_at TEXT DEFAULT (datetime('now')),
-                updated_at TEXT DEFAULT (datetime('now'))
-            )
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        // document_typesテーブルを作成
-        sqlx::query(
-            r#"
-            CREATE TABLE IF NOT EXISTS document_types (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                description TEXT,
-                department_code TEXT,
-                prefix TEXT NOT NULL,
-                effective_from DATE NOT NULL,
-                effective_until DATE,
-                is_active INTEGER DEFAULT 1,
-                created_by INTEGER NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        // employeesテーブルを作成（外部キー制約のため）
-        sqlx::query(
-            r#"
-            CREATE TABLE IF NOT EXISTS employees (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                employee_number TEXT UNIQUE NOT NULL,
-                name TEXT NOT NULL,
-                department TEXT NOT NULL,
-                position TEXT,
-                email TEXT,
-                phone TEXT,
-                hire_date DATE,
-                is_active INTEGER DEFAULT 1,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        // テスト用初期データを挿入
-        // 従業員データ
-        sqlx::query(
-            r#"
-            INSERT OR IGNORE INTO employees (id, employee_number, name, department, position, email)
-            VALUES 
-                (1, 'EMP001', 'システム管理者', 'IT', 'Manager', 'admin@company.com'),
-                (2, 'EMP002', 'テストユーザー', 'General', 'Staff', 'test@company.com')
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        // 文書種類データ
-        sqlx::query(
-            r#"
-            INSERT OR IGNORE INTO document_types (id, name, description, prefix, effective_from, created_by)
-            VALUES 
-                (1, '技術文書', '技術仕様書、設計書等', 'TEC', '2024-01-01', 1),
-                (2, '業務文書', '業務手順書、報告書等', 'BUS', '2024-01-01', 1),
-                (3, '契約文書', '契約書、覚書等', 'CON', '2024-01-01', 1)
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        Ok(Self { pool })
     }
 }
 
@@ -209,7 +113,7 @@ impl DocumentRepository for SqliteDocumentRepository {
 
         // 挿入されたレコードを取得
         let row = sqlx::query(
-            "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE id = ?"
+            "SELECT d.id, d.number, d.title, d.document_type_id, d.business_number, d.created_by, e.name as created_by_name, d.created_date, d.internal_external, d.importance_class, d.personal_info, d.notes, d.network_path, d.is_active, d.created_at, d.updated_at FROM documents d LEFT JOIN employees e ON d.created_by = e.id WHERE d.id = ?"
         )
         .bind(id)
         .fetch_one(&self.pool)
@@ -226,6 +130,7 @@ impl DocumentRepository for SqliteDocumentRepository {
             document_type_id: row.get("document_type_id"),
             business_number: row.get("business_number"),
             created_by: row.get("created_by"),
+            created_by_name: row.get("created_by_name"),
             created_date: NaiveDate::parse_from_str(
                 &row.get::<String, _>("created_date"),
                 "%Y-%m-%d",
@@ -264,7 +169,7 @@ impl DocumentRepository for SqliteDocumentRepository {
 
     async fn get_by_id(&self, id: i32) -> Result<Option<Document>, RepositoryError> {
         let row = sqlx::query(
-            "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE id = ?"
+            "SELECT d.id, d.number, d.title, d.document_type_id, d.business_number, d.created_by, e.name as created_by_name, d.created_date, d.internal_external, d.importance_class, d.personal_info, d.notes, d.network_path, d.is_active, d.created_at, d.updated_at FROM documents d LEFT JOIN employees e ON d.created_by = e.id WHERE d.id = ?"
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -281,6 +186,7 @@ impl DocumentRepository for SqliteDocumentRepository {
                 document_type_id: row.get("document_type_id"),
                 business_number: row.get("business_number"),
                 created_by: row.get("created_by"),
+                created_by_name: row.get("created_by_name"),
                 created_date: NaiveDate::parse_from_str(
                     &row.get::<String, _>("created_date"),
                     "%Y-%m-%d",
@@ -323,27 +229,27 @@ impl DocumentRepository for SqliteDocumentRepository {
         &self,
         filters: DocumentSearchFilters,
     ) -> Result<(Vec<Document>, i64), RepositoryError> {
-        let mut query = "SELECT id, number, title, document_type_id, business_number, created_by, created_date, internal_external, importance_class, personal_info, notes, network_path, is_active, created_at, updated_at FROM documents WHERE 1=1".to_string();
-        let mut count_query = "SELECT COUNT(*) as count FROM documents WHERE 1=1".to_string();
+        let mut query = "SELECT d.id, d.number, d.title, d.document_type_id, d.business_number, d.created_by, e.name as created_by_name, d.created_date, d.internal_external, d.importance_class, d.personal_info, d.notes, d.network_path, d.is_active, d.created_at, d.updated_at FROM documents d LEFT JOIN employees e ON d.created_by = e.id WHERE 1=1".to_string();
+        let mut count_query = "SELECT COUNT(*) as count FROM documents d WHERE 1=1".to_string();
 
         // フィルター条件を構築
         if let Some(ref _title) = filters.title {
-            query.push_str(" AND title LIKE ?");
-            count_query.push_str(" AND title LIKE ?");
+            query.push_str(" AND d.title LIKE ?");
+            count_query.push_str(" AND d.title LIKE ?");
         }
 
         if let Some(_document_type_id) = filters.document_type_id {
-            query.push_str(" AND document_type_id = ?");
-            count_query.push_str(" AND document_type_id = ?");
+            query.push_str(" AND d.document_type_id = ?");
+            count_query.push_str(" AND d.document_type_id = ?");
         }
 
         if let Some(_created_by) = filters.created_by {
-            query.push_str(" AND created_by = ?");
-            count_query.push_str(" AND created_by = ?");
+            query.push_str(" AND d.created_by = ?");
+            count_query.push_str(" AND d.created_by = ?");
         }
 
         // LIMIT/OFFSET追加
-        query.push_str(" ORDER BY created_at DESC LIMIT ? OFFSET ?");
+        query.push_str(" ORDER BY d.created_at DESC LIMIT ? OFFSET ?");
 
         // カウントクエリ実行
         let mut count_stmt = sqlx::query(&count_query);
@@ -392,6 +298,7 @@ impl DocumentRepository for SqliteDocumentRepository {
                     document_type_id: row.get("document_type_id"),
                     business_number: row.get("business_number"),
                     created_by: row.get("created_by"),
+                    created_by_name: row.get("created_by_name"),
                     created_date: NaiveDate::parse_from_str(
                         &row.get::<String, _>("created_date"),
                         "%Y-%m-%d",
@@ -430,5 +337,38 @@ impl DocumentRepository for SqliteDocumentRepository {
             .collect();
 
         Ok((documents?, total))
+    }
+
+    async fn get_document_type_id_by_code(
+        &self,
+        document_type_code: &str,
+    ) -> Result<i32, RepositoryError> {
+        // まず、フロントエンドの選択肢とdocument_typesテーブルのprefixでマッピングを確認
+        let prefix = match document_type_code {
+            "TECH" => "TEC",      // 技術文書
+            "PLAN" => "BUS",      // 計画書 -> 業務文書として扱う
+            "REPORT" => "BUS",    // レポート -> 業務文書として扱う
+            "MANUAL" => "TEC",    // マニュアル -> 技術文書として扱う
+            "SPEC" => "TEC",      // 仕様書 -> 技術文書として扱う
+            "PROC" => "TEC",      // 手順書 -> 技術文書として扱う
+            "POLICY" => "HR-REG", // ポリシー -> 人事規程として扱う
+            // 直接マッピングできるもの
+            code => code, // そのまま使用
+        };
+
+        let row = sqlx::query("SELECT id FROM document_types WHERE prefix = ? AND is_active = 1")
+            .bind(prefix)
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(RepositoryError::Database)?;
+
+        if let Some(row) = row {
+            Ok(row.get("id"))
+        } else {
+            Err(RepositoryError::Validation(format!(
+                "Document type code '{}' not found",
+                document_type_code
+            )))
+        }
     }
 }

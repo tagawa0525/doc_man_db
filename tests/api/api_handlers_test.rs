@@ -22,6 +22,7 @@ impl DocumentRepository for MockDocumentRepository {
             document_type_id: request.document_type_id,
             business_number: request.business_number,
             created_by: request.created_by,
+            created_by_name: Some("テストユーザー".to_string()),
             created_date: request.created_date,
             internal_external: request.internal_external,
             importance_class: request.importance_class,
@@ -43,6 +44,7 @@ impl DocumentRepository for MockDocumentRepository {
                 document_type_id: 1,
                 business_number: None,
                 created_by: 1,
+                created_by_name: Some("テストユーザー".to_string()),
                 created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
                 internal_external: None,
                 importance_class: None,
@@ -69,6 +71,7 @@ impl DocumentRepository for MockDocumentRepository {
             document_type_id: 1,
             business_number: None,
             created_by: 1,
+            created_by_name: Some("テストユーザー".to_string()),
             created_date: NaiveDate::from_ymd_opt(2025, 8, 17).unwrap(),
             internal_external: None,
             importance_class: None,
@@ -80,6 +83,19 @@ impl DocumentRepository for MockDocumentRepository {
             updated_at: chrono::Utc::now(),
         }];
         Ok((documents, 1))
+    }
+
+    async fn get_document_type_id_by_code(
+        &self,
+        document_type_code: &str,
+    ) -> Result<i32, RepositoryError> {
+        match document_type_code {
+            "TECH" => Ok(1),
+            "BUS" => Ok(2),
+            "PLAN" => Ok(2),
+            "REPORT" => Ok(2),
+            _ => Ok(1),
+        }
     }
 }
 

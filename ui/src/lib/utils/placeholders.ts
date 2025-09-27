@@ -111,9 +111,8 @@ export class FeatureFlags {
 /**
  * プレースホルダー機能の使用状況をトラッキング
  */
-export function trackPlaceholderUsage(featureKey: string, action: 'view' | 'click' | 'feedback'): void {
+export function trackPlaceholderUsage(_featureKey: string, _action: 'view' | 'click' | 'feedback'): void {
   if (import.meta.env.DEV) {
-    console.log(`[Placeholder] ${featureKey}: ${action}`);
   }
 
   // 将来的にはアナリティクスサービスに送信

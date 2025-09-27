@@ -30,12 +30,12 @@
         id: parseInt(departmentId),
       });
 
-      if (!response.department) {
+      if (!(response as any).department) {
         error = "指定された部署が見つかりません。";
         return;
       }
 
-      department = response.department;
+      department = (response as any).department;
     } catch (err) {
       error = "部署データの読み込みに失敗しました。";
       console.error("Failed to load department:", err);

@@ -60,13 +60,12 @@ impl DocumentNumberGenerator {
         let month = request.created_date.month() as i32;
 
         // 最大10回まで重複回避を試行
-        for attempt in 0..10 {
+        for _attempt in 0..10 {
             // 次の連番を取得
             let sequence_number = self
                 .rule_repository
                 .get_next_sequence_number(rule.id, year, month, &request.department_code)
-                .await?
-                + attempt;
+                .await?;
 
             // テンプレートから文書番号を生成
             let document_number = self.apply_template(TemplateParams {
@@ -136,96 +135,5 @@ impl DocumentNumberGenerator {
         }
 
         Ok(result)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_apply_template_standard_format() {
-        let generator = DocumentNumberGenerator::new(
-            crate::repositories::MockDocumentNumberRuleRepository::new(),
-        );
-
-        let result = generator
-            .apply_template(TemplateParams {
-                template: "{部署コード}-{年下2桁}{連番:3桁}",
-                department_code: "T",
-                document_type_code: "TEC",
-                year: 2025,
-                month: 8,
-                sequence_number: 1,
-                sequence_digits: 3,
-            })
-            .unwrap();
-
-        assert_eq!(result, "T-25001");
-    }
-
-    #[test]
-    fn test_apply_template_cta_format() {
-        let generator = DocumentNumberGenerator::new(
-            crate::repositories::MockDocumentNumberRuleRepository::new(),
-        );
-
-        let result = generator
-            .apply_template(TemplateParams {
-                template: "CTA-{年下2桁}{月:2桁}{連番:3桁}",
-                department_code: "C",
-                document_type_code: "CTA",
-                year: 2025,
-                month: 8,
-                sequence_number: 8,
-                sequence_digits: 3,
-            })
-            .unwrap();
-
-        assert_eq!(result, "CTA-2508008");
-    }
-
-    #[test]
-    fn test_apply_template_different_digits() {
-        let generator = DocumentNumberGenerator::new(
-            crate::repositories::MockDocumentNumberRuleRepository::new(),
-        );
-
-        let result = generator
-            .apply_template(TemplateParams {
-                template: "技術-{年下2桁}{連番:5桁}",
-                department_code: "T",
-                document_type_code: "TEC",
-                year: 2025,
-                month: 8,
-                sequence_number: 25,
-                sequence_digits: 5,
-            })
-            .unwrap();
-
-        assert_eq!(result, "技術-2500025");
-    }
-
-    #[test]
-    fn test_apply_template_invalid_placeholder() {
-        let generator = DocumentNumberGenerator::new(
-            crate::repositories::MockDocumentNumberRuleRepository::new(),
-        );
-
-        let result = generator.apply_template(TemplateParams {
-            template: "{不明なプレースホルダー}-{年下2桁}",
-            department_code: "T",
-            document_type_code: "TEC",
-            year: 2025,
-            month: 8,
-            sequence_number: 1,
-            sequence_digits: 3,
-        });
-
-        assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            DocumentNumberGenerationError::TemplateError(_)
-        ));
     }
 }

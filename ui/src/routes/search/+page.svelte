@@ -227,6 +227,7 @@
                 </label>
                 <Input
                   id="search-content"
+                  type="number"
                   bind:value={localFilters.createdBy}
                   placeholder="作成者IDで検索..."
                 />

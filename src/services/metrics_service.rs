@@ -354,7 +354,15 @@ impl MetricsService {
     async fn cleanup_old_metrics(data: &Arc<RwLock<MetricsData>>) {
         let mut data = data.write().unwrap();
         let now = Instant::now();
-        let cutoff = now - Duration::from_secs(3600); // Keep 1 hour of data
+        let retention_duration = Duration::from_secs(3600); // Keep 1 hour of data
+
+        // Safely calculate cutoff to avoid underflow
+        let cutoff = if let Some(cutoff) = now.checked_sub(retention_duration) {
+            cutoff
+        } else {
+            // If we can't subtract, use the start time as cutoff (keep all data)
+            data.start_time
+        };
 
         data.request_metrics.retain(|r| r.start_time > cutoff);
         // For queries and cache ops, we don't have timestamps, so just limit the size

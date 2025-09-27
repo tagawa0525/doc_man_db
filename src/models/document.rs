@@ -41,6 +41,7 @@ pub struct Document {
     pub document_type_id: i32,
     pub business_number: Option<String>,
     pub created_by: i32,
+    pub created_by_name: Option<String>,
     pub created_date: NaiveDate,
     pub internal_external: Option<String>,
     pub importance_class: Option<String>,

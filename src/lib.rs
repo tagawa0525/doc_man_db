@@ -11,4 +11,4 @@ pub mod seeds;
 pub mod services;
 
 // Re-export main components for easy access
-pub use app::{AppState, create_app};
+pub use app::{AppState, create_app, create_app_with_db_url};

@@ -15,6 +15,7 @@ fn test_document_from_model_conversion() {
         document_type_id: 1,
         business_number: Some("BIZ-001".to_string()),
         created_by: 123,
+        created_by_name: Some("テストユーザー".to_string()),
         created_date: NaiveDate::from_ymd_opt(2025, 8, 20).unwrap(),
         internal_external: Some("内部".to_string()),
         importance_class: Some("重要".to_string()),
@@ -47,6 +48,7 @@ fn test_document_date_formatting() {
         document_type_id: 2,
         business_number: None,
         created_by: 456,
+        created_by_name: Some("テストユーザー".to_string()),
         created_date: NaiveDate::from_ymd_opt(2025, 12, 31).unwrap(),
         internal_external: None,
         importance_class: None,
@@ -90,7 +92,6 @@ fn test_create_document_input_conversion() {
 }
 
 #[test]
-#[should_panic(expected = "Invalid date format")]
 fn test_create_document_input_invalid_date() {
     let input = CreateDocumentInput {
         title: "New Document".to_string(),
@@ -100,7 +101,17 @@ fn test_create_document_input_invalid_date() {
         created_date: "invalid-date".to_string(),
     };
 
-    let _: models::CreateDocumentWithNumberRequest = input.into();
+    let request: models::CreateDocumentWithNumberRequest = input.into();
+
+    // 無効な日付の場合、現在日付が設定されている
+    assert_eq!(request.title, "New Document");
+    assert_eq!(request.document_type_code, "TECH");
+    assert_eq!(request.department_code, "DEV");
+    assert_eq!(request.created_by, 789);
+
+    // 無効な日付の場合、現在日付が設定されているはず
+    let today = chrono::Utc::now().naive_utc().date();
+    assert_eq!(request.created_date, today);
 }
 
 #[test]
@@ -220,6 +231,7 @@ fn test_created_document_with_number_conversion() {
             document_type_id: 1,
             business_number: None,
             created_by: 123,
+            created_by_name: Some("テストユーザー".to_string()),
             created_date: NaiveDate::from_ymd_opt(2025, 8, 20).unwrap(),
             internal_external: None,
             importance_class: None,
@@ -260,6 +272,7 @@ fn test_search_documents_result_creation() {
             document_type_id: 1,
             business_number: None,
             created_by: 123,
+            created_by_name: Some("テストユーザー1".to_string()),
             created_date: NaiveDate::from_ymd_opt(2025, 8, 20).unwrap(),
             internal_external: None,
             importance_class: None,
@@ -277,6 +290,7 @@ fn test_search_documents_result_creation() {
             document_type_id: 1,
             business_number: None,
             created_by: 456,
+            created_by_name: Some("テストユーザー2".to_string()),
             created_date: NaiveDate::from_ymd_opt(2025, 8, 21).unwrap(),
             internal_external: None,
             importance_class: None,
@@ -432,6 +446,7 @@ fn test_document_conversion_with_long_strings() {
         document_type_id: 99,
         business_number: Some("VERY-LONG-BUSINESS-NUMBER-12345".to_string()),
         created_by: 999999,
+        created_by_name: Some("テストユーザー".to_string()),
         created_date: NaiveDate::from_ymd_opt(2025, 8, 20).unwrap(),
         internal_external: Some("非常に長い内部外部分類情報".to_string()),
         importance_class: Some("最重要機密".to_string()),

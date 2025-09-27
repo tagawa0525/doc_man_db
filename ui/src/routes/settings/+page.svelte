@@ -74,7 +74,6 @@
       // TODO: 実際のAPI呼び出し
       await new Promise((resolve) => setTimeout(resolve, 1000));
       originalSettings = JSON.parse(JSON.stringify(settings));
-      console.log("設定を保存しました:", settings);
     } catch (error) {
       console.error("設定保存エラー:", error);
     } finally {
@@ -86,8 +85,7 @@
     settings = JSON.parse(JSON.stringify(originalSettings));
   };
 
-  const handleTestConnection = async (type: string) => {
-    console.log(`${type}接続テストを実行中...`);
+  const handleTestConnection = async (_type: string) => {
     // TODO: 実際の接続テスト
   };
 </script>

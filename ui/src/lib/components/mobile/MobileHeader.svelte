@@ -18,7 +18,6 @@
 
   function handleLogout() {
     // TODO: ログアウト処理の実装
-    console.log("Logout requested");
   }
 </script>
 

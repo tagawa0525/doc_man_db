@@ -25,7 +25,7 @@
   let filteredOptions: Option[] = [];
   let selectedOption: Option | null = null;
   let inputRef: HTMLInputElement;
-  let dropdownRef: HTMLElement;
+  let _dropdownRef: HTMLElement;
   let focusedIndex = -1;
 
   // 選択された値から対応するオプションを見つける
@@ -181,6 +181,7 @@
     <!-- Dropdown arrow -->
     <button
       type="button"
+      aria-label="ドロップダウンを開く"
       class="absolute inset-y-0 right-0 flex items-center pr-2"
       class:pointer-events-none={disabled}
       on:click={openDropdown}
@@ -222,7 +223,7 @@
   <!-- Dropdown -->
   {#if isOpen}
     <div
-      bind:this={dropdownRef}
+      bind:this={_dropdownRef}
       class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
     >
       {#if filteredOptions.length === 0}

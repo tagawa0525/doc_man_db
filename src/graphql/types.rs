@@ -7,7 +7,9 @@ pub struct Document {
     pub number: String,
     pub title: String,
     pub document_type_id: i32,
+    pub business_number: Option<String>,
     pub created_by: i32,
+    pub created_by_name: Option<String>,
     pub created_date: String, // NaiveDate as ISO string
     pub created_at: String,   // NaiveDateTime as ISO string
     pub updated_at: String,   // NaiveDateTime as ISO string
@@ -20,7 +22,9 @@ impl From<crate::models::Document> for Document {
             number: doc.number,
             title: doc.title,
             document_type_id: doc.document_type_id,
+            business_number: doc.business_number,
             created_by: doc.created_by,
+            created_by_name: doc.created_by_name,
             created_date: doc.created_date.format("%Y-%m-%d").to_string(),
             created_at: doc.created_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
             updated_at: doc.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
@@ -46,7 +50,7 @@ impl From<CreateDocumentInput> for crate::models::CreateDocumentWithNumberReques
             department_code: val.department_code,
             created_by: val.created_by,
             created_date: chrono::NaiveDate::parse_from_str(&val.created_date, "%Y-%m-%d")
-                .expect("Invalid date format"),
+                .unwrap_or_else(|_| chrono::Utc::now().naive_utc().date()),
         }
     }
 }

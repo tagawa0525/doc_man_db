@@ -63,48 +63,6 @@ impl SqliteDocumentNumberRuleRepository {
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
     }
-
-    /// テスト用のインメモリSQLiteリポジトリを作成
-    pub async fn new_in_memory() -> Result<Self, RepositoryError> {
-        let pool = SqlitePool::connect(":memory:").await?;
-
-        // テーブル作成
-        sqlx::query(
-            r#"
-            CREATE TABLE IF NOT EXISTS document_number_generation_rules (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                rule_name TEXT NOT NULL,
-                template TEXT NOT NULL,
-                sequence_digits INTEGER NOT NULL,
-                department_code TEXT,
-                document_type_codes TEXT NOT NULL,
-                effective_from TEXT NOT NULL,
-                effective_until TEXT,
-                priority INTEGER NOT NULL,
-                created_at TEXT DEFAULT (datetime('now')),
-                updated_at TEXT DEFAULT (datetime('now'))
-            )
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        // テスト用のデフォルトルールを挿入
-        sqlx::query(
-            r#"
-            INSERT INTO document_number_generation_rules 
-            (rule_name, template, sequence_digits, department_code, document_type_codes, effective_from, priority)
-            VALUES 
-            ('技術文書ルール', '{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}', 3, 'DEV', '["TEC"]', '2024-01-01', 1),
-            ('業務文書ルール', '{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}', 3, 'DEV', '["BUS"]', '2024-01-01', 2),
-            ('汎用ルール', '{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}', 3, NULL, '["TEC","BUS","CON"]', '2024-01-01', 9)
-            "#,
-        )
-        .execute(&pool)
-        .await?;
-
-        Ok(Self { pool })
-    }
 }
 
 #[async_trait]
@@ -113,92 +71,122 @@ impl DocumentNumberRuleRepository for SqliteDocumentNumberRuleRepository {
         &self,
         document_type_code: &str,
         department_code: &str,
-        _date: NaiveDate,
+        date: NaiveDate,
     ) -> Result<Option<DocumentNumberGenerationRule>, RepositoryError> {
-        // Hardcoded rules for common document types (temporary solution)
+        // データベースから適用可能なルールを検索
         println!(
             "DEBUG: find_applicable_rule called with doc_type='{}', dept='{}'",
             document_type_code, department_code
         );
-        match (document_type_code, department_code) {
-            ("TEC", "DEV") => {
-                return Ok(Some(DocumentNumberGenerationRule {
-                    id: 1,
-                    rule_name: "技術文書ルール".to_string(),
-                    template: "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}".to_string(),
-                    sequence_digits: 3,
-                    department_code: Some("DEV".to_string()),
-                    document_type_codes: "[\"TEC\"]".to_string(),
-                    effective_from: chrono::NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-                    effective_until: None,
-                    priority: 1,
-                    created_at: chrono::DateTime::from_timestamp(1640995200, 0)
-                        .map(|dt| dt.naive_utc())
-                        .unwrap_or_default(),
-                    updated_at: chrono::DateTime::from_timestamp(1640995200, 0)
-                        .map(|dt| dt.naive_utc())
-                        .unwrap_or_default(),
-                }));
-            }
-            ("BUS", "DEV") => {
-                return Ok(Some(DocumentNumberGenerationRule {
-                    id: 2,
-                    rule_name: "業務文書ルール".to_string(),
-                    template: "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}".to_string(),
-                    sequence_digits: 3,
-                    department_code: Some("DEV".to_string()),
-                    document_type_codes: "[\"BUS\"]".to_string(),
-                    effective_from: chrono::NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-                    effective_until: None,
-                    priority: 2,
-                    created_at: chrono::DateTime::from_timestamp(1640995200, 0)
-                        .map(|dt| dt.naive_utc())
-                        .unwrap_or_default(),
-                    updated_at: chrono::DateTime::from_timestamp(1640995200, 0)
-                        .map(|dt| dt.naive_utc())
-                        .unwrap_or_default(),
-                }));
-            }
-            _ => {
-                // Fallback to generic rule
-                return Ok(Some(DocumentNumberGenerationRule {
-                    id: 3,
-                    rule_name: "汎用ルール".to_string(),
-                    template: "{文書種別コード}-{年下2桁}{月:2桁}{連番:3桁}".to_string(),
-                    sequence_digits: 3,
-                    department_code: None,
-                    document_type_codes: "[\"TEC\",\"BUS\",\"CON\"]".to_string(),
-                    effective_from: chrono::NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-                    effective_until: None,
-                    priority: 9,
-                    created_at: chrono::DateTime::from_timestamp(1640995200, 0)
-                        .map(|dt| dt.naive_utc())
-                        .unwrap_or_default(),
-                    updated_at: chrono::DateTime::from_timestamp(1640995200, 0)
-                        .map(|dt| dt.naive_utc())
-                        .unwrap_or_default(),
-                }));
-            }
+
+        // 1. 部署固有ルールを優先検索
+        let specific_rule = sqlx::query_as::<_, DocumentNumberGenerationRule>(
+            r#"
+            SELECT id, rule_name, template, sequence_digits, department_code, 
+                   document_type_codes, effective_from, effective_until, priority, 
+                   created_at, updated_at
+            FROM document_number_generation_rules
+            WHERE department_code = ? 
+              AND JSON_EXTRACT(document_type_codes, '$') LIKE '%' || ? || '%'
+              AND effective_from <= ?
+              AND (effective_until IS NULL OR effective_until >= ?)
+            ORDER BY priority ASC
+            LIMIT 1
+            "#,
+        )
+        .bind(department_code)
+        .bind(document_type_code)
+        .bind(date)
+        .bind(date)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(RepositoryError::Database)?;
+
+        if specific_rule.is_some() {
+            return Ok(specific_rule);
         }
+
+        // 2. 汎用ルール（department_code = NULL）を検索
+        let generic_rule = sqlx::query_as::<_, DocumentNumberGenerationRule>(
+            r#"
+            SELECT id, rule_name, template, sequence_digits, department_code, 
+                   document_type_codes, effective_from, effective_until, priority, 
+                   created_at, updated_at
+            FROM document_number_generation_rules
+            WHERE department_code IS NULL
+              AND JSON_EXTRACT(document_type_codes, '$') LIKE '%' || ? || '%'
+              AND effective_from <= ?
+              AND (effective_until IS NULL OR effective_until >= ?)
+            ORDER BY priority ASC
+            LIMIT 1
+            "#,
+        )
+        .bind(document_type_code)
+        .bind(date)
+        .bind(date)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(RepositoryError::Database)?;
+
+        Ok(generic_rule)
     }
 
     async fn get_next_sequence_number(
         &self,
-        _rule_id: i32,
-        _year: i32,
-        _month: i32,
+        rule_id: i32,
+        year: i32,
+        month: i32,
         _department_code: &str,
     ) -> Result<i32, RepositoryError> {
-        // テスト用の簡単な実装
-        Ok(1)
+        // 該当する年月のパターンで既存の文書番号から最大連番を取得
+        let year_month_pattern = format!("{:02}{:02}", year % 100, month);
+        let number_pattern = format!("%-{year_month_pattern}%");
+
+        let max_sequence = sqlx::query_scalar::<_, Option<i32>>(
+            r#"
+            SELECT MAX(
+                CAST(
+                    SUBSTR(number, LENGTH(number) - 2, 3) AS INTEGER
+                )
+            ) as max_seq
+            FROM documents 
+            WHERE number LIKE ?
+            "#,
+        )
+        .bind(number_pattern)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(RepositoryError::Database)?
+        .flatten()
+        .unwrap_or(0);
+
+        let next_sequence = max_sequence + 1;
+
+        // 連番上限チェック（3桁の場合は999まで）
+        if next_sequence > 999 {
+            return Err(RepositoryError::Validation(format!(
+                "Sequence numbers exhausted for rule {}, year {}, month {}. Maximum reached: 999",
+                rule_id, year, month
+            )));
+        }
+
+        Ok(next_sequence)
     }
 
     async fn is_document_number_exists(
         &self,
-        _document_number: &str,
+        document_number: &str,
     ) -> Result<bool, RepositoryError> {
-        // テスト用の簡単な実装
-        Ok(false)
+        // データベースで文書番号の存在をチェック
+        let exists = sqlx::query_scalar::<_, bool>(
+            "SELECT EXISTS(SELECT 1 FROM documents WHERE number = ?)",
+        )
+        .bind(document_number)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(RepositoryError::Database)?;
+
+        Ok(exists)
     }
 
     async fn create_rule(
