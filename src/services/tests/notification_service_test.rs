@@ -1,4 +1,4 @@
-use super::super::notification_service::NotificationService;
+use super::super::notification_service::{NotificationConfig, NotificationService};
 use crate::batch::{BatchExecution, BatchStatus, BatchType};
 use chrono::Utc;
 use uuid::Uuid;
@@ -6,7 +6,10 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_notification_service_creation() {
     let service = NotificationService::new();
-    let config = service.get_notification_config().await.unwrap();
+    let config = service
+        .get_notification_config_test_wrapper()
+        .await
+        .unwrap();
 
     assert!(config.enabled);
     assert!(!config.channels.is_empty());
@@ -45,4 +48,11 @@ async fn test_security_alert() {
         .send_security_alert("Unauthorized Access", "Test security alert")
         .await;
     assert!(result.is_ok());
+}
+
+impl NotificationService {
+    /// 通知設定取得（テスト用ラッパー）
+    pub async fn get_notification_config_test_wrapper(&self) -> Result<NotificationConfig, String> {
+        self.get_notification_config().await
+    }
 }

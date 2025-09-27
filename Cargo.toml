@@ -28,7 +28,7 @@ chrono = { version = "0.4.41", features = ["serde"] }
 
 # Logging
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
 # Error handling
 thiserror = "2.0.15"
@@ -54,7 +54,7 @@ tokio-cron-scheduler = "0.14.0"
 flate2 = "1.0"
 
 # Configuration management
-config = "0.14.1"
+config = "0.15.17"
 
 # CLI argument parsing (for seeds binary)
 clap = { version = "4.5.20", features = ["derive"] }
