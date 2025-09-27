@@ -47,6 +47,7 @@
       "Bash(git add:*)",
       "Bash(git config:*)",
       "Bash(find:*)",
+      "Bash(findstr:*)",
       "Bash(grep:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
